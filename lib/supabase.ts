@@ -12,6 +12,7 @@ export type Case = {
   province: string;
   case_assessment: string;
   email: string | null;
+  outcome: string | null;
 };
 
 export type WaitlistEntry = {

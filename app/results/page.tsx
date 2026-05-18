@@ -221,13 +221,20 @@ function parseAssessment(text: string): Section[] {
   return sections;
 }
 
-function readAssessmentFromSession(): string {
+function readAssessmentFromSession(): {
+  assessment: string;
+  caseId: string | null;
+} {
   const stored = sessionStorage.getItem("ruled_assessment");
-  if (!stored) return "";
+  if (!stored) return { assessment: "", caseId: null };
   try {
-    return JSON.parse(stored).assessment ?? "";
+    const data = JSON.parse(stored);
+    return {
+      assessment: data.assessment ?? "",
+      caseId: data.caseId ?? null,
+    };
   } catch {
-    return "";
+    return { assessment: "", caseId: null };
   }
 }
 
@@ -242,8 +249,11 @@ export default function ResultsPage() {
   const [emailLoading, setEmailLoading] = useState(false);
   const [caseId, setCaseId] = useState<string | null>(null);
 
+  // caseId is stored for outcome tracking (/outcome?caseId=) and future 60-day follow-up via Resend.
   useEffect(() => {
-    setRawText(readAssessmentFromSession());
+    const { assessment, caseId: storedCaseId } = readAssessmentFromSession();
+    setRawText(assessment);
+    if (storedCaseId) setCaseId(storedCaseId);
     setMounted(true);
   }, []);
 

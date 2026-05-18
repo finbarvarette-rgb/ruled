@@ -63,18 +63,27 @@ export async function POST(req: NextRequest) {
     const assessment =
       message.content[0].type === "text" ? message.content[0].text : "";
 
-    // Save to Supabase (non-blocking — don't fail the request if this errors)
+    // Save to Supabase; return case id for outcome tracking and future follow-up emails.
+    // 60-day Resend scheduled email will be wired in the next session once Resend is configured.
+    let caseId: string | null = null;
     try {
-      await supabase.from("cases").insert({
-        intake_text: intake,
-        province,
-        case_assessment: assessment,
-      });
+      const { data, error: dbErr } = await supabase
+        .from("cases")
+        .insert({
+          intake_text: intake,
+          province,
+          case_assessment: assessment,
+        })
+        .select("id")
+        .single();
+
+      if (dbErr) console.error("Supabase insert error:", dbErr);
+      else caseId = data.id;
     } catch (dbErr) {
       console.error("Supabase insert error:", dbErr);
     }
 
-    return NextResponse.json({ assessment });
+    return NextResponse.json({ assessment, caseId });
   } catch (err) {
     console.error("Assessment error:", err);
     return NextResponse.json(
