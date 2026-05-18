@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { startCheckout } from "@/lib/checkout";
+import { readRuledSession, updateRuledSession } from "@/lib/session";
 
 const PROVINCES = [
   "Alberta",
@@ -85,7 +86,8 @@ export default function DemandPage() {
   async function handleFullPackCheckout() {
     setCheckoutLoading(true);
     try {
-      await startCheckout("full", caseId);
+      const session = readRuledSession();
+      await startCheckout("full", caseId, session.email);
     } catch {
       setError("Could not start checkout. Please try again.");
       setCheckoutLoading(false);
@@ -125,6 +127,7 @@ export default function DemandPage() {
 
       const data = await res.json();
       setLetter(data.letter);
+      updateRuledSession({ demandLetter: data.letter });
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {

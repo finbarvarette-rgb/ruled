@@ -325,6 +325,13 @@ export default function Home() {
             </div>
             <nav className="flex flex-col sm:flex-row gap-4 sm:gap-8 text-sm">
               <Link
+                href="/login"
+                className="hover:opacity-80"
+                style={{ color: "#9a9590" }}
+              >
+                Sign In
+              </Link>
+              <Link
                 href="/privacy"
                 className="hover:opacity-80"
                 style={{ color: "#9a9590" }}

@@ -270,7 +270,7 @@ export default function ResultsPage() {
     setCheckoutError("");
     setCheckoutLoading(tier);
     try {
-      await startCheckout(tier, caseId);
+      await startCheckout(tier, caseId, email || undefined);
     } catch {
       setCheckoutError("Could not start checkout. Please try again.");
       setCheckoutLoading(null);
@@ -301,6 +301,14 @@ export default function ResultsPage() {
             setCaseId(data.id);
           }
         }
+      }
+      const stored = sessionStorage.getItem("ruled_assessment");
+      if (stored) {
+        const data = JSON.parse(stored);
+        sessionStorage.setItem(
+          "ruled_assessment",
+          JSON.stringify({ ...data, email })
+        );
       }
       setEmailSent(true);
     } catch (err) {

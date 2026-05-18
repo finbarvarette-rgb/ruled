@@ -1,16 +1,27 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
-export default function SuccessPage() {
+function SuccessContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const tier = searchParams.get("tier");
+
   const [showMessage, setShowMessage] = useState(false);
 
   useEffect(() => {
+    if (tier === "full") {
+      router.replace("/full-case-pack");
+      return;
+    }
     const timer = setTimeout(() => setShowMessage(true), 3000);
     return () => clearTimeout(timer);
-  }, []);
+  }, [tier, router]);
+
+  if (tier === "full") {
+    return null;
+  }
 
   return (
     <main className="flex flex-col flex-1 min-h-screen px-6 py-16 md:py-24">
@@ -70,5 +81,13 @@ export default function SuccessPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function SuccessPage() {
+  return (
+    <Suspense fallback={null}>
+      <SuccessContent />
+    </Suspense>
   );
 }
