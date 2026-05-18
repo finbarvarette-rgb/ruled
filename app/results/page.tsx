@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { startCheckout } from "@/lib/checkout";
 
 const SECTION_HEADERS = [
   "CASE STRENGTH",
@@ -248,6 +249,10 @@ export default function ResultsPage() {
   const [emailSent, setEmailSent] = useState(false);
   const [emailLoading, setEmailLoading] = useState(false);
   const [caseId, setCaseId] = useState<string | null>(null);
+  const [checkoutLoading, setCheckoutLoading] = useState<
+    "demand" | "full" | null
+  >(null);
+  const [checkoutError, setCheckoutError] = useState("");
 
   // caseId is stored for outcome tracking (/outcome?caseId=) and future 60-day follow-up via Resend.
   useEffect(() => {
@@ -260,6 +265,17 @@ export default function ResultsPage() {
   useEffect(() => {
     if (mounted && !rawText) router.replace("/");
   }, [mounted, rawText, router]);
+
+  async function handleCheckout(tier: "demand" | "full") {
+    setCheckoutError("");
+    setCheckoutLoading(tier);
+    try {
+      await startCheckout(tier, caseId);
+    } catch {
+      setCheckoutError("Could not start checkout. Please try again.");
+      setCheckoutLoading(null);
+    }
+  }
 
   async function handleEmailSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -388,29 +404,48 @@ export default function ResultsPage() {
         </div>
 
         {/* CTAs */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          <button
-            type="button"
-            onClick={() => router.push("/demand")}
-            className="flex-1 rounded-xl px-6 py-4 text-sm font-semibold cursor-pointer"
-            style={{ background: "#c8392b", color: "#f5f1eb" }}
-            onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
-            onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-          >
-            Generate Demand Letter &mdash; $49
-          </button>
-          <button
-            className="flex-1 rounded-xl px-6 py-4 text-sm font-semibold cursor-pointer"
-            style={{
-              background: "#1a1916",
-              color: "#f5f1eb",
-              border: "1px solid #2a2825",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.borderColor = "#c8392b")}
-            onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#2a2825")}
-          >
-            Get Full Case Pack &mdash; $199
-          </button>
+        <div className="flex flex-col gap-3">
+          {checkoutError && (
+            <p className="text-sm" style={{ color: "#c8392b" }}>
+              {checkoutError}
+            </p>
+          )}
+          <div className="flex flex-col sm:flex-row gap-4">
+            <button
+              type="button"
+              disabled={checkoutLoading !== null}
+              onClick={() => handleCheckout("demand")}
+              className="flex-1 rounded-xl px-6 py-4 text-sm font-semibold cursor-pointer disabled:opacity-60"
+              style={{ background: "#c8392b", color: "#f5f1eb" }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+            >
+              {checkoutLoading === "demand"
+                ? "Redirecting…"
+                : "Generate Demand Letter — $49"}
+            </button>
+            <button
+              type="button"
+              disabled={checkoutLoading !== null}
+              onClick={() => handleCheckout("full")}
+              className="flex-1 rounded-xl px-6 py-4 text-sm font-semibold cursor-pointer disabled:opacity-60"
+              style={{
+                background: "#1a1916",
+                color: "#f5f1eb",
+                border: "1px solid #2a2825",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.borderColor = "#c8392b")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.borderColor = "#2a2825")
+              }
+            >
+              {checkoutLoading === "full"
+                ? "Redirecting…"
+                : "Get Full Case Pack — $199"}
+            </button>
+          </div>
         </div>
 
         {/* Disclaimer */}

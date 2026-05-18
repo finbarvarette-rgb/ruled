@@ -34,6 +34,8 @@ export type Case = {
   case_assessment: string;
   email: string | null;
   outcome: string | null;
+  paid: boolean;
+  tier_purchased: string | null;
 };
 
 export type WaitlistEntry = {

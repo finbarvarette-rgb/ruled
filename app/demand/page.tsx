@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { startCheckout } from "@/lib/checkout";
 
 const PROVINCES = [
   "Alberta",
@@ -33,18 +34,21 @@ function blurInput(e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) {
 function readAssessmentFromSession(): {
   assessment: string;
   province: string;
+  caseId: string | null;
 } {
-  if (typeof window === "undefined") return { assessment: "", province: "" };
+  if (typeof window === "undefined")
+    return { assessment: "", province: "", caseId: null };
   try {
     const stored = sessionStorage.getItem("ruled_assessment");
-    if (!stored) return { assessment: "", province: "" };
+    if (!stored) return { assessment: "", province: "", caseId: null };
     const data = JSON.parse(stored);
     return {
       assessment: data.assessment ?? "",
       province: data.province ?? "",
+      caseId: data.caseId ?? null,
     };
   } catch {
-    return { assessment: "", province: "" };
+    return { assessment: "", province: "", caseId: null };
   }
 }
 
@@ -66,14 +70,27 @@ export default function DemandPage() {
   const [error, setError] = useState("");
   const [letter, setLetter] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [caseId, setCaseId] = useState<string | null>(null);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
 
   useEffect(() => {
-    const { assessment, province: storedProvince } =
+    const { assessment, province: storedProvince, caseId: storedCaseId } =
       readAssessmentFromSession();
     setCaseAssessment(assessment);
     if (storedProvince) setProvince(storedProvince);
+    if (storedCaseId) setCaseId(storedCaseId);
     setMounted(true);
   }, []);
+
+  async function handleFullPackCheckout() {
+    setCheckoutLoading(true);
+    try {
+      await startCheckout("full", caseId);
+    } catch {
+      setError("Could not start checkout. Please try again.");
+      setCheckoutLoading(false);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -330,8 +347,9 @@ export default function DemandPage() {
               </button>
               <button
                 type="button"
-                onClick={() => router.push("/waitlist")}
-                className="flex-1 rounded-xl px-6 py-4 text-sm font-semibold cursor-pointer"
+                disabled={checkoutLoading}
+                onClick={handleFullPackCheckout}
+                className="flex-1 rounded-xl px-6 py-4 text-sm font-semibold cursor-pointer disabled:opacity-60"
                 style={{
                   background: "#1a1916",
                   color: "#f5f1eb",
@@ -344,7 +362,9 @@ export default function DemandPage() {
                   e.currentTarget.style.borderColor = "#2a2825";
                 }}
               >
-                Get Full Case Pack &mdash; $199
+                {checkoutLoading
+                  ? "Redirecting…"
+                  : "Get Full Case Pack — $199"}
               </button>
             </div>
 
