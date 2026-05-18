@@ -42,9 +42,69 @@ function InlineText({ text }: { text: string }) {
   );
 }
 
+// Line is only # characters (optional whitespace between hashes) — delete entirely
+function isHashOnlyLine(line: string): boolean {
+  const t = line.trim();
+  if (!t.includes("#")) return false;
+  return /^[\s#]+$/.test(t);
+}
+
+function isHorizontalRule(line: string): boolean {
+  return /^[-*_]{3,}\s*$/.test(line.trim());
+}
+
+function normalizeNewlines(text: string): string {
+  return text.replace(/\r\n/g, "\n");
+}
+
+// Remove hash-only / horizontal-rule lines (safe on full assessment text)
+function stripHashAndRuleLines(text: string): string {
+  return normalizeNewlines(text)
+    .split("\n")
+    .filter((line) => {
+      const trimmed = line.trim();
+      if (!trimmed) return true;
+      if (/^[#\s]+$/.test(trimmed)) return false;
+      if (/^[-*_]{3,}\s*$/.test(trimmed)) return false;
+      return true;
+    })
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+// Remove markdown duplicate titles from a section body (after splitting)
+function stripDuplicateSectionHeaderLines(text: string): string {
+  return text
+    .split("\n")
+    .filter((line) => {
+      const trimmed = line.trim();
+      if (!trimmed) return true;
+      if (isHashOnlyLine(trimmed) || isHorizontalRule(trimmed)) return false;
+      const md = trimmed.match(/^#{1,6}\s+(.+)$/);
+      if (md && SECTION_HEADERS.includes(md[1].trim().toUpperCase())) {
+        return false;
+      }
+      return true;
+    })
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function sanitizeSectionContent(text: string): string {
+  return stripDuplicateSectionHeaderLines(stripHashAndRuleLines(text));
+}
+
+// "- • item" or "• item" → "item"
+function parseBulletLine(line: string): string | null {
+  const match = line.trim().match(/^(?:\s*[-*•]\s*)+(.+)$/);
+  return match ? match[1].trim() : null;
+}
+
 // Block markdown: headings, bullets, paragraphs
 function MarkdownBlock({ content }: { content: string }) {
-  const lines = content.split("\n");
+  const lines = sanitizeSectionContent(content).split("\n");
   const elements: React.ReactNode[] = [];
   const pendingList: string[] = [];
   let k = 0;
@@ -52,15 +112,14 @@ function MarkdownBlock({ content }: { content: string }) {
   function flushList() {
     if (pendingList.length === 0) return;
     elements.push(
-      <ul key={k++} className="flex flex-col gap-1.5">
+      <ul
+        key={k++}
+        className="list-disc pl-5 flex flex-col gap-1.5 marker:text-[#c8392b]"
+        style={{ color: "#d4cfc9" }}
+      >
         {pendingList.map((item, i) => (
-          <li key={i} className="flex gap-2 items-start">
-            <span className="mt-1 shrink-0 text-xs" style={{ color: "#c8392b" }}>
-              &bull;
-            </span>
-            <span className="leading-relaxed" style={{ color: "#d4cfc9" }}>
-              <InlineText text={item} />
-            </span>
+          <li key={i} className="leading-relaxed pl-0.5">
+            <InlineText text={item} />
           </li>
         ))}
       </ul>
@@ -71,6 +130,7 @@ function MarkdownBlock({ content }: { content: string }) {
   for (const line of lines) {
     const trimmed = line.trim();
     if (!trimmed) { flushList(); continue; }
+    if (isHashOnlyLine(trimmed) || isHorizontalRule(trimmed)) continue;
 
     const headingMatch = trimmed.match(/^(#{1,4})\s+(.+)$/);
     if (headingMatch) {
@@ -89,8 +149,11 @@ function MarkdownBlock({ content }: { content: string }) {
       continue;
     }
 
-    const bulletMatch = trimmed.match(/^[-*•]\s+(.+)$/);
-    if (bulletMatch) { pendingList.push(bulletMatch[1]); continue; }
+    const bulletText = parseBulletLine(trimmed);
+    if (bulletText) {
+      pendingList.push(bulletText);
+      continue;
+    }
 
     flushList();
     elements.push(
@@ -104,23 +167,56 @@ function MarkdownBlock({ content }: { content: string }) {
   return <div className="flex flex-col gap-2">{elements}</div>;
 }
 
+function findSectionHeader(
+  text: string,
+  header: string,
+  fromIndex: number
+): { headerStart: number; contentStart: number } | null {
+  const escaped = header.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const re = new RegExp(
+    `(?:^|\\n)\\s*(?:#{1,6}\\s+)?(${escaped})\\s*(?:\\n|$)`,
+    "i"
+  );
+  const slice = text.slice(fromIndex);
+  const match = slice.match(re);
+  if (!match || match.index === undefined) return null;
+  const headerStart =
+    fromIndex + match.index + match[0].indexOf(match[1]);
+  const contentStart = headerStart + match[1].length;
+  return { headerStart, contentStart };
+}
+
 function parseAssessment(text: string): Section[] {
   if (!text) return [];
+  const cleaned = stripHashAndRuleLines(text);
   const sections: Section[] = [];
+  let searchFrom = 0;
+
   for (let i = 0; i < SECTION_HEADERS.length; i++) {
     const header = SECTION_HEADERS[i];
     const nextHeader = SECTION_HEADERS[i + 1];
-    const startIdx = text.indexOf(header);
-    if (startIdx === -1) continue;
-    const contentStart = startIdx + header.length;
-    const contentEnd = nextHeader ? text.indexOf(nextHeader) : text.length;
-    const content = text
-      .slice(contentStart, contentEnd === -1 ? text.length : contentEnd)
-      .trim();
-    sections.push({ header, content });
+    const found = findSectionHeader(cleaned, header, searchFrom);
+    if (!found) continue;
+
+    const { contentStart } = found;
+    let contentEnd = cleaned.length;
+    if (nextHeader) {
+      const next = findSectionHeader(cleaned, nextHeader, contentStart);
+      if (next) contentEnd = next.headerStart;
+    }
+
+    const content = sanitizeSectionContent(
+      cleaned.slice(contentStart, contentEnd === -1 ? cleaned.length : contentEnd)
+    );
+    if (content) sections.push({ header, content });
+    searchFrom = contentEnd;
   }
+
   if (sections.length === 0) {
-    sections.push({ header: "Assessment", content: text });
+    sections.push({
+      header: "Assessment",
+      content: sanitizeSectionContent(cleaned),
+    });
   }
   return sections;
 }
@@ -284,6 +380,8 @@ export default function ResultsPage() {
         {/* CTAs */}
         <div className="flex flex-col sm:flex-row gap-4">
           <button
+            type="button"
+            onClick={() => router.push("/demand")}
             className="flex-1 rounded-xl px-6 py-4 text-sm font-semibold cursor-pointer"
             style={{ background: "#c8392b", color: "#f5f1eb" }}
             onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}

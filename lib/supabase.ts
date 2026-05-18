@@ -13,3 +13,9 @@ export type Case = {
   case_assessment: string;
   email: string | null;
 };
+
+export type WaitlistEntry = {
+  id: string;
+  created_at: string;
+  email: string;
+};
