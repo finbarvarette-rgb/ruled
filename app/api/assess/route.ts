@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
-import { supabase } from "@/lib/supabase";
-
-const client = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+import { getSupabase } from "@/lib/supabase";
 
 const SYSTEM_PROMPT = `You are a Canadian small claims court specialist with deep knowledge of provincial small claims procedures, contract law, and evidence rules. Your job is to assess a claimant's case and produce a structured, plain-English case assessment. You are not a lawyer and do not provide legal advice — you provide legal information and procedural guidance only.
 
@@ -36,6 +32,14 @@ Confirm which province's rules apply, the small claims filing limit, and the app
 
 Write like a knowledgeable friend, not a lawyer billing by the hour. Be direct and honest.`;
 
+function getAnthropicClient() {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    throw new Error("Missing ANTHROPIC_API_KEY");
+  }
+  return new Anthropic({ apiKey });
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -48,7 +52,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const message = await client.messages.create({
+    const message = await getAnthropicClient().messages.create({
       model: "claude-sonnet-4-5",
       max_tokens: 2048,
       system: SYSTEM_PROMPT,
@@ -60,14 +64,15 @@ export async function POST(req: NextRequest) {
       ],
     });
 
+    const firstBlock = message.content[0];
     const assessment =
-      message.content[0].type === "text" ? message.content[0].text : "";
+      firstBlock?.type === "text" ? firstBlock.text : "";
 
     // Save to Supabase; return case id for outcome tracking and future follow-up emails.
     // 60-day Resend scheduled email will be wired in the next session once Resend is configured.
     let caseId: string | null = null;
     try {
-      const { data, error: dbErr } = await supabase
+      const { data, error: dbErr } = await getSupabase()
         .from("cases")
         .insert({
           intake_text: intake,
@@ -78,7 +83,7 @@ export async function POST(req: NextRequest) {
         .single();
 
       if (dbErr) console.error("Supabase insert error:", dbErr);
-      else caseId = data.id;
+      else if (data) caseId = data.id;
     } catch (dbErr) {
       console.error("Supabase insert error:", dbErr);
     }
