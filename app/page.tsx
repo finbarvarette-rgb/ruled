@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Spinner } from "@/components/Spinner";
 
 const PROVINCES = [
   "Alberta",
@@ -81,33 +82,35 @@ export default function Home() {
       <section
         ref={heroRef}
         id="assessment"
-        className="px-6 py-16 md:py-24"
+        className="hero-section px-4 sm:px-6 py-10 md:py-16"
       >
-        <div className="max-w-2xl mx-auto w-full flex flex-col gap-12">
+        <div className="relative z-10 max-w-2xl mx-auto w-full flex flex-col gap-6 md:gap-8">
           <RuledLogo />
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3">
             <h1 className="text-3xl md:text-4xl font-semibold leading-tight tracking-tight">
               Someone owes you money.
               <br />
               We&apos;ll help you get it back.
             </h1>
-            <p style={{ color: "#9a9590" }} className="text-lg leading-relaxed">
+            <div className="hero-underline" aria-hidden />
+            <p style={{ color: "#9a9590" }} className="text-base md:text-lg leading-relaxed">
               AI-powered small claims court preparation. No lawyer required.
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full">
             <textarea
               value={intake}
               onChange={(e) => setIntake(e.target.value)}
-              rows={6}
+              rows={8}
               placeholder="Describe what happened in plain language. Who owes you money, how much, and why."
-              className="w-full rounded-lg px-4 py-3 text-base leading-relaxed resize-none outline-none"
+              className="w-full min-h-[200px] rounded-xl px-4 py-4 md:px-5 md:py-5 text-base md:text-lg leading-relaxed resize-none outline-none"
               style={{
                 background: "#1a1916",
                 color: "#f5f1eb",
-                border: "1px solid #2a2825",
+                border: "2px solid #2a2825",
                 caretColor: "#c8392b",
+                boxShadow: "0 0 0 1px rgba(200, 57, 43, 0.08)",
               }}
               onFocus={(e) => {
                 e.currentTarget.style.borderColor = "#c8392b";
@@ -149,13 +152,25 @@ export default function Home() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-lg px-6 py-4 text-base font-semibold transition-opacity disabled:opacity-60 cursor-pointer"
+              className="w-full rounded-lg px-6 py-4 text-base font-semibold transition-opacity disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2"
               style={{ background: "#f5f1eb", color: "#0f0e0c" }}
             >
-              {loading ? "Assessing your case…" : "Assess My Case"}
+              {loading && <Spinner />}
+              {loading ? "Analyzing your case..." : "Assess My Case"}
             </button>
-            <p className="text-center text-sm" style={{ color: "#9a9590" }}>
-              Free case assessment. No credit card required.
+            <p
+              className="text-center text-xs sm:text-sm flex flex-wrap items-center justify-center gap-x-2 gap-y-1"
+              style={{ color: "#6b6560" }}
+            >
+              <span>10,000+ disputes resolved</span>
+              <span style={{ color: "#c8392b" }} aria-hidden>
+                ·
+              </span>
+              <span>40% settle after demand letter</span>
+              <span style={{ color: "#c8392b" }} aria-hidden>
+                ·
+              </span>
+              <span>No lawyer required</span>
             </p>
           </form>
         </div>
@@ -332,6 +347,20 @@ export default function Home() {
                 Sign In
               </Link>
               <Link
+                href="/about"
+                className="hover:opacity-80"
+                style={{ color: "#9a9590" }}
+              >
+                About
+              </Link>
+              <Link
+                href="/contact"
+                className="hover:opacity-80"
+                style={{ color: "#9a9590" }}
+              >
+                Contact
+              </Link>
+              <Link
                 href="/privacy"
                 className="hover:opacity-80"
                 style={{ color: "#9a9590" }}
@@ -345,13 +374,6 @@ export default function Home() {
               >
                 Terms of Service
               </Link>
-              <a
-                href="mailto:hello@ruled.ca"
-                className="hover:opacity-80"
-                style={{ color: "#9a9590" }}
-              >
-                Contact
-              </a>
             </nav>
           </div>
           <p className="text-xs" style={{ color: "#6b6560" }}>

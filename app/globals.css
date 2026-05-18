@@ -22,4 +22,47 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+}
+
+@keyframes hero-underline-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scaleX(0.92);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+.hero-section {
+  position: relative;
+  background:
+    radial-gradient(ellipse 90% 70% at 50% -10%, rgba(200, 57, 43, 0.14), transparent 65%),
+    radial-gradient(circle at 0% 50%, rgba(200, 57, 43, 0.06), transparent 45%),
+    #0f0e0c;
+}
+
+.hero-section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    -12deg,
+    transparent,
+    transparent 48px,
+    rgba(200, 57, 43, 0.025) 48px,
+    rgba(200, 57, 43, 0.025) 49px
+  );
+  pointer-events: none;
+}
+
+.hero-underline {
+  height: 3px;
+  width: 7rem;
+  background: #c8392b;
+  border-radius: 2px;
+  animation: hero-underline-pulse 2.5s ease-in-out infinite;
 }

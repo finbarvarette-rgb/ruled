@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { startCheckout } from "@/lib/checkout";
 import { readRuledSession, updateRuledSession } from "@/lib/session";
+import { Spinner } from "@/components/Spinner";
 
 const PROVINCES = [
   "Alberta",
@@ -149,8 +150,8 @@ export default function DemandPage() {
   if (!mounted) return null;
 
   return (
-    <main className="flex flex-col flex-1 min-h-screen px-6 py-16 md:py-24">
-      <div className="max-w-2xl mx-auto w-full flex flex-col gap-10">
+    <main className="flex flex-col flex-1 min-h-screen px-4 sm:px-6 py-12 md:py-16 overflow-x-hidden">
+      <div className="max-w-2xl mx-auto w-full flex flex-col gap-8 md:gap-10 min-w-0">
         <div className="flex items-center justify-between">
           <button
             type="button"
@@ -304,7 +305,7 @@ export default function DemandPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-lg px-6 py-4 text-sm font-semibold transition-opacity disabled:opacity-60 cursor-pointer mt-2"
+              className="w-full rounded-lg px-6 py-4 text-sm font-semibold transition-opacity disabled:opacity-60 cursor-pointer mt-2 flex items-center justify-center gap-2"
               style={{ background: "#c8392b", color: "#f5f1eb" }}
               onMouseEnter={(e) => {
                 if (!loading) e.currentTarget.style.opacity = "0.85";
@@ -313,7 +314,8 @@ export default function DemandPage() {
                 e.currentTarget.style.opacity = "1";
               }}
             >
-              {loading ? "Generating…" : "Generate My Demand Letter"}
+              {loading && <Spinner />}
+              {loading ? "Drafting your letter..." : "Generate My Demand Letter"}
             </button>
           </form>
         ) : (

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { startCheckout } from "@/lib/checkout";
+import { Spinner } from "@/components/Spinner";
 
 const SECTION_HEADERS = [
   "CASE STRENGTH",
@@ -253,6 +254,7 @@ export default function ResultsPage() {
     "demand" | "full" | null
   >(null);
   const [checkoutError, setCheckoutError] = useState("");
+  const [emailError, setEmailError] = useState("");
 
   // caseId is stored for outcome tracking (/outcome?caseId=) and future 60-day follow-up via Resend.
   useEffect(() => {
@@ -280,6 +282,7 @@ export default function ResultsPage() {
   async function handleEmailSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!email) return;
+    setEmailError("");
     setEmailLoading(true);
     try {
       if (caseId) {
@@ -310,10 +313,18 @@ export default function ResultsPage() {
           JSON.stringify({ ...data, email })
         );
       }
+      const emailRes = await fetch("/api/email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, assessment: rawText }),
+      });
+      if (!emailRes.ok) {
+        throw new Error("Email delivery failed");
+      }
       setEmailSent(true);
     } catch (err) {
       console.error("Email save error:", err);
-      setEmailSent(true);
+      setEmailError("Could not send email. Please try again.");
     } finally {
       setEmailLoading(false);
     }
@@ -322,8 +333,8 @@ export default function ResultsPage() {
   if (!mounted || !rawText) return null;
 
   return (
-    <main className="flex flex-col flex-1 min-h-screen px-6 py-16 md:py-24">
-      <div className="max-w-2xl mx-auto w-full flex flex-col gap-10">
+    <main className="flex flex-col flex-1 min-h-screen px-4 sm:px-6 py-12 md:py-16 overflow-x-hidden">
+      <div className="max-w-2xl mx-auto w-full flex flex-col gap-8 md:gap-10 min-w-0">
 
         {/* Nav */}
         <div className="flex items-center justify-between">
@@ -353,7 +364,7 @@ export default function ResultsPage() {
           {sections.map((section) => (
             <div
               key={section.header}
-              className="rounded-xl px-6 py-5 flex flex-col gap-3"
+              className="rounded-xl px-4 sm:px-6 py-5 flex flex-col gap-3 min-w-0"
               style={{ background: "#1a1916", border: "1px solid #2a2825" }}
             >
               <h2
@@ -383,7 +394,16 @@ export default function ResultsPage() {
               Saved. Check your inbox shortly.
             </p>
           ) : (
-            <form onSubmit={handleEmailSubmit} className="flex gap-3">
+            <>
+              {emailError && (
+                <p className="text-sm" style={{ color: "#c8392b" }}>
+                  {emailError}
+                </p>
+              )}
+              <form
+                onSubmit={handleEmailSubmit}
+                className="flex flex-col sm:flex-row gap-3"
+              >
               <input
                 type="email"
                 value={email}
@@ -402,12 +422,14 @@ export default function ResultsPage() {
               <button
                 type="submit"
                 disabled={emailLoading}
-                className="rounded-lg px-4 py-3 text-sm font-semibold transition-opacity disabled:opacity-60 cursor-pointer whitespace-nowrap"
+                className="rounded-lg px-4 py-3 text-sm font-semibold transition-opacity disabled:opacity-60 cursor-pointer whitespace-nowrap flex items-center justify-center gap-2 sm:shrink-0"
                 style={{ background: "#f5f1eb", color: "#0f0e0c" }}
               >
+                {emailLoading && <Spinner className="w-4 h-4" />}
                 {emailLoading ? "Sending..." : "Send to my email"}
               </button>
             </form>
+            </>
           )}
         </div>
 

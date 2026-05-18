@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { readRuledSession } from "@/lib/session";
+import { Spinner } from "@/components/Spinner";
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
 
@@ -122,8 +123,8 @@ export default function FullCasePackPage() {
   if (!mounted) return null;
 
   return (
-    <main className="flex flex-col flex-1 min-h-screen px-6 py-12 md:py-16">
-      <div className="max-w-2xl mx-auto w-full flex flex-col gap-8">
+    <main className="flex flex-col flex-1 min-h-screen px-4 sm:px-6 py-12 md:py-16 overflow-x-hidden">
+      <div className="max-w-2xl mx-auto w-full flex flex-col gap-8 min-w-0">
         <div className="flex flex-col gap-2">
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
             Your Full Case Pack
@@ -235,10 +236,11 @@ export default function FullCasePackPage() {
               <button
                 type="submit"
                 disabled={chatLoading}
-                className="rounded-lg px-4 py-3 text-sm font-semibold disabled:opacity-60 cursor-pointer"
+                className="rounded-lg px-4 py-3 text-sm font-semibold disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2 shrink-0"
                 style={{ background: "#c8392b", color: "#f5f1eb" }}
               >
-                Ask
+                {chatLoading && <Spinner />}
+                {chatLoading ? "…" : "Ask"}
               </button>
             </form>
           </div>

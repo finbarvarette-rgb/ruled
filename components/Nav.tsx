@@ -20,7 +20,7 @@ export function Nav() {
         <nav className="flex items-center gap-4 sm:gap-6">
           <Link
             href="/login"
-            className="text-sm transition-opacity hover:opacity-80"
+            className="hidden sm:inline text-sm transition-opacity hover:opacity-80"
             style={{ color: "#9a9590" }}
           >
             Sign In
