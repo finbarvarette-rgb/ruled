@@ -8,7 +8,7 @@ function RuledLogo({ size = "lg" }: { size?: "lg" | "sm" }) {
       className={`${textSize} font-bold tracking-tight`}
       style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
     >
-      Ruled<span style={{ color: "#c8392b" }}>.</span>
+      ruled<span style={{ color: "#c8392b" }}>.ca</span>
     </span>
   );
 }
@@ -238,7 +238,7 @@ export default function Home() {
             </nav>
           </div>
           <p className="text-xs" style={{ color: "#6b6560" }}>
-            &copy; 2026 Ruled.ca. Ruled provides legal information, not legal
+            &copy; 2026 ruled.ca. Ruled provides legal information, not legal
             advice. Not a law firm.
           </p>
         </div>

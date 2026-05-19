@@ -27,9 +27,11 @@ function OnboardingContent() {
   const [intake, setIntake] = useState("");
   const [province, setProvince] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [sent, setSent] = useState(false);
+  const [needsVerification, setNeedsVerification] = useState(false);
 
   useEffect(() => {
     if (step === 2) {
@@ -61,24 +63,52 @@ function OnboardingContent() {
     router.push("/onboarding?step=2");
   }
 
-  async function sendMagicLink() {
+  async function handleStep2Submit(e: React.FormEvent) {
+    e.preventDefault();
     setError("");
+
+    if (!email.trim()) {
+      setError("Please enter your email address.");
+      return;
+    }
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: email.trim(),
+          password,
           next: "/processing",
         }),
       });
-      const data = (await res.json()) as { error?: string };
+      const data = (await res.json()) as {
+        success?: boolean;
+        needsVerification?: boolean;
+        error?: string;
+      };
+
       if (!res.ok) {
-        throw new Error(data.error ?? "Failed to send magic link");
+        throw new Error(data.error ?? "Failed to create account");
       }
+
       sessionStorage.setItem(ONBOARDING_EMAIL_KEY, email.trim());
-      setSent(true);
+
+      if (data.needsVerification) {
+        setNeedsVerification(true);
+      } else {
+        // Immediate session — proceed to processing
+        router.push("/processing");
+      }
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Something went wrong. Please try again."
@@ -88,20 +118,40 @@ function OnboardingContent() {
     }
   }
 
-  async function handleStep2Submit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!email.trim()) return;
-    await sendMagicLink();
+  if (needsVerification) {
+    return (
+      <main className="flex flex-col flex-1 min-h-screen px-4 sm:px-6 py-12 md:py-16">
+        <div className="max-w-xl mx-auto w-full flex flex-col gap-8">
+          <div className="flex flex-col gap-3">
+            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
+              Check your inbox
+            </h1>
+            <p className="text-sm leading-relaxed" style={{ color: "#9a9590" }}>
+              We sent a verification link to{" "}
+              <span style={{ color: "#f5f1eb" }}>{email}</span>. Click it to
+              verify your account and see your case assessment.
+            </p>
+            <p className="text-sm leading-relaxed" style={{ color: "#9a9590" }}>
+              Your case details have been saved — they will be waiting when you
+              come back.
+            </p>
+          </div>
+          <Link
+            href="/login"
+            className="text-sm w-fit"
+            style={{ color: "#c8392b" }}
+          >
+            Already verified? Sign in &rarr;
+          </Link>
+        </div>
+      </main>
+    );
   }
 
   return (
     <main className="flex flex-col flex-1 min-h-screen px-4 sm:px-6 py-12 md:py-16">
       <div className="max-w-xl mx-auto w-full flex flex-col gap-8">
-        <Link
-          href="/"
-          className="text-sm w-fit"
-          style={{ color: "#9a9590" }}
-        >
+        <Link href="/" className="text-sm w-fit" style={{ color: "#9a9590" }}>
           &larr; Back to home
         </Link>
 
@@ -114,8 +164,8 @@ function OnboardingContent() {
                 Tell us what happened.
               </h1>
               <p className="text-sm leading-relaxed" style={{ color: "#9a9590" }}>
-                Describe your situation in plain language. Who owes you money, how
-                much, and why.
+                Describe your situation in plain language. Who owes you money,
+                how much, and why.
               </p>
             </div>
 
@@ -127,22 +177,15 @@ function OnboardingContent() {
                 placeholder="Example: My contractor took a $5,000 deposit, did half the work, and stopped responding..."
                 className="w-full rounded-xl px-4 py-4 text-sm leading-relaxed resize-none outline-none"
                 style={inputStyle}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = "#c8392b";
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = "#2a2825";
-                }}
+                onFocus={(e) => (e.currentTarget.style.borderColor = "#c8392b")}
+                onBlur={(e) => (e.currentTarget.style.borderColor = "#2a2825")}
               />
               <select
                 required
                 value={province}
                 onChange={(e) => setProvince(e.target.value)}
                 className="w-full rounded-lg px-4 py-3 text-sm outline-none appearance-none cursor-pointer"
-                style={{
-                  ...inputStyle,
-                  color: province ? "#f5f1eb" : "#9a9590",
-                }}
+                style={{ ...inputStyle, color: province ? "#f5f1eb" : "#9a9590" }}
               >
                 <option value="" disabled>
                   Select your province
@@ -167,30 +210,6 @@ function OnboardingContent() {
               </button>
             </form>
           </>
-        ) : sent ? (
-          <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-2">
-              <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
-                Check your inbox
-              </h1>
-              <p className="text-sm leading-relaxed" style={{ color: "#9a9590" }}>
-                Click the magic link to see your free case assessment.
-              </p>
-            </div>
-            <p className="text-sm" style={{ color: "#d4cfc9" }}>
-              Check your inbox. Click the magic link to see your free case
-              assessment.
-            </p>
-            <button
-              type="button"
-              disabled={loading}
-              onClick={sendMagicLink}
-              className="text-sm font-medium cursor-pointer disabled:opacity-60 w-fit"
-              style={{ color: "#c8392b" }}
-            >
-              {loading ? "Sending…" : "Resend magic link"}
-            </button>
-          </div>
         ) : (
           <>
             <div className="flex flex-col gap-2">
@@ -198,7 +217,7 @@ function OnboardingContent() {
                 Create your free account.
               </h1>
               <p className="text-sm leading-relaxed" style={{ color: "#9a9590" }}>
-                Save your assessment and track your case outcome.
+                Save your assessment and track your case.
               </p>
             </div>
 
@@ -208,15 +227,33 @@ function OnboardingContent() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
+                placeholder="Email address"
                 className="w-full rounded-lg px-4 py-3 text-sm outline-none"
                 style={inputStyle}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = "#c8392b";
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = "#2a2825";
-                }}
+                onFocus={(e) => (e.currentTarget.style.borderColor = "#c8392b")}
+                onBlur={(e) => (e.currentTarget.style.borderColor = "#2a2825")}
+              />
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password (min. 8 characters)"
+                className="w-full rounded-lg px-4 py-3 text-sm outline-none"
+                style={inputStyle}
+                onFocus={(e) => (e.currentTarget.style.borderColor = "#c8392b")}
+                onBlur={(e) => (e.currentTarget.style.borderColor = "#2a2825")}
+              />
+              <input
+                type="password"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirm password"
+                className="w-full rounded-lg px-4 py-3 text-sm outline-none"
+                style={inputStyle}
+                onFocus={(e) => (e.currentTarget.style.borderColor = "#c8392b")}
+                onBlur={(e) => (e.currentTarget.style.borderColor = "#2a2825")}
               />
               {error && (
                 <p className="text-sm" style={{ color: "#c8392b" }}>
@@ -230,7 +267,7 @@ function OnboardingContent() {
                 style={{ background: "#c8392b", color: "#f5f1eb" }}
               >
                 {loading && <Spinner />}
-                {loading ? "Sending…" : "Send My Magic Link"}
+                {loading ? "Creating account…" : "Create Account & Get Assessment"}
               </button>
             </form>
 

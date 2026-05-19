@@ -87,7 +87,7 @@ function SuccessContent() {
           className="text-3xl font-bold tracking-tight"
           style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
         >
-          Ruled<span style={{ color: "#c8392b" }}>.</span>
+          ruled<span style={{ color: "#c8392b" }}>.ca</span>
         </span>
         <h1 className="text-2xl font-semibold">Payment confirmed</h1>
         <p className="text-sm" style={{ color: "#9a9590" }}>

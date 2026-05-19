@@ -38,6 +38,8 @@ export type Case = {
   tier_purchased: string | null;
   user_id: string | null;
   demand_letter: string | null;
+  court_docs: string | null;
+  hearing_prep: string | null;
 };
 
 export type WaitlistEntry = {

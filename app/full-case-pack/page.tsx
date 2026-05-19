@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { readRuledSession, updateRuledSession } from "@/lib/session";
 import { downloadTextFile } from "@/lib/download";
 import { Spinner } from "@/components/Spinner";
+import { supabase } from "@/lib/supabase";
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
 
@@ -43,6 +44,12 @@ export default function FullCasePackPage() {
     setSession(s);
     setDemandLetter(s.demandLetter);
     setMounted(true);
+    // Auto-load sections 2 and 3 in background
+    setTimeout(() => {
+      loadCourtDocs();
+      loadHearingPrep();
+    }, 100);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 
   async function generateDemandLetter() {
@@ -89,6 +96,10 @@ export default function FullCasePackPage() {
       if (!res.ok) throw new Error("Failed");
       const data = await res.json();
       setCourtDocs(data.content);
+      // Persist to database
+      if (session.caseId && data.content) {
+        supabase.from("cases").update({ court_docs: data.content }).eq("id", session.caseId).then(() => {});
+      }
     } catch {
       setCourtDocs("Unable to load. Please try again.");
     } finally {
@@ -111,6 +122,10 @@ export default function FullCasePackPage() {
       if (!res.ok) throw new Error("Failed");
       const data = await res.json();
       setHearingPrep(data.content);
+      // Persist to database
+      if (session.caseId && data.content) {
+        supabase.from("cases").update({ hearing_prep: data.content }).eq("id", session.caseId).then(() => {});
+      }
     } catch {
       setHearingPrep("Unable to load. Please try again.");
     } finally {
@@ -176,7 +191,25 @@ export default function FullCasePackPage() {
           </p>
         </div>
 
-        <ExpandableCard
+        {/* Download All */}
+        {(demandLetter || courtDocs || hearingPrep) && (
+          <button
+            type="button"
+            onClick={() => {
+              const parts: string[] = [];
+              if (demandLetter) parts.push("=== DEMAND LETTER ===\n\n" + demandLetter);
+              if (courtDocs) parts.push("=== COURT FILING GUIDE ===\n\n" + courtDocs);
+              if (hearingPrep) parts.push("=== HEARING PREPARATION ===\n\n" + hearingPrep);
+              downloadTextFile("ruled-full-case-pack.txt", parts.join("\n\n" + "=".repeat(40) + "\n\n"));
+            }}
+            className="self-end rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer"
+            style={{ background: "#1a1916", color: "#f5f1eb", border: "1px solid #2a2825" }}
+          >
+            Download All
+          </button>
+        )}
+
+                <ExpandableCard
           number={1}
           title="Demand Letter"
           open={openSection === 1}

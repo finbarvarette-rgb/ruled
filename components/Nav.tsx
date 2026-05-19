@@ -3,24 +3,21 @@ import Link from "next/link";
 export function Nav() {
   return (
     <header
-      className="sticky top-0 z-50 w-full border-b px-6 py-4"
-      style={{
-        background: "#0f0e0c",
-        borderColor: "#2a2825",
-      }}
+      className="sticky top-0 z-50 w-full border-b px-4 sm:px-6 py-4"
+      style={{ background: "#0f0e0c", borderColor: "#2a2825" }}
     >
       <div className="max-w-5xl mx-auto flex items-center justify-between">
         <Link
           href="/"
-          className="text-xl font-bold tracking-tight"
-          style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+          className="text-xl font-bold tracking-tight shrink-0"
+          style={{ fontFamily: "Georgia, \'Times New Roman\', serif" }}
         >
-          Ruled<span style={{ color: "#c8392b" }}>.</span>
+          ruled<span style={{ color: "#c8392b" }}>.ca</span>
         </Link>
-        <nav className="flex items-center gap-4 sm:gap-6">
+        <nav className="flex items-center gap-4 sm:gap-6 ml-auto">
           <Link
             href="/login"
-            className="hidden sm:inline text-sm transition-opacity hover:opacity-80"
+            className="text-sm transition-opacity hover:opacity-80"
             style={{ color: "#9a9590" }}
           >
             Sign In

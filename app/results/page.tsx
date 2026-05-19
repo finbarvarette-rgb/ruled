@@ -391,7 +391,7 @@ export default function ResultsPage() {
             className="text-xl font-bold tracking-tight"
             style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
           >
-            Ruled<span style={{ color: "#c8392b" }}>.</span>
+            ruled<span style={{ color: "#c8392b" }}>.ca</span>
           </span>
         </div>
 

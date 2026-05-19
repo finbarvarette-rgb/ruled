@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { getSupabase } from "@/lib/supabase";
 import { FORMATTING_RULE, sanitizeText } from "@/lib/prompts";
+import { createClient } from "@/lib/supabase/server";
 
 const SYSTEM_PROMPT = `${FORMATTING_RULE}You are a Canadian small claims court specialist with deep knowledge of provincial small claims procedures, contract law, and evidence rules. Your job is to assess a claimant's case and produce a structured, plain-English case assessment. You are not a lawyer and do not provide legal advice — you provide legal information and procedural guidance only.
 
@@ -72,12 +73,21 @@ export async function POST(req: NextRequest) {
 
     let caseId: string | null = null;
     try {
+      // Attach authenticated user if available
+      let userId: string | null = null;
+      try {
+        const serverClient = await createClient();
+        const { data: { user } } = await serverClient.auth.getUser();
+        if (user) userId = user.id;
+      } catch { /* anonymous assessment is fine */ }
+
       const { data, error: dbErr } = await getSupabase()
         .from("cases")
         .insert({
           intake_text: intake,
           province,
           case_assessment: assessment,
+          ...(userId ? { user_id: userId } : {}),
         })
         .select("id")
         .single();

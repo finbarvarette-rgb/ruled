@@ -4,15 +4,23 @@ import { cookies } from "next/headers";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, password } = (await req.json()) as {
+    const { email, password, next } = (await req.json()) as {
       email?: string;
       password?: string;
+      next?: string;
     };
 
     const trimmedEmail = email?.trim();
     if (!trimmedEmail || !password) {
       return NextResponse.json(
         { error: "Email and password are required" },
+        { status: 400 }
+      );
+    }
+
+    if (password.length < 8) {
+      return NextResponse.json(
+        { error: "Password must be at least 8 characters" },
         { status: 400 }
       );
     }
@@ -25,6 +33,15 @@ export async function POST(req: NextRequest) {
         { status: 500 }
       );
     }
+
+    const appUrl = (
+      process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin
+    ).replace(/\/$/, "");
+
+    const nextPath =
+      typeof next === "string" && next.startsWith("/") ? next : "/dashboard";
+
+    const emailRedirectTo = `${appUrl}/auth/callback?next=${encodeURIComponent(nextPath)}`;
 
     const cookieStore = await cookies();
     const supabase = createServerClient(supabaseUrl, supabaseKey, {
@@ -44,37 +61,33 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signUp({
       email: trimmedEmail,
       password,
+      options: { emailRedirectTo },
     });
 
     if (error) {
-      console.error("Login error:", error.message);
-      if (
-        error.message.toLowerCase().includes("invalid") ||
-        error.message.toLowerCase().includes("credentials")
-      ) {
+      console.error("Signup error:", error.message);
+      // Surface friendly messages for common cases
+      if (error.message.toLowerCase().includes("already registered")) {
         return NextResponse.json(
-          { error: "Incorrect email or password. Please try again." },
-          { status: 401 }
-        );
-      }
-      if (error.message.toLowerCase().includes("email not confirmed")) {
-        return NextResponse.json(
-          { error: "Please verify your email address before signing in. Check your inbox." },
-          { status: 401 }
+          { error: "An account with this email already exists. Please sign in." },
+          { status: 400 }
         );
       }
       return NextResponse.json(
-        { error: error.message || "Sign in failed. Please try again." },
+        { error: error.message || "Failed to create account. Please try again." },
         { status: 400 }
       );
     }
 
-    return NextResponse.json({ success: true });
+    // If session exists immediately → email confirmation is disabled in Supabase
+    const hasSession = !!data.session;
+
+    return NextResponse.json({ success: true, needsVerification: !hasSession });
   } catch (err) {
-    console.error("Login error:", err);
+    console.error("Signup error:", err);
     return NextResponse.json(
       { error: "Something went wrong. Please try again." },
       { status: 500 }
