@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { getSupabase } from "@/lib/supabase";
-import { FORMATTING_RULE } from "@/lib/prompts";
+import { FORMATTING_RULE, sanitizeText } from "@/lib/prompts";
 
 const SYSTEM_PROMPT = `${FORMATTING_RULE}You are a Canadian small claims court specialist with deep knowledge of provincial small claims procedures, contract law, and evidence rules. Your job is to assess a claimant's case and produce a structured, plain-English case assessment. You are not a lawyer and do not provide legal advice — you provide legal information and procedural guidance only.
 
@@ -66,8 +66,9 @@ export async function POST(req: NextRequest) {
     });
 
     const firstBlock = message.content[0];
-    const assessment =
+    const rawAssessment =
       firstBlock?.type === "text" ? firstBlock.text : "";
+    const assessment = sanitizeText(rawAssessment);
 
     let caseId: string | null = null;
     try {

@@ -8,7 +8,8 @@ import { Spinner } from "@/components/Spinner";
 
 function LoginForm() {
   const searchParams = useSearchParams();
-  const authError = searchParams.get("error") === "auth";
+  const errParam = searchParams.get("error");
+  const authError = errParam === "auth" || errParam === "auth_failed";
 
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
