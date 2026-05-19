@@ -275,11 +275,7 @@ export default function ResultsPage() {
 
   function goToDemandLetter() {
     persistSessionForCheckout();
-    if (sessionIsValid(readRuledSession())) {
-      router.push("/demand");
-    } else {
-      router.push("/onboarding");
-    }
+    router.push("/demand-preview");
   }
 
   function persistSessionForCheckout() {
@@ -376,7 +372,7 @@ export default function ResultsPage() {
       <div className="max-w-2xl mx-auto w-full flex flex-col gap-8 md:gap-10 min-w-0">
 
         {/* Nav */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center">
           <button
             type="button"
             onClick={() => router.push("/onboarding")}
@@ -387,12 +383,6 @@ export default function ResultsPage() {
           >
             &larr; New assessment
           </button>
-          <span
-            className="text-xl font-bold tracking-tight"
-            style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
-          >
-            ruled<span style={{ color: "#c8392b" }}>.ca</span>
-          </span>
         </div>
 
         <h1 className="text-2xl font-semibold tracking-tight">
@@ -548,7 +538,7 @@ export default function ResultsPage() {
         </div>
 
         {/* Disclaimer */}
-        <p className="text-xs leading-relaxed" style={{ color: "#6b6560" }}>
+        <p className="text-xs leading-relaxed pb-4" style={{ color: "#9a9590" }}>
           Ruled provides legal information, not legal advice. This is not a
           substitute for a lawyer. The information above is for general guidance
           only and may not reflect the most current laws or apply to your
