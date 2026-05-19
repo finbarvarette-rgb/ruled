@@ -2,32 +2,49 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
+import { Spinner } from "@/components/Spinner";
 
-export default function LoginPage() {
+function LoginForm() {
+  const searchParams = useSearchParams();
+  const authError = searchParams.get("error") === "auth";
+
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!email.trim()) return;
+  async function sendLink() {
     setError("");
     setLoading(true);
-
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({
+          email: email.trim(),
+          next: "/dashboard",
+        }),
       });
-      if (!res.ok) throw new Error("Failed");
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        throw new Error(data.error ?? "Failed to send magic link");
+      }
       setSent(true);
-    } catch {
-      setError("Something went wrong. Please try again.");
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Something went wrong. Please try again."
+      );
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email.trim()) return;
+    await sendLink();
   }
 
   return (
@@ -46,8 +63,17 @@ export default function LoginPage() {
               Check your inbox
             </h1>
             <p className="text-sm leading-relaxed" style={{ color: "#9a9590" }}>
-              Your link expires in 10 minutes.
+              Click the magic link to sign in. The link expires in 10 minutes.
             </p>
+            <button
+              type="button"
+              disabled={loading}
+              onClick={sendLink}
+              className="text-sm font-medium cursor-pointer disabled:opacity-60"
+              style={{ color: "#c8392b" }}
+            >
+              {loading ? "Sending…" : "Resend magic link"}
+            </button>
           </div>
         ) : (
           <>
@@ -59,6 +85,12 @@ export default function LoginPage() {
                 Enter your email and we&apos;ll send you a magic link.
               </p>
             </div>
+
+            {authError && (
+              <p className="text-sm w-full" style={{ color: "#c8392b" }}>
+                Sign-in link expired or invalid. Please request a new link.
+              </p>
+            )}
 
             <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4">
               <input
@@ -81,30 +113,41 @@ export default function LoginPage() {
                 }}
               />
               {error && (
-                <p className="text-sm" style={{ color: "#c8392b" }}>
+                <p className="text-sm text-left" style={{ color: "#c8392b" }}>
                   {error}
                 </p>
               )}
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-lg px-6 py-4 text-sm font-semibold disabled:opacity-60 cursor-pointer"
+                className="w-full rounded-lg px-6 py-4 text-sm font-semibold disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2"
                 style={{ background: "#c8392b", color: "#f5f1eb" }}
               >
+                {loading && <Spinner />}
                 {loading ? "Sending…" : "Send Magic Link"}
               </button>
             </form>
           </>
         )}
 
-        <Link
-          href="/"
-          className="text-sm"
-          style={{ color: "#9a9590" }}
-        >
+        <Link href="/" className="text-sm" style={{ color: "#9a9590" }}>
           &larr; Back to home
         </Link>
       </div>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="flex flex-1 items-center justify-center min-h-screen">
+          <Spinner className="w-10 h-10" />
+        </main>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }

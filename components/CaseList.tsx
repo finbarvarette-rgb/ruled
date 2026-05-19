@@ -24,7 +24,7 @@ export function CaseList({ cases }: { cases: Case[] }) {
     return (
       <p className="text-sm" style={{ color: "#9a9590" }}>
         No cases yet.{" "}
-        <a href="/#assessment" style={{ color: "#c8392b" }}>
+        <a href="/onboarding" style={{ color: "#c8392b" }}>
           Start a free assessment
         </a>
         .

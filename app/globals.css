@@ -96,6 +96,14 @@ body {
   letter-spacing: -0.02em;
 }
 
+.hero-headline-serif {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.5rem, 8vw, 4.5rem);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+}
+
 @keyframes hero-underline-pulse {
   0%,
   100% {

@@ -12,9 +12,9 @@ const STEPS = [
       "AI analyzes your case instantly. Strength, evidence, weaknesses, next steps.",
   },
   {
-    title: "Fight Back and Win",
+    title: "Fight Back",
     description:
-      "Get your demand letter and court prep. Show up confident. Get your money back.",
+      "Get your demand letter and court prep. Show up prepared. Get what you're owed.",
   },
 ];
 
@@ -43,7 +43,7 @@ export default function AboutPage() {
           case, but because the system feels impossible to navigate without a
           lawyer. We built Ruled to change that. AI-powered, flat-fee, and built
           specifically for Canadian small claims court. No legal jargon. No hourly
-          rates. Just you, your case, and everything you need to win.
+          rates. Just you, your case, and everything you need to fight back.
         </p>
 
         <section className="flex flex-col gap-6">

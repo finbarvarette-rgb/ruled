@@ -12,7 +12,7 @@ const TIERS = {
     amount: 19900,
     name: "Ruled — Full Case Pack",
     description:
-      "Everything you need to win in small claims court. Includes: demand letter, all province-specific court filing documents, complete hearing preparation script, evidence checklist, and unlimited Q&A.",
+      "Everything you need for small claims court. Includes: demand letter, all province-specific court filing documents, complete hearing preparation script, evidence checklist, and unlimited Q&A.",
   },
 } as const;
 

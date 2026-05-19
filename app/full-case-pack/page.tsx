@@ -172,7 +172,7 @@ export default function FullCasePackPage() {
             Your Full Case Pack
           </h1>
           <p className="text-sm" style={{ color: "#9a9590" }}>
-            Everything you need to fight back and win.
+            Everything you need to fight back and get what you&apos;re owed.
           </p>
         </div>
 

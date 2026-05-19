@@ -36,7 +36,7 @@ export default async function DashboardPage() {
         <CaseList cases={cases ?? []} />
 
         <Link
-          href="/"
+          href="/onboarding"
           className="text-sm w-fit"
           style={{ color: "#c8392b" }}
         >

@@ -26,7 +26,7 @@ export function Nav() {
             Sign In
           </Link>
           <Link
-            href="/#assessment"
+            href="/onboarding"
             className="rounded-lg px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90"
             style={{ background: "#c8392b", color: "#f5f1eb" }}
           >

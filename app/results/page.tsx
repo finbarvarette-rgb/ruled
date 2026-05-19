@@ -5,8 +5,12 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { startCheckout } from "@/lib/checkout";
 import { Spinner } from "@/components/Spinner";
-import { ResultsAuthBanner } from "@/components/ResultsAuthBanner";
-import { updateRuledSession } from "@/lib/session";
+import { ResultsStickyBar } from "@/components/ResultsStickyBar";
+import { updateRuledSession, sessionIsValid, readRuledSession } from "@/lib/session";
+import {
+  parseCaseStrength,
+  strengthBadgeStyle,
+} from "@/lib/case-strength";
 
 const SECTION_HEADERS = [
   "CASE STRENGTH",
@@ -225,21 +229,21 @@ function parseAssessment(text: string): Section[] {
   return sections;
 }
 
-function readAssessmentFromSession(): {
+function readSessionMeta(): {
   assessment: string;
   caseId: string | null;
+  province: string;
+  intake: string;
+  email: string | null;
 } {
-  const stored = sessionStorage.getItem("ruled_assessment");
-  if (!stored) return { assessment: "", caseId: null };
-  try {
-    const data = JSON.parse(stored);
-    return {
-      assessment: data.assessment ?? "",
-      caseId: data.caseId ?? null,
-    };
-  } catch {
-    return { assessment: "", caseId: null };
-  }
+  const s = readRuledSession();
+  return {
+    assessment: s.assessment,
+    caseId: s.caseId,
+    province: s.province,
+    intake: s.intake,
+    email: s.email,
+  };
 }
 
 export default function ResultsPage() {
@@ -257,18 +261,31 @@ export default function ResultsPage() {
   >(null);
   const [checkoutError, setCheckoutError] = useState("");
   const [emailError, setEmailError] = useState("");
+  const [province, setProvince] = useState("");
 
-  // caseId is stored for outcome tracking (/outcome?caseId=) and future 60-day follow-up via Resend.
   useEffect(() => {
-    const { assessment, caseId: storedCaseId } = readAssessmentFromSession();
-    setRawText(assessment);
-    if (storedCaseId) setCaseId(storedCaseId);
+    const meta = readSessionMeta();
+    setRawText(meta.assessment);
+    if (meta.caseId) setCaseId(meta.caseId);
+    if (meta.province) setProvince(meta.province);
+    if (meta.email) setEmail(meta.email);
     setMounted(true);
   }, []);
 
   useEffect(() => {
-    if (mounted && !rawText) router.replace("/");
+    if (mounted && !rawText) router.replace("/onboarding");
   }, [mounted, rawText, router]);
+
+  const strength = useMemo(() => parseCaseStrength(rawText), [rawText]);
+
+  function goToDemandLetter() {
+    persistSessionForCheckout();
+    if (sessionIsValid(readRuledSession())) {
+      router.push("/demand");
+    } else {
+      router.push("/onboarding");
+    }
+  }
 
   function persistSessionForCheckout() {
     const stored = sessionStorage.getItem("ruled_assessment");
@@ -357,14 +374,17 @@ export default function ResultsPage() {
 
   if (!mounted || !rawText) return null;
 
+  const strengthStyle = strength ? strengthBadgeStyle(strength) : null;
+
   return (
-    <main className="flex flex-col flex-1 min-h-screen px-4 sm:px-6 py-12 md:py-16 overflow-x-hidden">
+    <main className="flex flex-col flex-1 min-h-screen px-4 sm:px-6 py-12 md:py-16 pb-28 overflow-x-hidden">
       <div className="max-w-2xl mx-auto w-full flex flex-col gap-8 md:gap-10 min-w-0">
 
         {/* Nav */}
         <div className="flex items-center justify-between">
           <button
-            onClick={() => router.push("/")}
+            type="button"
+            onClick={() => router.push("/onboarding")}
             className="text-sm transition-colors cursor-pointer"
             style={{ color: "#9a9590" }}
             onMouseEnter={(e) => (e.currentTarget.style.color = "#f5f1eb")}
@@ -380,29 +400,35 @@ export default function ResultsPage() {
           </span>
         </div>
 
-        <ResultsAuthBanner />
-
         <h1 className="text-2xl font-semibold tracking-tight">
           Your Case Assessment
         </h1>
 
-        {/* Section cards */}
-        <div className="flex flex-col gap-4">
-          {sections.map((section) => (
-            <div
-              key={section.header}
-              className="rounded-xl px-4 sm:px-6 py-5 flex flex-col gap-3 min-w-0"
-              style={{ background: "#1a1916", border: "1px solid #2a2825" }}
+        {/* Case summary */}
+        <div
+          className="rounded-xl px-4 sm:px-6 py-4 flex flex-wrap items-center gap-3"
+          style={{ background: "#1a1916", border: "1px solid #2a2825" }}
+        >
+          {province && (
+            <span className="text-sm" style={{ color: "#9a9590" }}>
+              {province}
+            </span>
+          )}
+          <span className="text-sm" style={{ color: "#9a9590" }}>
+            {new Date().toLocaleDateString("en-CA", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </span>
+          {strength && strengthStyle && (
+            <span
+              className="text-xs font-bold px-2.5 py-1 rounded-full ml-auto"
+              style={strengthStyle}
             >
-              <h2
-                className="text-xs font-bold tracking-widest uppercase"
-                style={{ color: "#c8392b" }}
-              >
-                {section.header}
-              </h2>
-              <MarkdownBlock content={section.content} />
-            </div>
-          ))}
+              {strength}
+            </span>
+          )}
         </div>
 
         {/* Email capture */}
@@ -431,33 +457,56 @@ export default function ResultsPage() {
                 onSubmit={handleEmailSubmit}
                 className="flex flex-col sm:flex-row gap-3"
               >
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                required
-                className="flex-1 rounded-lg px-4 py-3 text-sm outline-none"
-                style={{
-                  background: "#0f0e0c",
-                  color: "#f5f1eb",
-                  border: "1px solid #2a2825",
-                }}
-                onFocus={(e) => { e.currentTarget.style.borderColor = "#c8392b"; }}
-                onBlur={(e) => { e.currentTarget.style.borderColor = "#2a2825"; }}
-              />
-              <button
-                type="submit"
-                disabled={emailLoading}
-                className="rounded-lg px-4 py-3 text-sm font-semibold transition-opacity disabled:opacity-60 cursor-pointer whitespace-nowrap flex items-center justify-center gap-2 sm:shrink-0"
-                style={{ background: "#f5f1eb", color: "#0f0e0c" }}
-              >
-                {emailLoading && <Spinner className="w-4 h-4" />}
-                {emailLoading ? "Sending..." : "Send to my email"}
-              </button>
-            </form>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  required
+                  className="flex-1 rounded-lg px-4 py-3 text-sm outline-none"
+                  style={{
+                    background: "#0f0e0c",
+                    color: "#f5f1eb",
+                    border: "1px solid #2a2825",
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = "#c8392b";
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = "#2a2825";
+                  }}
+                />
+                <button
+                  type="submit"
+                  disabled={emailLoading}
+                  className="rounded-lg px-4 py-3 text-sm font-semibold transition-opacity disabled:opacity-60 cursor-pointer whitespace-nowrap flex items-center justify-center gap-2 sm:shrink-0"
+                  style={{ background: "#f5f1eb", color: "#0f0e0c" }}
+                >
+                  {emailLoading && <Spinner className="w-4 h-4" />}
+                  {emailLoading ? "Sending..." : "Send to my email"}
+                </button>
+              </form>
             </>
           )}
+        </div>
+
+        {/* Section cards */}
+        <div className="flex flex-col gap-4">
+          {sections.map((section) => (
+            <div
+              key={section.header}
+              className="rounded-xl px-4 sm:px-6 py-5 flex flex-col gap-3 min-w-0"
+              style={{ background: "#1a1916", border: "1px solid #2a2825" }}
+            >
+              <h2
+                className="text-xs font-bold tracking-widest uppercase"
+                style={{ color: "#c8392b" }}
+              >
+                {section.header}
+              </h2>
+              <MarkdownBlock content={section.content} />
+            </div>
+          ))}
         </div>
 
         {/* CTAs */}
@@ -471,15 +520,13 @@ export default function ResultsPage() {
             <button
               type="button"
               disabled={checkoutLoading !== null}
-              onClick={() => handleCheckout("demand")}
+              onClick={goToDemandLetter}
               className="flex-1 rounded-xl px-6 py-4 text-sm font-semibold cursor-pointer disabled:opacity-60"
               style={{ background: "#c8392b", color: "#f5f1eb" }}
               onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
               onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
             >
-              {checkoutLoading === "demand"
-                ? "Redirecting…"
-                : "Generate Demand Letter — $49"}
+              Generate Demand Letter — $49
             </button>
             <button
               type="button"
@@ -514,6 +561,12 @@ export default function ResultsPage() {
         </p>
 
       </div>
+
+      <ResultsStickyBar
+        onDemandLetter={goToDemandLetter}
+        onFullPack={() => handleCheckout("full")}
+        checkoutLoading={checkoutLoading}
+      />
     </main>
   );
 }

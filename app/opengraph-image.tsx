@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Ruled — Fight Back. Win.";
+export const alt = "Ruled — Fight Back. Get What You're Owed.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -37,7 +37,7 @@ export default function OpenGraphImage() {
             marginTop: 24,
           }}
         >
-          Fight back. Win.
+          Fight back. Get what you're owed.
         </div>
         <div
           style={{

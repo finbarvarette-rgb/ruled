@@ -6,11 +6,11 @@ export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_APP_URL ?? "https://ruled.ca"
   ),
-  title: "Ruled — Fight Back. Win.",
+  title: "Ruled — Fight Back. Get What You're Owed.",
   description:
     "AI-powered small claims court preparation for Canadians. No lawyer required.",
   openGraph: {
-    title: "Ruled — Fight Back. Win.",
+    title: "Ruled — Fight Back. Get What You're Owed.",
     description:
       "AI-powered small claims court preparation for Canadians. No lawyer required.",
     images: ["/og-image.png"],

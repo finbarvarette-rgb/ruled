@@ -3,7 +3,10 @@ import { createClient } from "@supabase/supabase-js";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email } = (await req.json()) as { email?: string };
+    const { email, next } = (await req.json()) as {
+      email?: string;
+      next?: string;
+    };
     const trimmed = email?.trim();
 
     if (!trimmed) {
@@ -14,29 +17,39 @@ export async function POST(req: NextRequest) {
     const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     if (!url || !key) {
       return NextResponse.json(
-        { error: "Auth not configured" },
+        { error: "Auth is not configured. Please contact support." },
         { status: 500 }
       );
     }
 
-    const baseUrl =
+    const origin =
       req.headers.get("origin") ??
       process.env.NEXT_PUBLIC_APP_URL ??
       new URL(req.url).origin;
+
+    const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? origin).replace(
+      /\/$/,
+      ""
+    );
+
+    const nextPath =
+      typeof next === "string" && next.startsWith("/") ? next : "/dashboard";
+
+    const redirectTo = `${appUrl}/auth/callback?next=${encodeURIComponent(nextPath)}`;
 
     const supabase = createClient(url, key);
     const { error } = await supabase.auth.signInWithOtp({
       email: trimmed,
       options: {
-        emailRedirectTo: `${baseUrl}/auth/callback`,
+        emailRedirectTo: redirectTo,
       },
     });
 
     if (error) {
-      console.error("Magic link error:", error);
+      console.error("Magic link error:", error.message);
       return NextResponse.json(
-        { error: "Failed to send magic link" },
-        { status: 500 }
+        { error: error.message || "Failed to send magic link. Check your email and try again." },
+        { status: 400 }
       );
     }
 
@@ -44,7 +57,7 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error("Login error:", err);
     return NextResponse.json(
-      { error: "Failed to send magic link" },
+      { error: "Failed to send magic link. Please try again." },
       { status: 500 }
     );
   }
