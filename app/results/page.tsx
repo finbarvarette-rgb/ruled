@@ -50,7 +50,6 @@ function InlineText({ text }: { text: string }) {
   );
 }
 
-// Line is only # characters (optional whitespace between hashes) — delete entirely
 function isHashOnlyLine(line: string): boolean {
   const t = line.trim();
   if (!t.includes("#")) return false;
@@ -65,7 +64,6 @@ function normalizeNewlines(text: string): string {
   return text.replace(/\r\n/g, "\n");
 }
 
-// Remove hash-only / horizontal-rule lines (safe on full assessment text)
 function stripHashAndRuleLines(text: string): string {
   return normalizeNewlines(text)
     .split("\n")
@@ -81,7 +79,6 @@ function stripHashAndRuleLines(text: string): string {
     .trim();
 }
 
-// Remove markdown duplicate titles from a section body (after splitting)
 function stripDuplicateSectionHeaderLines(text: string): string {
   return text
     .split("\n")
@@ -104,13 +101,11 @@ function sanitizeSectionContent(text: string): string {
   return stripDuplicateSectionHeaderLines(stripHashAndRuleLines(text));
 }
 
-// "- • item" or "• item" → "item"
 function parseBulletLine(line: string): string | null {
   const match = line.trim().match(/^(?:\s*[-*•]\s*)+(.+)$/);
   return match ? match[1].trim() : null;
 }
 
-// Block markdown: headings, bullets, paragraphs
 function MarkdownBlock({ content }: { content: string }) {
   const lines = sanitizeSectionContent(content).split("\n");
   const elements: React.ReactNode[] = [];
@@ -290,19 +285,19 @@ export default function ResultsPage() {
   function persistSessionForCheckout() {
     const stored = sessionStorage.getItem("ruled_assessment");
     let intake = "";
-    let province = "";
+    let prov = "";
     if (stored) {
       try {
         const data = JSON.parse(stored);
         intake = data.intake ?? "";
-        province = data.province ?? "";
+        prov = data.province ?? "";
       } catch {
         /* ignore */
       }
     }
     updateRuledSession({
       assessment: rawText,
-      province,
+      province: prov,
       intake,
       caseId,
       email: email || null,
@@ -332,12 +327,12 @@ export default function ResultsPage() {
       } else {
         const stored = sessionStorage.getItem("ruled_assessment");
         if (stored) {
-          const { intake, province } = JSON.parse(stored);
+          const { intake, province: p } = JSON.parse(stored);
           const { data } = await supabase
             .from("cases")
             .select("id")
             .eq("intake_text", intake)
-            .eq("province", province)
+            .eq("province", p)
             .order("created_at", { ascending: false })
             .limit(1)
             .single();

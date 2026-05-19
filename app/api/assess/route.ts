@@ -69,8 +69,6 @@ export async function POST(req: NextRequest) {
     const assessment =
       firstBlock?.type === "text" ? firstBlock.text : "";
 
-    // Save to Supabase; return case id for outcome tracking and future follow-up emails.
-    // 60-day Resend scheduled email will be wired in the next session once Resend is configured.
     let caseId: string | null = null;
     try {
       const { data, error: dbErr } = await getSupabase()

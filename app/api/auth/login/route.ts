@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,31 +14,42 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    if (!url || !key) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !supabaseKey) {
       return NextResponse.json(
         { error: "Auth is not configured. Please contact support." },
         { status: 500 }
       );
     }
 
-    const origin =
-      req.headers.get("origin") ??
-      process.env.NEXT_PUBLIC_APP_URL ??
-      new URL(req.url).origin;
+    const cookieStore = await cookies();
+    const supabase = createServerClient(supabaseUrl, supabaseKey, {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            );
+          } catch {
+            // Ignore cookie errors in API routes
+          }
+        },
+      },
+    });
 
-    const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? origin).replace(
-      /\/$/,
-      ""
-    );
+    const appUrl = (
+      process.env.NEXT_PUBLIC_APP_URL ?? new URL(req.url).origin
+    ).replace(/\/$/, "");
 
     const nextPath =
       typeof next === "string" && next.startsWith("/") ? next : "/dashboard";
 
     const redirectTo = `${appUrl}/auth/callback?next=${encodeURIComponent(nextPath)}`;
 
-    const supabase = createClient(url, key);
     const { error } = await supabase.auth.signInWithOtp({
       email: trimmed,
       options: {
@@ -48,12 +60,16 @@ export async function POST(req: NextRequest) {
     if (error) {
       console.error("Magic link error:", error.message);
       return NextResponse.json(
-        { error: error.message || "Failed to send magic link. Check your email and try again." },
+        {
+          error:
+            error.message ||
+            "Failed to send magic link. Check your email and try again.",
+        },
         { status: 400 }
       );
     }
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ success: true });
   } catch (err) {
     console.error("Login error:", err);
     return NextResponse.json(
