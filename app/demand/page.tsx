@@ -3,7 +3,13 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { startCheckout } from "@/lib/checkout";
-import { readRuledSession, updateRuledSession } from "@/lib/session";
+import {
+  readRuledSession,
+  updateRuledSession,
+  sessionIsValid,
+  type RuledSession,
+} from "@/lib/session";
+import { downloadTextFile } from "@/lib/download";
 import { Spinner } from "@/components/Spinner";
 
 const PROVINCES = [
@@ -33,31 +39,11 @@ function blurInput(e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) {
   e.currentTarget.style.borderColor = "#2a2825";
 }
 
-function readAssessmentFromSession(): {
-  assessment: string;
-  province: string;
-  caseId: string | null;
-} {
-  if (typeof window === "undefined")
-    return { assessment: "", province: "", caseId: null };
-  try {
-    const stored = sessionStorage.getItem("ruled_assessment");
-    if (!stored) return { assessment: "", province: "", caseId: null };
-    const data = JSON.parse(stored);
-    return {
-      assessment: data.assessment ?? "",
-      province: data.province ?? "",
-      caseId: data.caseId ?? null,
-    };
-  } catch {
-    return { assessment: "", province: "", caseId: null };
-  }
-}
-
 export default function DemandPage() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
-  const [caseAssessment, setCaseAssessment] = useState("");
+  const [session, setSession] = useState<RuledSession | null>(null);
+  const [sessionExpired, setSessionExpired] = useState(false);
 
   const [senderName, setSenderName] = useState("");
   const [senderBusiness, setSenderBusiness] = useState("");
@@ -72,23 +58,27 @@ export default function DemandPage() {
   const [error, setError] = useState("");
   const [letter, setLetter] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const [caseId, setCaseId] = useState<string | null>(null);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
 
   useEffect(() => {
-    const { assessment, province: storedProvince, caseId: storedCaseId } =
-      readAssessmentFromSession();
-    setCaseAssessment(assessment);
-    if (storedProvince) setProvince(storedProvince);
-    if (storedCaseId) setCaseId(storedCaseId);
+    const s = readRuledSession();
+    if (!sessionIsValid(s)) {
+      setSessionExpired(true);
+      setMounted(true);
+      return;
+    }
+    setSession(s);
+    if (s.province) setProvince(s.province);
+    if (s.email) setSenderEmail(s.email);
+    if (s.demandLetter) setLetter(s.demandLetter);
     setMounted(true);
   }, []);
 
   async function handleFullPackCheckout() {
+    if (!session) return;
     setCheckoutLoading(true);
     try {
-      const session = readRuledSession();
-      await startCheckout("full", caseId, session.email);
+      await startCheckout("full", session.caseId, session.email ?? senderEmail);
     } catch {
       setError("Could not start checkout. Please try again.");
       setCheckoutLoading(false);
@@ -97,12 +87,7 @@ export default function DemandPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!caseAssessment) {
-      setError(
-        "No case assessment found. Please complete an assessment first."
-      );
-      return;
-    }
+    if (!session?.assessment) return;
     setError("");
     setLoading(true);
     setLetter(null);
@@ -120,7 +105,8 @@ export default function DemandPage() {
           claimAmount,
           disputeDate,
           province,
-          caseAssessment,
+          caseAssessment: session.assessment,
+          caseId: session.caseId,
         }),
       });
 
@@ -128,7 +114,7 @@ export default function DemandPage() {
 
       const data = await res.json();
       setLetter(data.letter);
-      updateRuledSession({ demandLetter: data.letter });
+      updateRuledSession({ demandLetter: data.letter, email: senderEmail });
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -148,6 +134,26 @@ export default function DemandPage() {
   }
 
   if (!mounted) return null;
+
+  if (sessionExpired) {
+    return (
+      <main className="flex flex-col flex-1 min-h-screen px-4 sm:px-6 py-16 items-center justify-center">
+        <div className="max-w-md text-center flex flex-col gap-6">
+          <p className="text-lg font-semibold">
+            Your session expired. Please run a new assessment.
+          </p>
+          <button
+            type="button"
+            onClick={() => router.push("/")}
+            className="rounded-lg px-6 py-3 text-sm font-semibold cursor-pointer"
+            style={{ background: "#c8392b", color: "#f5f1eb" }}
+          >
+            Back to home
+          </button>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="flex flex-col flex-1 min-h-screen px-4 sm:px-6 py-12 md:py-16 overflow-x-hidden">
@@ -256,10 +262,7 @@ export default function DemandPage() {
               />
             </Field>
 
-            <Field
-              label="Date of Last Payment or Chargeback"
-              required
-            >
+            <Field label="Date of Last Payment or Chargeback" required>
               <input
                 type="date"
                 required
@@ -307,12 +310,6 @@ export default function DemandPage() {
               disabled={loading}
               className="w-full rounded-lg px-6 py-4 text-sm font-semibold transition-opacity disabled:opacity-60 cursor-pointer mt-2 flex items-center justify-center gap-2"
               style={{ background: "#c8392b", color: "#f5f1eb" }}
-              onMouseEnter={(e) => {
-                if (!loading) e.currentTarget.style.opacity = "0.85";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.opacity = "1";
-              }}
             >
               {loading && <Spinner />}
               {loading ? "Drafting your letter..." : "Generate My Demand Letter"}
@@ -341,45 +338,42 @@ export default function DemandPage() {
                   color: "#f5f1eb",
                   border: "1px solid #2a2825",
                 }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = "#c8392b";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = "#2a2825";
-                }}
               >
                 {copied ? "Copied!" : "Copy to Clipboard"}
               </button>
               <button
                 type="button"
-                disabled={checkoutLoading}
-                onClick={handleFullPackCheckout}
-                className="flex-1 rounded-xl px-6 py-4 text-sm font-semibold cursor-pointer disabled:opacity-60"
+                onClick={() =>
+                  downloadTextFile("ruled-demand-letter.txt", letter)
+                }
+                className="flex-1 rounded-xl px-6 py-4 text-sm font-semibold cursor-pointer"
                 style={{
                   background: "#1a1916",
                   color: "#f5f1eb",
                   border: "1px solid #2a2825",
                 }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = "#c8392b";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = "#2a2825";
-                }}
               >
-                {checkoutLoading
-                  ? "Redirecting…"
-                  : "Get Full Case Pack — $199"}
+                Download as Text File
               </button>
             </div>
+
+            <button
+              type="button"
+              disabled={checkoutLoading}
+              onClick={handleFullPackCheckout}
+              className="w-full rounded-xl px-6 py-4 text-sm font-semibold cursor-pointer disabled:opacity-60"
+              style={{ background: "#c8392b", color: "#f5f1eb" }}
+            >
+              {checkoutLoading
+                ? "Redirecting…"
+                : "Get Full Case Pack — $199"}
+            </button>
 
             <button
               type="button"
               onClick={() => setLetter(null)}
               className="text-sm cursor-pointer self-start"
               style={{ color: "#9a9590" }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "#f5f1eb")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "#9a9590")}
             >
               &larr; Edit details and regenerate
             </button>

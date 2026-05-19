@@ -1,24 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAnthropicClient } from "@/lib/anthropic";
+import { FORMATTING_RULE } from "@/lib/prompts";
 
-const SYSTEM_PROMPT = `You are a Canadian small claims court filing specialist. Provide clear, plain-English guidance for filing a claim. Write in plain text only — no markdown, no asterisks, no hashes. Structure your response with these exact section headers on their own lines:
+const SYSTEM_PROMPT = `${FORMATTING_RULE}You are a Canadian small claims court filing specialist. Based on the case assessment and province provided, give the claimant everything they need to physically file their claim. Structure your response as follows:
 
 COURT NAME AND ADDRESS
-List the exact small claims court name and full mailing/street address for the province provided.
-
-STEP BY STEP FILING INSTRUCTIONS
-Numbered steps from preparing the claim through serving the defendant.
-
-DOCUMENTS TO BRING
-Bullet list of every document and copy to bring when filing.
+The exact court they need to visit or mail documents to based on the province and case description.
 
 FILING FEE
-State the current approximate filing fee for that province's small claims court.
+Exact amount for their claim size.
 
-WHAT TO SAY WHEN YOU ARRIVE
-Brief script for what to tell the clerk at the counter.
+WHAT TO BRING
+Numbered list of every document they must bring: completed claim form, copies of evidence, copy of demand letter, government ID, payment for filing fee.
 
-Be specific to the province. Use the case assessment to tailor what documents they should emphasize.`;
+HOW TO FILL THE CLAIM FORM
+Step by step instructions for completing their province-specific small claims form. What to write in each field.
+
+WHAT HAPPENS AFTER FILING
+Exact timeline: when defendant gets served, when they must respond, when the hearing gets scheduled.
+
+SERVICE OF DOCUMENTS
+How to serve the defendant, what methods are allowed in their province, what proof of service looks like.
+
+IMPORTANT DEADLINES
+Limitation periods and any other critical dates.
+
+Be extremely specific and practical. This person has never done this before.`;
 
 export async function POST(req: NextRequest) {
   try {
@@ -36,7 +43,7 @@ export async function POST(req: NextRequest) {
 
     const message = await getAnthropicClient().messages.create({
       model: "claude-sonnet-4-5",
-      max_tokens: 2048,
+      max_tokens: 4096,
       system: SYSTEM_PROMPT,
       messages: [
         {

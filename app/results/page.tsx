@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { startCheckout } from "@/lib/checkout";
 import { Spinner } from "@/components/Spinner";
+import { ResultsAuthBanner } from "@/components/ResultsAuthBanner";
+import { updateRuledSession } from "@/lib/session";
 
 const SECTION_HEADERS = [
   "CASE STRENGTH",
@@ -268,9 +270,32 @@ export default function ResultsPage() {
     if (mounted && !rawText) router.replace("/");
   }, [mounted, rawText, router]);
 
+  function persistSessionForCheckout() {
+    const stored = sessionStorage.getItem("ruled_assessment");
+    let intake = "";
+    let province = "";
+    if (stored) {
+      try {
+        const data = JSON.parse(stored);
+        intake = data.intake ?? "";
+        province = data.province ?? "";
+      } catch {
+        /* ignore */
+      }
+    }
+    updateRuledSession({
+      assessment: rawText,
+      province,
+      intake,
+      caseId,
+      email: email || null,
+    });
+  }
+
   async function handleCheckout(tier: "demand" | "full") {
     setCheckoutError("");
     setCheckoutLoading(tier);
+    persistSessionForCheckout();
     try {
       await startCheckout(tier, caseId, email || undefined);
     } catch {
@@ -354,6 +379,8 @@ export default function ResultsPage() {
             Ruled<span style={{ color: "#c8392b" }}>.</span>
           </span>
         </div>
+
+        <ResultsAuthBanner />
 
         <h1 className="text-2xl font-semibold tracking-tight">
           Your Case Assessment

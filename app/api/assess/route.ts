@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { getSupabase } from "@/lib/supabase";
+import { FORMATTING_RULE } from "@/lib/prompts";
 
-const SYSTEM_PROMPT = `You are a Canadian small claims court specialist with deep knowledge of provincial small claims procedures, contract law, and evidence rules. Your job is to assess a claimant's case and produce a structured, plain-English case assessment. You are not a lawyer and do not provide legal advice — you provide legal information and procedural guidance only.
+const SYSTEM_PROMPT = `${FORMATTING_RULE}You are a Canadian small claims court specialist with deep knowledge of provincial small claims procedures, contract law, and evidence rules. Your job is to assess a claimant's case and produce a structured, plain-English case assessment. You are not a lawyer and do not provide legal advice — you provide legal information and procedural guidance only.
 
 For every case you assess, output the following sections using these exact headers:
 

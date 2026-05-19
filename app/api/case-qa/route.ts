@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAnthropicClient } from "@/lib/anthropic";
+import { FORMATTING_RULE } from "@/lib/prompts";
 
-const SYSTEM_PROMPT = `You are a Canadian small claims court advisor helping a self-represented claimant understand their case. Answer in plain English, 2-4 short paragraphs max. You provide legal information, not legal advice. You are not a lawyer. Base every answer on the case assessment provided. Be direct and practical. No markdown formatting.`;
+const SYSTEM_PROMPT = `${FORMATTING_RULE}You are a Canadian small claims court specialist answering questions for someone preparing their case. You have full context of their case assessment. Answer questions directly and practically. If asked something outside your knowledge say so clearly. Always remind them at the end of answers that you provide legal information not legal advice.`;
 
 export async function POST(req: NextRequest) {
   try {

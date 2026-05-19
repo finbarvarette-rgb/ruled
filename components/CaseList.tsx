@@ -14,6 +14,9 @@ export function CaseList({ cases }: { cases: Case[] }) {
         email: caseRecord.email,
       })
     );
+    if (caseRecord.demand_letter) {
+      sessionStorage.setItem("ruled_demand_letter", caseRecord.demand_letter);
+    }
     window.location.href = "/results";
   }
 

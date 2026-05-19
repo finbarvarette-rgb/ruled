@@ -5,7 +5,10 @@ export async function middleware(request: NextRequest) {
   try {
     const { pathname } = request.nextUrl;
 
-    if (!pathname.startsWith("/dashboard")) {
+    const protectedPaths =
+      pathname.startsWith("/dashboard") || pathname.startsWith("/account");
+
+    if (!protectedPaths) {
       return NextResponse.next();
     }
 
@@ -52,5 +55,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard", "/dashboard/:path*"],
+  matcher: ["/dashboard", "/dashboard/:path*", "/account", "/account/:path*"],
 };

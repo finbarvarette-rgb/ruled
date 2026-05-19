@@ -82,12 +82,27 @@ export default function Home() {
       <section
         ref={heroRef}
         id="assessment"
-        className="hero-section px-4 sm:px-6 py-10 md:py-16"
+        className="hero-section relative px-4 sm:px-6 py-10 md:py-16 overflow-hidden"
       >
+        <div className="hero-blobs" aria-hidden>
+          <div className="hero-blob hero-blob-1" />
+          <div className="hero-blob hero-blob-2" />
+        </div>
         <div className="relative z-10 max-w-2xl mx-auto w-full flex flex-col gap-6 md:gap-8">
           <RuledLogo />
+          <p className="hero-trust-row flex flex-wrap items-center justify-center sm:justify-start gap-x-2 gap-y-1">
+            <span>Trusted by Canadians</span>
+            <span style={{ color: "#c8392b" }} aria-hidden>
+              ·
+            </span>
+            <span>No lawyer needed</span>
+            <span style={{ color: "#c8392b" }} aria-hidden>
+              ·
+            </span>
+            <span>Results in 60 seconds</span>
+          </p>
           <div className="flex flex-col gap-3">
-            <h1 className="text-3xl md:text-4xl font-semibold leading-tight tracking-tight">
+            <h1 className="hero-headline">
               Someone owes you money.
               <br />
               We&apos;ll help you get it back.
@@ -274,8 +289,43 @@ export default function Home() {
               title="Full Case Pack"
               description="Demand letter plus all court documents plus hearing prep plus unlimited Q&A."
               buttonLabel="Get Full Case Pack"
-              onClick={() => router.push("/waitlist")}
+              onClick={scrollToHero}
               popular
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="px-6 py-16 md:py-20 border-t" style={{ borderColor: "#2a2825" }}>
+        <div className="max-w-2xl mx-auto w-full flex flex-col gap-8">
+          <h2 className="text-2xl md:text-3xl font-semibold text-center tracking-tight">
+            Frequently asked questions
+          </h2>
+          <div className="flex flex-col gap-6">
+            <FaqItem
+              question="Is this legal advice?"
+              answer="No. Ruled provides legal information, not legal advice. We are not a law firm and do not represent you in court."
+            />
+            <FaqItem
+              question="How long does it take?"
+              answer="Your free case assessment takes about 60 seconds. Paid products are delivered within minutes of payment."
+            />
+            <FaqItem
+              question="What if I lose?"
+              answer="We cannot guarantee outcomes. Small claims court decisions depend on your facts, evidence, and how the judge applies the law."
+            />
+            <FaqItem
+              question="Which provinces are supported?"
+              answer="All Canadian provinces. Guidance is tailored to your province's small claims rules and procedures."
+            />
+            <FaqItem
+              question="Can businesses use Ruled?"
+              answer="Yes. Contractors, landlords, and small businesses use Ruled for unpaid invoices, deposits, and contract disputes."
+            />
+            <FaqItem
+              question="Is my information private?"
+              answer="Yes. Your case details are stored securely. See our privacy policy for full details."
             />
           </div>
         </div>
@@ -464,14 +514,15 @@ function PricingCard({
     <div
       className="relative rounded-xl p-6 flex flex-col gap-4"
       style={{
-        background: "#1a1916",
+        background: popular ? "#c8392b" : "#1a1916",
         border: popular ? "2px solid #c8392b" : "1px solid #2a2825",
+        color: popular ? "#f5f1eb" : undefined,
       }}
     >
       {popular && (
         <span
           className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-bold px-3 py-1 rounded-full"
-          style={{ background: "#c8392b", color: "#f5f1eb" }}
+          style={{ background: "#0f0e0c", color: "#f5f1eb" }}
         >
           Most Popular
         </span>
@@ -480,7 +531,10 @@ function PricingCard({
         <p className="text-2xl font-bold">{tier}</p>
         <h3 className="text-lg font-semibold mt-1">{title}</h3>
       </div>
-      <p className="text-sm leading-relaxed flex-1" style={{ color: "#9a9590" }}>
+      <p
+        className="text-sm leading-relaxed flex-1"
+        style={{ color: popular ? "rgba(245, 241, 235, 0.85)" : "#9a9590" }}
+      >
         {description}
       </p>
       <button
@@ -488,12 +542,26 @@ function PricingCard({
         onClick={onClick}
         className="w-full rounded-lg px-4 py-3 text-sm font-semibold cursor-pointer"
         style={{
-          background: popular ? "#c8392b" : "#f5f1eb",
-          color: popular ? "#f5f1eb" : "#0f0e0c",
+          background: popular ? "#f5f1eb" : "#f5f1eb",
+          color: popular ? "#0f0e0c" : "#0f0e0c",
         }}
       >
         {buttonLabel}
       </button>
+    </div>
+  );
+}
+
+function FaqItem({ question, answer }: { question: string; answer: string }) {
+  return (
+    <div
+      className="rounded-xl p-5 flex flex-col gap-2"
+      style={{ background: "#1a1916", border: "1px solid #2a2825" }}
+    >
+      <h3 className="font-semibold text-sm">{question}</h3>
+      <p className="text-sm leading-relaxed" style={{ color: "#9a9590" }}>
+        {answer}
+      </p>
     </div>
   );
 }

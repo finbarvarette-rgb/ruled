@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
+import { getAnthropicClient } from "@/lib/anthropic";
+import { FORMATTING_RULE } from "@/lib/prompts";
+import { getSupabase } from "@/lib/supabase";
 
-const client = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
-
-const SYSTEM_PROMPT = `You are a Canadian legal document specialist drafting a formal demand letter for a small claims dispute. Write in plain text only — no markdown, no asterisks, no hashes, no bold formatting. Use this exact structure: Line 1: sender full name. Line 2: sender business name (omit if not provided). Line 3: sender email. Line 4: blank line. Line 5: date written out in full (e.g. May 18, 2026). Line 6: blank line. Line 7: defendant full name. Line 8: defendant address. Line 9: blank line. Line 10: RE: Formal Demand for Payment — $[amount]. Line 11: blank line. Then four paragraphs separated by blank lines: Paragraph 1 — state the contract, how it was formed, and that the work was performed. Paragraph 2 — state that payment was made and work was accepted, proving completion. Paragraph 3 — state the dispute, why the chargeback or non-payment is unjustified, and reference the evidence. Paragraph 4 — formal demand for $[amount] within 14 days of this letter, and that failure to pay will result in filing in [Province] Small Claims Court without further notice. End with: Yours truly, blank line, sender full name, sender business name if provided. Write firmly and professionally. Use the case assessment provided to make the letter factually specific to this dispute.`;
+const SYSTEM_PROMPT = `${FORMATTING_RULE}You are a Canadian legal document specialist drafting a formal demand letter for a small claims dispute. Use this exact structure: Line 1: sender full name. Line 2: sender business name (omit if not provided). Line 3: sender email. Line 4: blank line. Line 5: date written out in full (e.g. May 18, 2026). Line 6: blank line. Line 7: defendant full name. Line 8: defendant address. Line 9: blank line. Line 10: RE: Formal Demand for Payment — $[amount]. Line 11: blank line. Then four paragraphs separated by blank lines: Paragraph 1 — state the contract, how it was formed, and that the work was performed. Paragraph 2 — state that payment was made and work was accepted, proving completion. Paragraph 3 — state the dispute, why the chargeback or non-payment is unjustified, and reference the evidence. Paragraph 4 — formal demand for $[amount] within 14 days of this letter, and that failure to pay will result in filing in [Province] Small Claims Court without further notice. End with: Yours truly, blank line, sender full name, sender business name if provided. Write firmly and professionally. Use the case assessment provided to make the letter factually specific to this dispute.`;
 
 type DemandBody = {
   senderName: string;
@@ -17,6 +15,7 @@ type DemandBody = {
   disputeDate: string;
   province: string;
   caseAssessment: string;
+  caseId?: string | null;
 };
 
 export async function POST(req: NextRequest) {
@@ -32,6 +31,7 @@ export async function POST(req: NextRequest) {
       disputeDate,
       province,
       caseAssessment,
+      caseId,
     } = body;
 
     if (
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
       .filter(Boolean)
       .join("\n");
 
-    const message = await client.messages.create({
+    const message = await getAnthropicClient().messages.create({
       model: "claude-sonnet-4-5",
       max_tokens: 2048,
       system: SYSTEM_PROMPT,
@@ -74,7 +74,18 @@ export async function POST(req: NextRequest) {
     });
 
     const letter =
-      message.content[0].type === "text" ? message.content[0].text : "";
+      message.content[0]?.type === "text" ? message.content[0].text : "";
+
+    if (caseId && letter) {
+      try {
+        await getSupabase()
+          .from("cases")
+          .update({ demand_letter: letter })
+          .eq("id", caseId);
+      } catch (dbErr) {
+        console.error("Demand letter save error:", dbErr);
+      }
+    }
 
     return NextResponse.json({ letter });
   } catch (err) {

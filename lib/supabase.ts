@@ -37,6 +37,7 @@ export type Case = {
   paid: boolean;
   tier_purchased: string | null;
   user_id: string | null;
+  demand_letter: string | null;
 };
 
 export type WaitlistEntry = {

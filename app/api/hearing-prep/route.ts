@@ -1,27 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAnthropicClient } from "@/lib/anthropic";
+import { FORMATTING_RULE } from "@/lib/prompts";
 
-const SYSTEM_PROMPT = `You are a Canadian small claims court hearing coach. Write in plain text only — no markdown, no asterisks, no hashes. Structure your response with these exact section headers on their own lines:
+const SYSTEM_PROMPT = `${FORMATTING_RULE}You are a Canadian small claims court hearing coach. Based on the case assessment provided, prepare this person completely for their hearing day. Structure as follows:
 
-OPENING STATEMENT
-A script the claimant can read or memorize to open their case (2-3 short paragraphs).
+BEFORE THE HEARING
+What to do in the week before: organize evidence, make copies, prepare your evidence binder (what goes in it and in what order), practice your opening statement.
 
-KEY POINTS IN ORDER
-Numbered list of the strongest points to make, in the order they should make them.
+WHAT TO WEAR AND HOW TO ACT
+Specific guidance on appearance and demeanor. Judges notice everything.
 
-EVIDENCE PRESENTATION ORDER
-Numbered order for presenting each piece of evidence, with a sentence on what to say for each.
+WHEN YOU ARRIVE
+What to do when you get to the courthouse, how to check in, where to sit, what to expect.
 
-ANTICIPATED DEFENCE AND REBUTTALS
-For each likely defence argument, a short rebuttal the claimant can use.
+YOUR OPENING STATEMENT
+Write a complete word-for-word opening statement script personalized to their specific case facts. It should be 2-3 minutes when read aloud. Start with: Your Honour, my name is [name] and I am here today because...
 
-CLOSING STATEMENT
-A short closing script asking the judge for judgment in their favour.
+PRESENTING YOUR EVIDENCE
+Exact order to present each piece of evidence. How to hand it to the judge. What to say for each item.
 
-PRESENTATION TIPS
-What to wear, how to address the judge, body language, and tone — keep it practical and respectful.
+WHAT THE DEFENDANT WILL SAY
+Based on the case assessment, list every argument the defendant is likely to make and give a specific rebuttal for each one.
 
-Use the case assessment to make every section specific to this dispute.`;
+YOUR CLOSING STATEMENT
+Write a complete word-for-word closing statement.
+
+KEY RULES
+What you can and cannot say in small claims court. What to do if you do not know the answer to a question. How to address the judge.
+
+AFTER THE HEARING
+What happens next, how long for a decision, what if you win and they still do not pay (enforcement options).`;
 
 export async function POST(req: NextRequest) {
   try {
@@ -39,7 +47,7 @@ export async function POST(req: NextRequest) {
 
     const message = await getAnthropicClient().messages.create({
       model: "claude-sonnet-4-5",
-      max_tokens: 2048,
+      max_tokens: 4096,
       system: SYSTEM_PROMPT,
       messages: [
         {
