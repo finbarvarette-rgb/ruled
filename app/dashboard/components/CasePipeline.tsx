@@ -29,10 +29,8 @@ export function CasePipeline({ currentIndex }: { currentIndex: number }) {
                       className="w-3 h-3 rounded-full shrink-0 z-10"
                       style={{
                         background:
-                          isComplete || isCurrent ? "#c8392b" : dash.trackMuted,
-                        boxShadow: isCurrent
-                          ? "0 0 0 4px rgba(200, 57, 43, 0.25)"
-                          : undefined,
+                          isComplete || isCurrent ? dash.pipelineActive : dash.trackMuted,
+                        boxShadow: isCurrent ? dash.pipelineActiveGlow : undefined,
                       }}
                     />
                   </div>
@@ -40,7 +38,7 @@ export function CasePipeline({ currentIndex }: { currentIndex: number }) {
                     <div
                       className="h-0.5 flex-1 -mt-1.5 min-w-[0.5rem]"
                       style={{
-                        background: isComplete ? "#c8392b" : dash.trackMuted,
+                        background: isComplete ? dash.pipelineActive : dash.trackMuted,
                       }}
                       aria-hidden
                     />

@@ -15,7 +15,7 @@ export function EmptyState() {
       <Link
         href="/onboarding"
         className="inline-flex items-center justify-center rounded-lg px-8 py-4 text-base font-semibold w-full sm:w-auto transition-opacity hover:opacity-90"
-        style={{ background: "#c8392b", color: "#f5f1eb" }}
+        style={dash.primaryBtn}
       >
         Start My Free Case Assessment &rarr;
       </Link>

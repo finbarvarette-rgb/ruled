@@ -174,12 +174,12 @@ export function DashboardShell({
   }, [query, searchCases]);
 
   return (
-    <div className="min-h-screen w-full" style={{ background: "#0b0a08" }}>
+    <div className="min-h-screen w-full" style={{ background: dash.navy }}>
       <div className="flex min-h-screen">
         {/* Sidebar */}
         <aside
           className="hidden md:flex w-64 shrink-0 border-r"
-          style={{ borderColor: "#1f1d19", background: "#0f0e0c" }}
+          style={{ borderColor: "#1E293B", background: dash.navy }}
         >
           <div className="flex flex-col w-full p-4 gap-4">
             <Link href="/dashboard" className="flex items-center gap-2 px-2 py-3">
@@ -194,7 +194,7 @@ export function DashboardShell({
                 className="text-xl font-bold tracking-tight"
                 style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
               >
-                ruled<span style={{ color: "#c8392b" }}>.ca</span>
+                ruled<span style={{ color: dash.blue }}>.ca</span>
               </span>
             </Link>
 
@@ -207,9 +207,9 @@ export function DashboardShell({
                     href={item.href}
                     className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors"
                     style={{
-                      background: active ? "rgba(200, 57, 43, 0.12)" : "transparent",
-                      color: active ? "#f5f1eb" : "#9a9590",
-                      border: active ? "1px solid rgba(200, 57, 43, 0.30)" : "1px solid transparent",
+                      background: active ? dash.blue : "transparent",
+                      color: active ? "#ffffff" : "#94A3B8",
+                      border: "1px solid transparent",
                     }}
                   >
                     {item.icon(active)}
@@ -219,15 +219,15 @@ export function DashboardShell({
               })}
             </nav>
 
-            <div className="mt-auto pt-4 border-t" style={{ borderColor: "#1f1d19" }}>
+            <div className="mt-auto pt-4 border-t" style={{ borderColor: "#1E293B" }}>
               <button
                 type="button"
                 onClick={handleSignOut}
                 className="w-full text-left rounded-lg px-3 py-2.5 text-sm font-medium cursor-pointer transition-opacity hover:opacity-90"
                 style={{
                   background: "transparent",
-                  color: "#9a9590",
-                  border: "1px solid #1f1d19",
+                  color: "#94A3B8",
+                  border: "1px solid #1E293B",
                 }}
               >
                 Sign out
@@ -249,7 +249,7 @@ export function DashboardShell({
                   className="text-lg font-bold"
                   style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: dash.mainText }}
                 >
-                  ruled<span style={{ color: "#c8392b" }}>.ca</span>
+                  ruled<span style={{ color: dash.blue }}>.ca</span>
                 </span>
               </Link>
 
@@ -261,13 +261,13 @@ export function DashboardShell({
                     className="flex items-center gap-3 rounded-xl px-4 py-2.5 w-full"
                     style={{ background: dash.input.background, border: dash.input.border }}
                   >
-                    <IconSearch active={false} mutedStroke="#534f4a" />
+                    <IconSearch active={false} mutedStroke={dash.mainMuted} />
                     <input
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
                       onFocus={openSearch}
                       placeholder="Search cases, documents…"
-                      className="w-full bg-transparent outline-none text-sm placeholder:text-[#534f4a]"
+                      className="w-full bg-transparent outline-none text-sm"
                       style={{ color: dash.mainText }}
                     />
                   </button>
@@ -283,7 +283,7 @@ export function DashboardShell({
                       setSearchOpen(false);
                     }}
                   >
-                    <IconBell active={false} mutedStroke="#534f4a" />
+                    <IconBell active={false} mutedStroke={dash.mainMuted} />
                   </IconButton>
                   {notifOpen && (
                     <div
@@ -303,12 +303,12 @@ export function DashboardShell({
                   aria-label="Settings"
                   title="Settings"
                 >
-                  <IconSettings active={false} mutedStroke="#534f4a" />
+                  <IconSettings active={false} mutedStroke={dash.mainMuted} />
                 </Link>
                 <div
                   className="w-10 h-10 md:w-9 md:h-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
                   style={{
-                    background: "#eeecea",
+                    background: "#F1F5F9",
                     border: dash.chromeBorder,
                     color: dash.mainText,
                   }}
@@ -360,12 +360,12 @@ export function DashboardShell({
                 className="flex items-center gap-3 rounded-xl px-4 py-3"
                 style={{ background: dash.input.background, border: dash.input.border }}
               >
-                <IconSearch active={false} mutedStroke="#534f4a" />
+                <IconSearch active={false} mutedStroke={dash.mainMuted} />
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Type to search your cases and documents…"
-                  className="w-full bg-transparent outline-none text-sm placeholder:text-[#534f4a]"
+                  className="w-full bg-transparent outline-none text-sm placeholder:text-[#64748B]"
                   style={{ color: dash.mainText }}
                   autoFocus
                 />
@@ -438,7 +438,7 @@ export function DashboardShell({
                                 URL.revokeObjectURL(url);
                               }}
                               className="rounded-lg px-3 py-2 text-xs font-semibold cursor-pointer shrink-0"
-                              style={{ background: "#c8392b", color: "#f5f1eb" }}
+                              style={dash.primaryBtn}
                             >
                               Download
                             </button>
@@ -466,7 +466,7 @@ export function DashboardShell({
           type="button"
           onClick={() => router.push("/dashboard/new-assessment")}
           className="w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold cursor-pointer shadow-lg"
-          style={{ background: "#c8392b", color: "#f5f1eb" }}
+          style={dash.primaryBtn}
           aria-label="Start New Case Assessment"
         >
           +
@@ -476,7 +476,7 @@ export function DashboardShell({
       {/* Mobile bottom tab bar */}
       <nav
         className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t"
-        style={{ background: "#0f0e0c", borderColor: "#1f1d19", paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+        style={{ background: dash.navy, borderColor: "#1E293B", paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
         aria-label="Dashboard"
       >
         <div className="flex items-stretch justify-around">
@@ -487,13 +487,13 @@ export function DashboardShell({
                 key={item.key}
                 href={item.href}
                 className="flex flex-1 flex-col items-center justify-center gap-1 py-2.5 min-h-[3.25rem] min-w-0 px-1"
-                style={{ color: active ? "#f5f1eb" : "#9a9590" }}
+                style={{ color: active ? "#ffffff" : "#94A3B8" }}
                 aria-current={active ? "page" : undefined}
               >
                 {item.icon(active)}
                 <span
                   className="text-[10px] font-medium leading-none truncate max-w-full"
-                  style={{ color: active ? "#c8392b" : "#9a9590" }}
+                  style={{ color: active ? dash.blue : "#94A3B8" }}
                 >
                   {item.label}
                 </span>
@@ -529,8 +529,8 @@ function IconButton({
   );
 }
 
-function iconStyle(active: boolean, mutedStroke = "#9a9590") {
-  return { stroke: active ? "#c8392b" : mutedStroke };
+function iconStyle(active: boolean, mutedStroke = "#94A3B8") {
+  return { stroke: active ? dash.blue : mutedStroke };
 }
 
 function IconHome({ active }: { active: boolean }) {

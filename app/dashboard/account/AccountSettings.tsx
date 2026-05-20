@@ -336,7 +336,7 @@ export function AccountSettings({
               type="submit"
               disabled={profileLoading}
               className="rounded-xl px-5 py-3 text-sm font-semibold disabled:opacity-60 cursor-pointer inline-flex items-center justify-center gap-2"
-              style={{ background: "#c8392b", color: "#f5f1eb" }}
+              style={dash.primaryBtn}
             >
               {profileLoading && <Spinner />}
               {profileLoading ? "Saving…" : "Save profile"}
@@ -345,7 +345,7 @@ export function AccountSettings({
               <p
                 className="text-sm"
                 style={{
-                  color: profileMessage === "Saved." ? dash.mainMuted : "#c8392b",
+                  color: profileMessage === "Saved." ? dash.mainMuted : dash.errorText,
                 }}
               >
                 {profileMessage}
@@ -377,7 +377,7 @@ export function AccountSettings({
             type="submit"
             disabled={emailLoading}
             className="rounded-lg px-4 py-3 text-sm font-semibold disabled:opacity-60 cursor-pointer shrink-0"
-            style={{ background: "#c8392b", color: "#f5f1eb" }}
+            style={dash.primaryBtn}
           >
             {emailLoading ? "Sending…" : "Update email"}
           </button>
@@ -427,7 +427,7 @@ export function AccountSettings({
                 color:
                   passwordMessage === "Password updated."
                     ? dash.mainMuted
-                    : "#c8392b",
+                    : dash.errorText,
               }}
             >
               {passwordMessage}
@@ -437,7 +437,7 @@ export function AccountSettings({
             type="submit"
             disabled={passwordLoading}
             className="rounded-xl px-4 py-3 text-sm font-semibold disabled:opacity-60 cursor-pointer inline-flex items-center justify-center gap-2"
-            style={{ background: "#c8392b", color: "#f5f1eb" }}
+            style={dash.primaryBtn}
           >
             {passwordLoading && <Spinner />}
             {passwordLoading ? "Updating…" : "Change password"}
@@ -461,9 +461,9 @@ export function AccountSettings({
             onClick={() => handleToggleNotifications(!emailNotifications)}
             className="shrink-0 rounded-full px-3 py-2 text-xs font-semibold disabled:opacity-60 cursor-pointer"
             style={{
-              background: emailNotifications ? "#c8392b" : dash.input.background,
-              color: emailNotifications ? "#f5f1eb" : dash.mainText,
-              border: emailNotifications ? "1px solid #c8392b" : dash.chromeBorder,
+              background: emailNotifications ? dash.blue : dash.input.background,
+              color: emailNotifications ? "#ffffff" : dash.mainText,
+              border: emailNotifications ? `1px solid ${dash.blue}` : dash.chromeBorder,
             }}
           >
             {emailNotifications ? "On" : "Off"}
@@ -472,7 +472,7 @@ export function AccountSettings({
         {notifMessage && (
           <p
             className="text-sm"
-            style={{ color: notifMessage === "Saved." ? dash.mainMuted : "#c8392b" }}
+            style={{ color: notifMessage === "Saved." ? dash.mainMuted : dash.errorText }}
           >
             {notifMessage}
           </p>
@@ -481,9 +481,9 @@ export function AccountSettings({
 
       <section
         className="rounded-2xl p-6 flex flex-col gap-4"
-        style={{ ...dash.panel, border: "1px solid #c8392b" }}
+        style={{ ...dash.panel, ...dash.dangerPanel }}
       >
-        <h2 className="font-semibold text-sm" style={{ color: "#c8392b" }}>
+        <h2 className="font-semibold text-sm" style={{ color: dash.dangerText }}>
           Danger zone
         </h2>
         <p className="text-sm" style={{ color: dash.mainMuted }}>
@@ -496,8 +496,7 @@ export function AccountSettings({
             className="self-start rounded-xl px-4 py-2 text-sm font-semibold cursor-pointer"
           style={{
             background: "transparent",
-            color: "#c8392b",
-            border: "1px solid #c8392b",
+            ...dash.dangerBtn,
           }}
         >
           Delete account
@@ -524,7 +523,7 @@ export function AccountSettings({
               style={inputStyle}
             />
             {deleteError && (
-              <p className="text-sm" style={{ color: "#c8392b" }}>
+              <p className="text-sm" style={{ color: dash.errorText }}>
                 {deleteError}
               </p>
             )}
@@ -546,7 +545,7 @@ export function AccountSettings({
                 disabled={deleteLoading}
                 onClick={handleDelete}
                 className="flex-1 rounded-xl px-4 py-3 text-sm font-semibold disabled:opacity-60 cursor-pointer"
-                style={{ background: "#c8392b", color: "#f5f1eb" }}
+                style={{ background: dash.amber, color: "#ffffff" }}
               >
                 {deleteLoading ? "Deleting…" : "Delete forever"}
               </button>

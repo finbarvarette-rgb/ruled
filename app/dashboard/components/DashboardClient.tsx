@@ -86,7 +86,7 @@ export function DashboardClient({
                           downloadTextFile(doc.filename, doc.content)
                         }
                         className="text-xs font-semibold rounded-md px-3 py-1.5 cursor-pointer shrink-0"
-                        style={{ background: "#c8392b", color: "#f5f1eb" }}
+                        style={dash.primaryBtn}
                       >
                         Download
                       </button>
@@ -101,7 +101,7 @@ export function DashboardClient({
         <Link
           href="/onboarding"
           className="text-sm w-fit"
-          style={{ color: "#c8392b" }}
+          style={{ color: dash.blue }}
         >
           &larr; New assessment
         </Link>

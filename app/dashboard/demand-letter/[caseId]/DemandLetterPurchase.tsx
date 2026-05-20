@@ -45,7 +45,7 @@ function SampleLetterPreview() {
       className="relative rounded-xl overflow-hidden"
       style={{
         background: "#ffffff",
-        border: "1px solid #e8e6e1",
+        border: "1px solid #E2E8F0",
         borderLeft: `4px solid ${BLUE}`,
         boxShadow: dash.panel.boxShadow,
       }}

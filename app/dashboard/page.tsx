@@ -103,7 +103,7 @@ export default async function DashboardPage() {
             <a
               href="/dashboard/case-assessments"
               className="text-sm font-semibold"
-              style={{ color: "#c8392b" }}
+              style={{ color: dash.blue }}
             >
               View all →
             </a>
@@ -137,11 +137,7 @@ export default async function DashboardPage() {
                   </div>
                   <span
                     className="text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 w-fit"
-                    style={{
-                      background: "rgba(200, 57, 43, 0.12)",
-                      color: "#c8392b",
-                      border: "1px solid rgba(200, 57, 43, 0.30)",
-                    }}
+                    style={dash.statusBadge}
                   >
                     {item.status}
                   </span>

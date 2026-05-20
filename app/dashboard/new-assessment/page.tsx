@@ -104,7 +104,7 @@ export default function NewAssessmentPage() {
             onChange={(e) => setIntake(e.target.value)}
             rows={10}
             placeholder="Example: My contractor took a $5,000 deposit, did half the work, and stopped responding…"
-            className="w-full rounded-xl px-4 py-4 text-base sm:text-sm leading-relaxed resize-none outline-none placeholder:text-[#534f4a] min-h-[10rem]"
+            className="w-full rounded-xl px-4 py-4 text-base sm:text-sm leading-relaxed resize-none outline-none placeholder:text-[#64748B] min-h-[10rem]"
             style={inputStyle}
           />
 
@@ -123,7 +123,7 @@ export default function NewAssessmentPage() {
           </select>
 
           {error && (
-            <p className="text-sm" style={{ color: "#c8392b" }}>
+            <p className="text-sm" style={{ color: dash.errorText }}>
               {error}
             </p>
           )}
@@ -133,7 +133,7 @@ export default function NewAssessmentPage() {
             onClick={generate}
             disabled={loading}
             className="w-full min-h-12 rounded-xl px-6 py-4 text-base sm:text-sm font-semibold disabled:opacity-60 cursor-pointer inline-flex items-center justify-center gap-2"
-            style={{ background: "#c8392b", color: "#f5f1eb" }}
+            style={dash.primaryBtn}
           >
             {loading && <Spinner />}
             {loading ? "Generating…" : "Generate Assessment"}

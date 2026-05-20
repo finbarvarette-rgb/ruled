@@ -16,7 +16,6 @@ import {
 const NAVY = "#0F172A";
 const BODY_TEXT = "#0F172A";
 const SECTION_BORDER = "#E2E8F0";
-const BLUE = "#2563EB";
 
 export function CaseAssessmentsClient({ cases }: { cases: Case[] }) {
   const [openCase, setOpenCase] = useState<Case | null>(null);
@@ -87,11 +86,7 @@ export function CaseAssessmentsClient({ cases }: { cases: Case[] }) {
                   </div>
                   <span
                     className="text-xs font-semibold px-2.5 py-1 rounded-full shrink-0"
-                    style={{
-                      background: "rgba(200, 57, 43, 0.12)",
-                      color: "#c8392b",
-                      border: "1px solid rgba(200, 57, 43, 0.30)",
-                    }}
+                    style={dash.statusBadge}
                   >
                     {meta.statusBadge}
                   </span>
@@ -104,7 +99,7 @@ export function CaseAssessmentsClient({ cases }: { cases: Case[] }) {
                     className="rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
                     style={{
                       background: dash.nested.background,
-                      border: "1px solid rgba(200, 57, 43, 0.30)",
+                      border: dash.accentPanel.border,
                     }}
                   >
                     <p className="text-sm font-medium leading-snug min-w-0" style={{ color: dash.mainText }}>
@@ -116,7 +111,7 @@ export function CaseAssessmentsClient({ cases }: { cases: Case[] }) {
                         onClick={() => handleCheckout(next.tier, c)}
                         disabled={!!checkoutLoading}
                         className="rounded-lg px-4 py-2.5 min-h-11 text-xs font-semibold disabled:opacity-60 cursor-pointer shrink-0 inline-flex items-center justify-center gap-2 w-full sm:w-auto"
-                        style={{ background: "#c8392b", color: "#f5f1eb" }}
+                        style={dash.primaryBtn}
                       >
                         {checkoutLoading === next.tier && <Spinner />}
                         {next.tier === "demand" ? "$49" : "$199"}
@@ -130,7 +125,7 @@ export function CaseAssessmentsClient({ cases }: { cases: Case[] }) {
                           window.location.href = next.href;
                         }}
                         className="rounded-lg px-4 py-2.5 min-h-11 text-xs font-semibold cursor-pointer shrink-0 w-full sm:w-auto inline-flex items-center justify-center"
-                        style={{ background: "#c8392b", color: "#f5f1eb" }}
+                        style={dash.primaryBtn}
                       >
                         Open
                       </button>
@@ -143,7 +138,7 @@ export function CaseAssessmentsClient({ cases }: { cases: Case[] }) {
                     type="button"
                     onClick={() => setOpenCase(c)}
                     className="rounded-lg px-4 py-3 min-h-11 text-sm font-semibold cursor-pointer w-full sm:w-auto"
-                    style={{ background: "#c8392b", color: "#f5f1eb" }}
+                    style={dash.primaryBtn}
                   >
                     View Full Assessment
                   </button>
@@ -298,7 +293,7 @@ function AssessmentModal({
             type="button"
             onClick={handleDownloadPdf}
             className="w-full sm:w-auto rounded-full px-6 py-3 min-h-11 text-sm font-semibold cursor-pointer shrink-0"
-            style={{ background: BLUE, color: "#ffffff" }}
+            style={dash.primaryBtn}
           >
             Download PDF
           </button>
@@ -352,14 +347,14 @@ function Pipeline({ currentIndex }: { currentIndex: number }) {
             <div key={s} className="flex items-center flex-1 min-w-0">
               <div
                 className="w-2.5 h-2.5 rounded-full shrink-0"
-                style={{ background: active ? "#c8392b" : dash.trackMuted }}
+                style={{ background: active ? dash.pipelineActive : dash.trackMuted }}
                 title={s}
               />
               {i < steps.length - 1 && (
                 <div
                   className="h-0.5 flex-1 mx-2"
                   style={{
-                    background: active ? "rgba(200, 57, 43, 0.6)" : dash.trackMuted,
+                    background: active ? dash.pipelineConnector : dash.trackMuted,
                   }}
                 />
               )}

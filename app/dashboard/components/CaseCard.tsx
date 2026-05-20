@@ -14,11 +14,7 @@ function StatusBadge({ label }: { label: string }) {
   return (
     <span
       className="text-xs font-semibold px-2.5 py-1 rounded-full shrink-0"
-      style={{
-        background: "rgba(200, 57, 43, 0.15)",
-        color: "#c8392b",
-        border: "1px solid rgba(200, 57, 43, 0.35)",
-      }}
+      style={dash.statusBadge}
     >
       {label}
     </span>
@@ -44,7 +40,7 @@ function ActionButton({
       className="rounded-lg px-3 py-2 text-xs font-semibold disabled:opacity-50 cursor-pointer text-left sm:text-center"
       style={
         primary
-          ? { background: "#c8392b", color: "#f5f1eb" }
+          ? dash.primaryBtn
           : {
               background: dash.input.background,
               color: dash.mainText,
@@ -191,10 +187,10 @@ function NextStepsBlock({
       className="rounded-lg px-5 py-4 flex flex-col gap-2"
       style={{
         ...dash.panel,
-        border: "1px solid rgba(200, 57, 43, 0.35)",
+        ...dash.accentPanel,
       }}
     >
-      <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "#c8392b" }}>
+      <p className="text-xs font-semibold uppercase tracking-wide" style={dash.accentLabel}>
         Next step
       </p>
       {nextStep.kind === "checkout" ? (
@@ -203,7 +199,7 @@ function NextStepsBlock({
           disabled={!!checkoutLoading}
           onClick={() => onCheckout(nextStep.tier)}
           className="text-sm font-semibold text-left disabled:opacity-60 cursor-pointer flex items-center gap-2 rounded-lg px-4 py-2.5"
-          style={{ background: "#c8392b", color: "#f5f1eb" }}
+          style={dash.primaryBtn}
         >
           {checkoutLoading === nextStep.tier && <Spinner />}
           {nextStep.label}
@@ -266,8 +262,8 @@ function CaseDocuments({
               }}
               className="text-xs font-semibold rounded-md px-3 py-1.5 disabled:opacity-40 cursor-pointer shrink-0"
               style={{
-                background: doc.content?.trim() ? "#c8392b" : "#e8e6e1",
-                color: doc.content?.trim() ? "#f5f1eb" : dash.mainMuted,
+                background: doc.content?.trim() ? dash.blue : dash.trackMuted,
+                color: doc.content?.trim() ? "#ffffff" : dash.mainMuted,
               }}
             >
               {doc.content?.trim() ? "Download" : "Generating…"}

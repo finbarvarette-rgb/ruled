@@ -157,7 +157,7 @@ export function DocumentsClient({ cases }: { cases: Case[] }) {
                               )
                             }
                             className="rounded-lg px-4 py-2 text-xs font-semibold cursor-pointer shrink-0"
-                            style={{ background: "#c8392b", color: "#f5f1eb" }}
+                            style={dash.primaryBtn}
                           >
                             Download PDF
                           </button>
@@ -165,7 +165,7 @@ export function DocumentsClient({ cases }: { cases: Case[] }) {
                           <Link
                             href={href}
                             className="rounded-lg px-4 py-2 text-xs font-semibold shrink-0 text-center"
-                            style={{ background: "#c8392b", color: "#f5f1eb" }}
+                            style={dash.primaryBtn}
                           >
                             Open to generate
                           </Link>

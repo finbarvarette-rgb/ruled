@@ -128,7 +128,7 @@ export default async function BillingPage() {
                           target="_blank"
                           rel="noreferrer"
                           className="text-xs font-semibold min-h-11 inline-flex items-center px-2"
-                          style={{ color: "#c8392b" }}
+                          style={{ color: dash.blue }}
                         >
                           Download
                         </a>
@@ -156,7 +156,7 @@ export default async function BillingPage() {
                           target="_blank"
                           rel="noreferrer"
                           className="text-xs font-semibold"
-                          style={{ color: "#c8392b" }}
+                          style={{ color: dash.blue }}
                         >
                           Download
                         </a>
@@ -175,7 +175,7 @@ export default async function BillingPage() {
 
         <p className="text-sm" style={{ color: dash.mainMuted }}>
           Need help? Email{" "}
-          <Link href="/contact" style={{ color: "#c8392b" }}>
+          <Link href="/contact" style={{ color: dash.blue }}>
             support
           </Link>
           .

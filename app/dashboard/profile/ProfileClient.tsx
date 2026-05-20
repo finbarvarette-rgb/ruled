@@ -186,7 +186,7 @@ export function ProfileClient({
                 type="submit"
                 disabled={saving}
                 className="rounded-xl px-5 py-3 text-sm font-semibold disabled:opacity-60 cursor-pointer inline-flex items-center justify-center gap-2"
-                style={{ background: "#c8392b", color: "#f5f1eb" }}
+                style={dash.primaryBtn}
               >
                 {saving && <Spinner />}
                 {saving ? "Saving…" : "Save profile"}
@@ -194,7 +194,7 @@ export function ProfileClient({
               {message && (
                 <p
                   className="text-sm"
-                  style={{ color: message === "Saved." ? dash.mainMuted : "#c8392b" }}
+                  style={{ color: message === "Saved." ? dash.mainMuted : dash.errorText }}
                 >
                   {message}
                 </p>
