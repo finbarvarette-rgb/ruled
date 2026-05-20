@@ -36,6 +36,26 @@ export async function POST(req: NextRequest) {
     const tier = session.metadata?.tier;
 
     if (caseId && tier) {
+      let receiptUrl: string | null = null;
+      let amountPaidCents: number | null = null;
+      try {
+        amountPaidCents =
+          typeof session.amount_total === "number" ? session.amount_total : null;
+        const piId =
+          typeof session.payment_intent === "string"
+            ? session.payment_intent
+            : null;
+        if (piId) {
+          const pi = await getStripe().paymentIntents.retrieve(piId, {
+            expand: ["latest_charge"],
+          });
+          const charge = pi.latest_charge as Stripe.Charge | null;
+          receiptUrl = charge?.receipt_url ?? null;
+        }
+      } catch {
+        // non-critical
+      }
+
       const { error } = await getSupabase()
         .from("cases")
         .update({ paid: true, tier_purchased: tier })
@@ -47,6 +67,21 @@ export async function POST(req: NextRequest) {
           { error: "Database update failed" },
           { status: 500 }
         );
+      }
+
+      // Store receipt/billing fields when available
+      try {
+        await getSupabase()
+          .from("cases")
+          .update({
+            stripe_session_id: session.id,
+            amount_paid_cents: amountPaidCents,
+            receipt_url: receiptUrl,
+            purchased_at: new Date().toISOString(),
+          })
+          .eq("id", caseId);
+      } catch {
+        // non-critical
       }
     }
 

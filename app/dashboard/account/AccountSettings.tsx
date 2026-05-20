@@ -17,9 +17,9 @@ type UserProfile = {
 };
 
 const inputStyle = {
-  background: "#0f0e0c",
+  background: "#0b0a08",
   color: "#f5f1eb",
-  border: "1px solid #2a2825",
+  border: "1px solid #1f1d19",
 };
 
 function FieldLabel({ children }: { children: string }) {
@@ -240,8 +240,8 @@ export function AccountSettings({
 
       {/* Profile information */}
       <section
-        className="rounded-xl p-6 flex flex-col gap-5"
-        style={{ background: "#1a1916", border: "1px solid #2a2825" }}
+        className="rounded-2xl p-6 flex flex-col gap-5"
+        style={{ background: "#0f0e0c", border: "1px solid #1f1d19" }}
       >
         <div className="flex flex-col gap-1">
           <h2 className="font-semibold text-sm">Profile information</h2>
@@ -341,7 +341,7 @@ export function AccountSettings({
             <button
               type="submit"
               disabled={profileLoading}
-              className="rounded-lg px-5 py-3 text-sm font-semibold disabled:opacity-60 cursor-pointer inline-flex items-center justify-center gap-2"
+              className="rounded-xl px-5 py-3 text-sm font-semibold disabled:opacity-60 cursor-pointer inline-flex items-center justify-center gap-2"
               style={{ background: "#c8392b", color: "#f5f1eb" }}
             >
               {profileLoading && <Spinner />}
@@ -362,8 +362,8 @@ export function AccountSettings({
       </section>
 
       <section
-        className="rounded-xl p-6 flex flex-col gap-4"
-        style={{ background: "#1a1916", border: "1px solid #2a2825" }}
+        className="rounded-2xl p-6 flex flex-col gap-4"
+        style={{ background: "#0f0e0c", border: "1px solid #1f1d19" }}
       >
         <h2 className="font-semibold text-sm">Email</h2>
         <p className="text-sm" style={{ color: "#9a9590" }}>
@@ -404,8 +404,8 @@ export function AccountSettings({
 
       {/* Password */}
       <section
-        className="rounded-xl p-6 flex flex-col gap-4"
-        style={{ background: "#1a1916", border: "1px solid #2a2825" }}
+        className="rounded-2xl p-6 flex flex-col gap-4"
+        style={{ background: "#0f0e0c", border: "1px solid #1f1d19" }}
       >
         <h2 className="font-semibold text-sm">Password</h2>
         <form onSubmit={handlePasswordChange} className="flex flex-col gap-3">
@@ -452,7 +452,7 @@ export function AccountSettings({
           <button
             type="submit"
             disabled={passwordLoading}
-            className="rounded-lg px-4 py-3 text-sm font-semibold disabled:opacity-60 cursor-pointer inline-flex items-center justify-center gap-2"
+            className="rounded-xl px-4 py-3 text-sm font-semibold disabled:opacity-60 cursor-pointer inline-flex items-center justify-center gap-2"
             style={{ background: "#c8392b", color: "#f5f1eb" }}
           >
             {passwordLoading && <Spinner />}
@@ -463,8 +463,8 @@ export function AccountSettings({
 
       {/* Notification preferences */}
       <section
-        className="rounded-xl p-6 flex flex-col gap-4"
-        style={{ background: "#1a1916", border: "1px solid #2a2825" }}
+        className="rounded-2xl p-6 flex flex-col gap-4"
+        style={{ background: "#0f0e0c", border: "1px solid #1f1d19" }}
       >
         <h2 className="font-semibold text-sm">Notification preferences</h2>
         <div className="flex items-start justify-between gap-4">
@@ -482,7 +482,7 @@ export function AccountSettings({
             style={{
               background: emailNotifications ? "#c8392b" : "#0f0e0c",
               color: "#f5f1eb",
-              border: emailNotifications ? "1px solid #c8392b" : "1px solid #2a2825",
+              border: emailNotifications ? "1px solid #c8392b" : "1px solid #1f1d19",
             }}
           >
             {emailNotifications ? "On" : "Off"}
@@ -499,8 +499,8 @@ export function AccountSettings({
       </section>
 
       <section
-        className="rounded-xl p-6 flex flex-col gap-4"
-        style={{ background: "#1a1916", border: "1px solid #c8392b" }}
+        className="rounded-2xl p-6 flex flex-col gap-4"
+        style={{ background: "#0f0e0c", border: "1px solid #c8392b" }}
       >
         <h2 className="font-semibold text-sm" style={{ color: "#c8392b" }}>
           Danger zone
@@ -512,7 +512,7 @@ export function AccountSettings({
         <button
           type="button"
           onClick={() => setShowDeleteModal(true)}
-          className="self-start rounded-lg px-4 py-2 text-sm font-semibold cursor-pointer"
+            className="self-start rounded-xl px-4 py-2 text-sm font-semibold cursor-pointer"
           style={{
             background: "transparent",
             color: "#c8392b",
@@ -529,8 +529,8 @@ export function AccountSettings({
           style={{ background: "rgba(15, 14, 12, 0.85)" }}
         >
           <div
-            className="max-w-md w-full rounded-xl p-6 flex flex-col gap-4"
-            style={{ background: "#1a1916", border: "1px solid #2a2825" }}
+            className="max-w-md w-full rounded-2xl p-6 flex flex-col gap-4"
+            style={{ background: "#0f0e0c", border: "1px solid #1f1d19" }}
           >
             <h3 className="font-semibold">Are you sure?</h3>
             <p className="text-sm" style={{ color: "#9a9590" }}>
@@ -544,9 +544,9 @@ export function AccountSettings({
               placeholder="DELETE"
               className="rounded-lg px-4 py-3 text-sm outline-none"
               style={{
-                background: "#0f0e0c",
+                background: "#0b0a08",
                 color: "#f5f1eb",
-                border: "1px solid #2a2825",
+                border: "1px solid #1f1d19",
               }}
             />
             {deleteError && (
@@ -562,8 +562,8 @@ export function AccountSettings({
                   setDeleteConfirm("");
                   setDeleteError("");
                 }}
-                className="flex-1 rounded-lg px-4 py-3 text-sm font-semibold cursor-pointer"
-                style={{ border: "1px solid #2a2825", color: "#9a9590" }}
+                className="flex-1 rounded-xl px-4 py-3 text-sm font-semibold cursor-pointer"
+                style={{ border: "1px solid #1f1d19", color: "#9a9590" }}
               >
                 Cancel
               </button>
@@ -571,7 +571,7 @@ export function AccountSettings({
                 type="button"
                 disabled={deleteLoading}
                 onClick={handleDelete}
-                className="flex-1 rounded-lg px-4 py-3 text-sm font-semibold disabled:opacity-60 cursor-pointer"
+                className="flex-1 rounded-xl px-4 py-3 text-sm font-semibold disabled:opacity-60 cursor-pointer"
                 style={{ background: "#c8392b", color: "#f5f1eb" }}
               >
                 {deleteLoading ? "Deleting…" : "Delete forever"}

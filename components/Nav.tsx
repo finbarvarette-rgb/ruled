@@ -141,6 +141,11 @@ export function Nav() {
 
   const isLanding = pathname === "/";
 
+  // Dashboard has its own app-like chrome.
+  if (pathname.startsWith("/dashboard")) {
+    return null;
+  }
+
   return (
     <header
       ref={navRef}

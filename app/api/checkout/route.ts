@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
+import { createClient } from "@/lib/supabase/server";
 
 const TIERS = {
   demand: {
@@ -68,6 +69,19 @@ export async function POST(req: NextRequest) {
         { error: "Failed to create checkout session" },
         { status: 500 }
       );
+    }
+
+    // Store stripe session id on the case for billing/receipts.
+    if (caseId) {
+      try {
+        const supabase = await createClient();
+        await supabase
+          .from("cases")
+          .update({ stripe_session_id: session.id })
+          .eq("id", caseId);
+      } catch {
+        // non-critical
+      }
     }
 
     return NextResponse.json({ url: session.url });
