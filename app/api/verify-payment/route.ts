@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
-import { getSupabase } from "@/lib/supabase";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,23 +20,26 @@ export async function POST(req: NextRequest) {
     }
 
     const tier = session.metadata?.tier ?? "demand";
-    const caseId = session.metadata?.caseId;
+    const caseId = session.metadata?.caseId?.trim();
 
     if (!caseId) {
       return NextResponse.json({ error: "Missing case reference" }, { status: 400 });
     }
 
-    const { data: caseRow, error } = await getSupabase()
+    const supabase = getSupabaseAdmin();
+
+    const { data: caseRow, error } = await supabase
       .from("cases")
       .select("*")
       .eq("id", caseId)
       .single();
 
     if (error || !caseRow) {
+      console.error("Verify payment case lookup:", error?.message);
       return NextResponse.json({ error: "Case not found" }, { status: 404 });
     }
 
-    await getSupabase()
+    const { error: updateError } = await supabase
       .from("cases")
       .update({
         paid: true,
@@ -44,6 +47,14 @@ export async function POST(req: NextRequest) {
         email: caseRow.email ?? session.customer_details?.email ?? session.customer_email,
       })
       .eq("id", caseId);
+
+    if (updateError) {
+      console.error("Verify payment case update:", updateError.message);
+      return NextResponse.json(
+        { error: "Failed to update case" },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       tier,

@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
-import { createClient } from "@/lib/supabase/server";
-
 const TIERS = {
   demand: {
     amount: 4900,
@@ -29,14 +27,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid tier" }, { status: 400 });
     }
 
+    const trimmedCaseId = caseId?.trim();
+    if (!trimmedCaseId) {
+      return NextResponse.json(
+        { error: "A case is required before checkout" },
+        { status: 400 }
+      );
+    }
+
     const config = TIERS[tier];
     const baseUrl =
       req.headers.get("origin") ??
       process.env.NEXT_PUBLIC_APP_URL ??
       new URL(req.url).origin;
 
-    const caseIdParam = caseId ?? "";
     const logoUrl = `${baseUrl}/logo.svg`;
+    const successPath =
+      tier === "full" ? "/success/full-case-pack" : "/success/demand-letter";
 
     const session = await getStripe().checkout.sessions.create({
       mode: "payment",
@@ -56,11 +63,11 @@ export async function POST(req: NextRequest) {
           quantity: 1,
         },
       ],
-      success_url: `${baseUrl}/success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${baseUrl}${successPath}?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}/results`,
       metadata: {
         tier,
-        caseId: caseIdParam,
+        caseId: trimmedCaseId,
       },
     });
 
@@ -72,16 +79,14 @@ export async function POST(req: NextRequest) {
     }
 
     // Store stripe session id on the case for billing/receipts.
-    if (caseId) {
-      try {
-        const supabase = await createClient();
-        await supabase
-          .from("cases")
-          .update({ stripe_session_id: session.id })
-          .eq("id", caseId);
-      } catch {
-        // non-critical
-      }
+    try {
+      const { getSupabaseAdmin } = await import("@/lib/supabase/admin");
+      await getSupabaseAdmin()
+        .from("cases")
+        .update({ stripe_session_id: session.id })
+        .eq("id", trimmedCaseId);
+    } catch {
+      // non-critical
     }
 
     return NextResponse.json({ url: session.url });

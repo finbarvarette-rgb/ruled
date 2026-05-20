@@ -1,12 +1,126 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { restoreSessionFromPayment, updateRuledSession } from "@/lib/session";
 import { startCheckout } from "@/lib/checkout";
 import { Spinner } from "@/components/Spinner";
 import { downloadDemandLetterPdf } from "@/lib/pdf-generator";
+
+const LOADING_BG = "#FAFAFA";
+const LOADING_NAVY = "#0F172A";
+const LOADING_BLUE = "#2563EB";
+const LOADING_MUTED = "#64748B";
+const LOADING_BORDER = "#E2E8F0";
+
+const DEMAND_STATUS_MESSAGES = [
+  "Reviewing your case details...",
+  "Drafting your demand letter...",
+  "Adding legal language for [province]...",
+  "Finalizing your letter...",
+];
+
+function resolveStatusMessages(messages: string[], province: string) {
+  const place = province.trim() || "your province";
+  return messages.map((m) => m.replace("[province]", place));
+}
+
+function useGenerationLoading(active: boolean, messages: string[]) {
+  const [progress, setProgress] = useState(0);
+  const [messageIndex, setMessageIndex] = useState(0);
+
+  useEffect(() => {
+    if (!active) {
+      setProgress(100);
+      return;
+    }
+
+    setProgress(0);
+    setMessageIndex(0);
+    const startedAt = Date.now();
+
+    const progressTimer = window.setInterval(() => {
+      const elapsed = Date.now() - startedAt;
+      setProgress(Math.min(95, (elapsed / 15000) * 95));
+    }, 50);
+
+    const messageTimer = window.setInterval(() => {
+      setMessageIndex((i) => (i + 1) % messages.length);
+    }, 3500);
+
+    return () => {
+      window.clearInterval(progressTimer);
+      window.clearInterval(messageTimer);
+    };
+  }, [active, messages]);
+
+  const statusMessage = messages[messageIndex % messages.length] ?? messages[0];
+
+  return { progress: active ? progress : 100, statusMessage };
+}
+
+function GenerationLoadingScreen({
+  progress,
+  statusMessage,
+}: {
+  progress: number;
+  statusMessage: string;
+}) {
+  const displayProgress = Math.round(Math.min(100, Math.max(0, progress)));
+
+  return (
+    <main
+      className="flex flex-col min-h-screen w-full"
+      style={{ background: LOADING_BG, color: LOADING_NAVY }}
+    >
+      <div className="flex flex-col flex-1 items-center justify-center px-6 py-12 max-w-md mx-auto w-full gap-10">
+        <div
+          className="text-3xl sm:text-4xl font-bold tracking-tight"
+          style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+        >
+          <span style={{ color: LOADING_NAVY }}>ruled</span>
+          <span style={{ color: LOADING_BLUE }}>.ca</span>
+        </div>
+
+        <div className="w-full flex flex-col gap-3">
+          <div
+            className="h-2.5 w-full rounded-full overflow-hidden"
+            style={{ background: LOADING_BORDER }}
+          >
+            <div
+              className="h-full rounded-full transition-[width] duration-150 ease-out"
+              style={{
+                width: `${displayProgress}%`,
+                background: LOADING_BLUE,
+              }}
+            />
+          </div>
+          <p
+            className="text-xs font-medium tabular-nums text-right"
+            style={{ color: LOADING_MUTED }}
+          >
+            {displayProgress}%
+          </p>
+        </div>
+
+        <p
+          className="text-base sm:text-lg font-medium text-center min-h-[3rem] flex items-center justify-center"
+          style={{ color: LOADING_NAVY }}
+        >
+          {statusMessage}
+        </p>
+
+        <p
+          className="text-sm text-center leading-relaxed max-w-sm"
+          style={{ color: LOADING_MUTED }}
+        >
+          This usually takes 20-30 seconds. Please don&apos;t close this tab.
+        </p>
+      </div>
+    </main>
+  );
+}
 
 type PaymentData = {
   tier: string;
@@ -151,6 +265,13 @@ function DemandLetterDeliveryContent() {
   const [markSentLoading, setMarkSentLoading] = useState(false);
   const [markSentDone, setMarkSentDone] = useState(false);
 
+  const isBusy = phase === "loading" || phase === "generating";
+  const statusMessages = useMemo(
+    () => resolveStatusMessages(DEMAND_STATUS_MESSAGES, province),
+    [province]
+  );
+  const { progress, statusMessage } = useGenerationLoading(isBusy, statusMessages);
+
   useEffect(() => {
     if (isPreview) {
       setProvince(PREVIEW_DATA.province);
@@ -193,7 +314,7 @@ function DemandLetterDeliveryContent() {
         setEmail(data.email);
 
         if (data.tier === "full") {
-          router.replace(`/full-case-pack?session_id=${sessionId}`);
+          router.replace(`/success/full-case-pack?session_id=${sessionId}`);
           return;
         }
 
@@ -271,16 +392,9 @@ function DemandLetterDeliveryContent() {
     }
   }
 
-  if (phase === "loading" || phase === "generating") {
+  if (isBusy) {
     return (
-      <main className="flex flex-col flex-1 min-h-screen px-4 sm:px-6 py-16 items-center justify-center gap-4">
-        <Spinner className="w-10 h-10" />
-        <p className="text-sm text-center" style={{ color: "#9a9590" }}>
-          {phase === "generating"
-            ? "Drafting your demand letter from your case details…"
-            : "Confirming your payment…"}
-        </p>
-      </main>
+      <GenerationLoadingScreen progress={progress} statusMessage={statusMessage} />
     );
   }
 
@@ -540,9 +654,10 @@ export default function DemandLetterDeliveryPage() {
   return (
     <Suspense
       fallback={
-        <main className="flex flex-1 items-center justify-center min-h-screen">
-          <Spinner className="w-10 h-10" />
-        </main>
+        <GenerationLoadingScreen
+          progress={0}
+          statusMessage={DEMAND_STATUS_MESSAGES[0]}
+        />
       }
     >
       <DemandLetterDeliveryContent />
