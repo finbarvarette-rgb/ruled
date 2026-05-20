@@ -390,6 +390,8 @@ export default function ResultsPage() {
   const [intake, setIntake] = useState("");
   const [caseId, setCaseId] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
+  const [saveLoading, setSaveLoading] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("");
   const [checkoutLoading, setCheckoutLoading] = useState<
     "demand" | "full" | null
   >(null);
@@ -438,6 +440,48 @@ export default function ResultsPage() {
     }
   }
 
+  async function handleSaveAssessment() {
+    setSaveMessage("");
+    setSaveLoading(true);
+    persistSessionForCheckout();
+    try {
+      const res = await fetch("/api/cases/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          caseId,
+          assessment: rawText,
+          intake,
+          province,
+        }),
+      });
+      const data = (await res.json()) as { caseId?: string; error?: string };
+      if (!res.ok) {
+        throw new Error(data.error ?? "Save failed");
+      }
+      if (data.caseId) {
+        setCaseId(data.caseId);
+        updateRuledSession({
+          assessment: rawText,
+          province,
+          intake,
+          caseId: data.caseId,
+          email,
+        });
+      }
+      setSaveMessage("Your assessment has been saved to your dashboard ✅");
+    } catch (err) {
+      setSaveMessage(
+        err instanceof Error
+          ? err.message
+          : "Could not save your assessment. Please try again."
+      );
+    } finally {
+      setSaveLoading(false);
+    }
+  }
+
   if (!mounted || !rawText) return null;
 
   const strengthStyle = strength ? strengthBadgeStyle(strength) : null;
@@ -463,6 +507,30 @@ export default function ResultsPage() {
           >
             Your Case Assessment
           </h1>
+          <div className="flex flex-col gap-2 w-full">
+            <button
+              type="button"
+              disabled={saveLoading}
+              onClick={handleSaveAssessment}
+              className="w-full sm:w-fit rounded-lg px-5 py-3 text-sm font-semibold disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2"
+              style={{
+                background: "#1a1916",
+                color: "#f5f1eb",
+                border: "1px solid #2a2825",
+              }}
+            >
+              {saveLoading && <Spinner />}
+              {saveLoading ? "Saving…" : "Save My Assessment"}
+            </button>
+            {saveMessage && (
+              <p
+                className="text-sm"
+                style={{ color: saveMessage.includes("✅") ? "#9a9590" : "#c8392b" }}
+              >
+                {saveMessage}
+              </p>
+            )}
+          </div>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
             {province && (
               <span style={{ color: "#f5f1eb" }}>{province}</span>

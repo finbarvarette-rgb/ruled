@@ -73,24 +73,42 @@ export async function POST(req: NextRequest) {
 
     let caseId: string | null = null;
     try {
-      // Attach authenticated user if available
+      // Attach authenticated user + email if available
       let userId: string | null = null;
+      let userEmail: string | null = null;
       try {
         const serverClient = await createClient();
-        const { data: { user } } = await serverClient.auth.getUser();
-        if (user) userId = user.id;
+        const {
+          data: { user },
+        } = await serverClient.auth.getUser();
+        if (user) {
+          userId = user.id;
+          userEmail = user.email ?? null;
+        }
       } catch { /* anonymous assessment is fine */ }
 
-      const { data, error: dbErr } = await getSupabase()
-        .from("cases")
-        .insert({
-          intake_text: intake,
-          province,
-          case_assessment: assessment,
-          ...(userId ? { user_id: userId } : {}),
-        })
-        .select("id")
-        .single();
+      // IMPORTANT: use the authenticated server client for inserts when logged in,
+      // otherwise the case may be written without a user/email link, making it
+      // invisible to the dashboard under RLS.
+      const insertPayload = {
+        intake_text: intake,
+        province,
+        case_assessment: assessment,
+        ...(userId ? { user_id: userId } : {}),
+        ...(userEmail ? { email: userEmail } : {}),
+      };
+
+      const { data, error: dbErr } = userId
+        ? await (await createClient())
+            .from("cases")
+            .insert(insertPayload)
+            .select("id")
+            .single()
+        : await getSupabase()
+            .from("cases")
+            .insert(insertPayload)
+            .select("id")
+            .single();
 
       if (dbErr) console.error("Supabase insert error:", dbErr);
       else if (data) caseId = data.id;
