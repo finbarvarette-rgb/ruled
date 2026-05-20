@@ -21,7 +21,7 @@ const WELCOME: ChatMessage = {
   id: "welcome",
   role: "assistant",
   content:
-    "Hi — I'm Ruled AI. Ask me anything about small claims court, demand letters, or recovering money you're owed in Canada. I share legal information, not legal advice.",
+    "Hi — I'm Ruled AI. Ask about small claims, demand letters, or money you're owed. I'll keep it short and practical — legal information, not advice.",
 };
 
 function ChatIcon({ className }: { className?: string }) {
@@ -60,8 +60,12 @@ function CloseIcon() {
   );
 }
 
-const INLINE_MD =
-  /\*\*([^*]+)\*\*|\*([^*]+)\*|_([^_]+)_/g;
+/** Strip leftover markers the model sometimes leaves unpaired. */
+function cleanPlainText(text: string): string {
+  return text.replace(/\*\*/g, "").replace(/__/g, "");
+}
+
+const INLINE_MD = /\*\*(.+?)\*\*|\*([^*\n]+?)\*|_([^_\n]+?)_/g;
 
 function parseInlineMarkdown(text: string, keyPrefix: string): React.ReactNode[] {
   const nodes: React.ReactNode[] = [];
@@ -71,33 +75,40 @@ function parseInlineMarkdown(text: string, keyPrefix: string): React.ReactNode[]
   INLINE_MD.lastIndex = 0;
   while ((match = INLINE_MD.exec(text)) !== null) {
     if (match.index > lastIndex) {
-      nodes.push(text.slice(lastIndex, match.index));
+      nodes.push(cleanPlainText(text.slice(lastIndex, match.index)));
     }
     const key = `${keyPrefix}-i${n++}`;
     if (match[1] !== undefined) {
       nodes.push(
         <strong key={key} className="font-semibold">
-          {match[1]}
+          {cleanPlainText(match[1])}
         </strong>
       );
     } else {
       const italic = match[2] ?? match[3];
       nodes.push(
         <em key={key} className="italic">
-          {italic}
+          {cleanPlainText(italic ?? "")}
         </em>
       );
     }
     lastIndex = INLINE_MD.lastIndex;
   }
   if (lastIndex < text.length) {
-    nodes.push(text.slice(lastIndex));
+    nodes.push(cleanPlainText(text.slice(lastIndex)));
   }
-  return nodes.length ? nodes : [text];
+  return nodes.length ? nodes : [cleanPlainText(text)];
+}
+
+function preprocessAssistantContent(content: string): string {
+  return content
+    .split("\n")
+    .map((line) => line.replace(/^#{1,6}\s+/, ""))
+    .join("\n");
 }
 
 function AssistantMessageContent({ content }: { content: string }) {
-  const lines = content.split("\n");
+  const lines = preprocessAssistantContent(content).split("\n");
   const blocks: React.ReactNode[] = [];
   let i = 0;
   let blockKey = 0;
@@ -223,7 +234,10 @@ export function RuledAIChat() {
       const res = await fetch("/api/ruled-ai-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: history }),
+        body: JSON.stringify({
+          messages: history,
+          loggedIn: loggedIn === true,
+        }),
       });
 
       const data = (await res.json()) as { answer?: string; error?: string };

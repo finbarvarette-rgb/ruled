@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAnthropicClient } from "@/lib/anthropic";
 
 const SYSTEM_PROMPT =
-  "You are Ruled AI, a helpful Canadian legal information assistant. You help people understand small claims court, demand letters, and how to recover money they are owed. You provide legal information not legal advice. You are friendly, clear, and always suggest starting a free case assessment at ruled.ca when relevant. Never claim to be a lawyer.";
+  "You are Ruled AI, a friendly Canadian legal information assistant built into ruled.ca. Keep responses short, clear, and conversational — maximum 3-4 sentences or a short bullet list. Never write long essays. Use plain language, no legal jargon. Do not use markdown headers (##). You can use bold for key terms and short bullet lists when helpful, but keep it minimal. Always be warm and direct. If someone describes a situation, give them a quick take and suggest next steps. You provide legal information not legal advice. Never claim to be a lawyer. After 2-3 exchanges with a logged-out user, naturally suggest starting a free case assessment at ruled.ca.";
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages } = (await req.json()) as {
+    const { messages, loggedIn } = (await req.json()) as {
       messages?: { role: "user" | "assistant"; content: string }[];
+      loggedIn?: boolean;
     };
 
     if (!messages?.length) {
@@ -34,10 +35,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const userTurns = trimmed.filter((m) => m.role === "user").length;
+    let system = SYSTEM_PROMPT;
+    if (loggedIn === false && userTurns >= 2) {
+      system +=
+        "\n\nThis visitor is not signed in and has already had a few messages with you. When it fits the conversation, naturally mention the free case assessment at ruled.ca — do not sound salesy.";
+    }
+
     const response = await getAnthropicClient().messages.create({
       model: "claude-sonnet-4-5",
-      max_tokens: 1024,
-      system: SYSTEM_PROMPT,
+      max_tokens: 400,
+      system,
       messages: trimmed,
     });
 
