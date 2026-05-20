@@ -20,7 +20,7 @@ const NAV_ITEMS: { label: string; href?: string; dropdown?: DropdownItem[] }[] =
     label: "Products",
     dropdown: [
       { label: "Demand Letter \u2014 $49", href: "/demand-preview", desc: "Ready-to-send legal letter" },
-      { label: "Full Case Pack \u2014 $199", href: "/onboarding", desc: "Everything you need to win" },
+      { label: "Full Case Pack \u2014 $199", href: "/full-case-pack-preview", desc: "Everything you need to win" },
     ],
   },
   { label: "Pricing", href: "/#pricing" },
