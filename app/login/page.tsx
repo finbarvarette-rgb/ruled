@@ -5,12 +5,14 @@ import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { Spinner } from "@/components/Spinner";
-
-const inputStyle = {
-  background: "#1a1916",
-  color: "#f5f1eb",
-  border: "1px solid #2a2825",
-};
+import {
+  m,
+  marketingBtnPrimary,
+  marketingCard,
+  marketingInput,
+  marketingPageMain,
+  ruledLogoSuffixStyle,
+} from "@/lib/marketing-theme";
 
 function LoginForm() {
   const router = useRouter();
@@ -38,7 +40,6 @@ function LoginForm() {
       if (!res.ok) {
         throw new Error(data.error ?? "Sign in failed. Please try again.");
       }
-      // Redirect after successful login — check for pending intake
       const pendingIntake = sessionStorage.getItem("onboarding_intake");
       if (pendingIntake) {
         router.push("/processing");
@@ -55,78 +56,88 @@ function LoginForm() {
   }
 
   return (
-    <main className="flex flex-col flex-1 min-h-screen px-6 py-16 md:py-24">
-      <div className="max-w-md mx-auto w-full flex flex-col gap-10 items-center text-center">
+    <main
+      className="flex flex-col flex-1 min-h-screen px-4 sm:px-6 py-12 md:py-16"
+      style={marketingPageMain}
+    >
+      <div className="max-w-md mx-auto w-full flex flex-col gap-8 items-center text-center">
         <Link
           href="/"
           className="text-4xl font-bold tracking-tight"
-          style={{ fontFamily: "Georgia, \'Times New Roman\', serif" }}
+          style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: m.text }}
         >
-          ruled<span style={{ color: "#c8392b" }}>.ca</span>
+          ruled<span style={ruledLogoSuffixStyle()}>.ca</span>
         </Link>
 
-        <div className="flex flex-col gap-3 w-full">
-          <h1 className="text-2xl font-semibold tracking-tight">Sign in</h1>
-          <p className="text-sm leading-relaxed" style={{ color: "#9a9590" }}>
-            Enter your email and password to access your cases.
-          </p>
-        </div>
+        <div
+          className="w-full rounded-xl p-6 sm:p-8 flex flex-col gap-6 items-center text-center"
+          style={marketingCard}
+        >
+          <div className="flex flex-col gap-3 w-full">
+            <h1 className="text-2xl font-semibold tracking-tight" style={{ color: m.text }}>
+              Sign in
+            </h1>
+            <p className="text-sm leading-relaxed" style={{ color: m.subtext }}>
+              Enter your email and password to access your cases.
+            </p>
+          </div>
 
-        {authError && (
-          <p className="text-sm w-full text-left" style={{ color: "#c8392b" }}>
-            Session expired or link invalid. Please sign in again.
-          </p>
-        )}
-
-        <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4">
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email address"
-            className="w-full rounded-lg px-4 py-3 text-sm outline-none"
-            style={inputStyle}
-            onFocus={(e) => (e.currentTarget.style.borderColor = "#c8392b")}
-            onBlur={(e) => (e.currentTarget.style.borderColor = "#2a2825")}
-          />
-          <input
-            type="password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
-            className="w-full rounded-lg px-4 py-3 text-sm outline-none"
-            style={inputStyle}
-            onFocus={(e) => (e.currentTarget.style.borderColor = "#c8392b")}
-            onBlur={(e) => (e.currentTarget.style.borderColor = "#2a2825")}
-          />
-          {error && (
-            <p className="text-sm text-left" style={{ color: "#c8392b" }}>
-              {error}
+          {authError && (
+            <p className="text-sm w-full text-left" style={{ color: m.blue }}>
+              Session expired or link invalid. Please sign in again.
             </p>
           )}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-lg px-6 py-4 text-sm font-semibold disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2"
-            style={{ background: "#c8392b", color: "#f5f1eb" }}
-          >
-            {loading && <Spinner />}
-            {loading ? "Signing in…" : "Sign In"}
-          </button>
-        </form>
 
-        <div className="flex flex-col gap-3 w-full items-center text-sm">
-          <Link href="/onboarding" style={{ color: "#c8392b" }}>
-            Don&apos;t have an account? Start free &rarr;
-          </Link>
-          <Link href="/forgot-password" style={{ color: "#9a9590" }}>
-            Forgot your password?
-          </Link>
+          <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4">
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email address"
+              className="w-full rounded-lg px-4 py-3 text-sm outline-none"
+              style={marketingInput}
+              onFocus={(e) => (e.currentTarget.style.borderColor = m.blue)}
+              onBlur={(e) => (e.currentTarget.style.borderColor = m.border)}
+            />
+            <input
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+              className="w-full rounded-lg px-4 py-3 text-sm outline-none"
+              style={marketingInput}
+              onFocus={(e) => (e.currentTarget.style.borderColor = m.blue)}
+              onBlur={(e) => (e.currentTarget.style.borderColor = m.border)}
+            />
+            {error && (
+              <p className="text-sm text-left" style={{ color: m.blue }}>
+                {error}
+              </p>
+            )}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full min-h-12 rounded-full px-6 py-4 text-sm font-semibold disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2"
+              style={marketingBtnPrimary}
+            >
+              {loading && <Spinner />}
+              {loading ? "Signing in…" : "Sign In"}
+            </button>
+          </form>
+
+          <div className="flex flex-col gap-3 w-full items-center text-sm">
+            <Link href="/onboarding" style={{ color: m.blue }}>
+              Don&apos;t have an account? Start free &rarr;
+            </Link>
+            <Link href="/forgot-password" style={{ color: m.muted }}>
+              Forgot your password?
+            </Link>
+          </div>
         </div>
 
-        <Link href="/" className="text-sm" style={{ color: "#9a9590" }}>
+        <Link href="/" className="text-sm" style={{ color: m.muted }}>
           &larr; Back to home
         </Link>
       </div>
@@ -138,7 +149,10 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <main className="flex flex-1 items-center justify-center min-h-screen">
+        <main
+          className="flex flex-1 items-center justify-center min-h-screen"
+          style={marketingPageMain}
+        >
           <Spinner className="w-10 h-10" />
         </main>
       }

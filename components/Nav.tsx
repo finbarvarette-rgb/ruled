@@ -119,21 +119,82 @@ function Dropdown({
   );
 }
 
+function UserMenu({
+  initials,
+  open,
+  onToggle,
+  onClose,
+  onSignOut,
+}: {
+  initials: string;
+  open: boolean;
+  onToggle: () => void;
+  onClose: () => void;
+  onSignOut: () => void;
+}) {
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0 cursor-pointer transition-opacity hover:opacity-90"
+        style={{
+          background: SURFACE,
+          border: `1px solid ${NAV_BORDER}`,
+          color: NAVY,
+        }}
+        aria-label="Account menu"
+        aria-expanded={open}
+      >
+        {initials}
+      </button>
+      {open && (
+        <div
+          className="absolute top-full right-0 mt-2 w-44 rounded-xl overflow-hidden shadow-lg z-50"
+          style={{
+            background: "#ffffff",
+            border: `1px solid ${NAV_BORDER}`,
+          }}
+        >
+          <Link
+            href="/dashboard/account"
+            onClick={onClose}
+            className="block px-4 py-3 text-sm font-medium transition-colors"
+            style={{ color: NAVY, borderBottom: `1px solid ${NAV_BORDER}` }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = SURFACE)}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+          >
+            My Account
+          </Link>
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              onSignOut();
+            }}
+            className="block w-full text-left px-4 py-3 text-sm font-medium transition-colors cursor-pointer"
+            style={{ color: NAVY }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = SURFACE)}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+          >
+            Sign Out
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Logo() {
   return (
     <Link href="/" className="flex items-center gap-2 shrink-0">
-      <div
-        className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 overflow-hidden"
-        style={{ background: "#0F172A" }}
-      >
-        <img
-          src="/brand/ruled_icon_shield.png"
-          alt=""
-          width={28}
-          height={28}
-          className="shrink-0 object-contain"
-        />
-      </div>
+      <img
+        src="/brand/logo_icon.png"
+        alt=""
+        width={32}
+        height={32}
+        className="shrink-0 object-contain"
+      />
       <span
         className="text-lg sm:text-xl font-bold tracking-tight"
         style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
@@ -149,6 +210,8 @@ export function Nav() {
   const pathname = usePathname();
   const router = useRouter();
   const [signedIn, setSignedIn] = useState(false);
+  const [userInitials, setUserInitials] = useState("U");
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const navRef = useRef<HTMLDivElement>(null);
@@ -163,9 +226,26 @@ export function Nav() {
   async function refreshAuthState() {
     try {
       const { data } = await supabase.auth.getUser();
-      setSignedIn(!!data.user);
+      const user = data.user;
+      setSignedIn(!!user);
+      if (!user) {
+        setUserInitials("U");
+        return;
+      }
+      let initials = (user.email?.[0] ?? "U").toUpperCase();
+      const { data: profile } = await supabase
+        .from("user_profiles")
+        .select("first_name, last_name")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      const fromName = `${profile?.first_name?.[0] ?? ""}${profile?.last_name?.[0] ?? ""}`
+        .toUpperCase()
+        .slice(0, 2);
+      if (fromName) initials = fromName;
+      setUserInitials(initials);
     } catch {
       setSignedIn(false);
+      setUserInitials("U");
     }
   }
 
@@ -175,6 +255,7 @@ export function Nav() {
     } finally {
       setSignedIn(false);
       setMobileOpen(false);
+      setUserMenuOpen(false);
       router.push("/");
     }
   }
@@ -193,6 +274,7 @@ export function Nav() {
       if (navRef.current && !navRef.current.contains(e.target as Node)) {
         setOpenDropdown(null);
         setMobileOpen(false);
+        setUserMenuOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClick);
@@ -202,6 +284,7 @@ export function Nav() {
   useEffect(() => {
     setOpenDropdown(null);
     setMobileOpen(false);
+    setUserMenuOpen(false);
     refreshAuthState();
   }, [pathname]);
 
@@ -292,7 +375,10 @@ export function Nav() {
                   {item.dropdown ? (
                     <button
                       type="button"
-                      onClick={() => setOpenDropdown(isOpen ? null : item.label)}
+                      onClick={() => {
+                        setUserMenuOpen(false);
+                        setOpenDropdown(isOpen ? null : item.label);
+                      }}
                       className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer"
                       style={{ color: navLinkColor(isOpen) }}
                       onMouseEnter={(e) => (e.currentTarget.style.color = BLUE)}
@@ -335,11 +421,22 @@ export function Nav() {
                 </div>
               );
             })}
+            {signedIn && (
+              <Link
+                href={BLOG_NAV.href}
+                className="px-3 py-2 rounded-lg text-sm transition-colors"
+                style={{ color: NAVY }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = BLUE)}
+                onMouseLeave={(e) => (e.currentTarget.style.color = NAVY)}
+              >
+                {BLOG_NAV.label}
+              </Link>
+            )}
           </nav>
         )}
 
         <div className="flex items-center gap-2 sm:gap-3 ml-auto shrink-0">
-          {showMarketingNav && (
+          {showMarketingNav && !signedIn && (
             <Link
               href={BLOG_NAV.href}
               className="hidden md:block px-3 py-2 rounded-lg text-sm transition-colors"
@@ -359,25 +456,18 @@ export function Nav() {
               >
                 Dashboard
               </Link>
-              <Link
-                href="/dashboard/account"
-                className="hidden sm:block text-sm transition-colors"
-                style={{ color: NAVY }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = BLUE)}
-                onMouseLeave={(e) => (e.currentTarget.style.color = NAVY)}
-              >
-                My Account
-              </Link>
-              <button
-                type="button"
-                onClick={handleSignOut}
-                className="hidden sm:block text-sm transition-colors cursor-pointer"
-                style={{ color: NAVY }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = BLUE)}
-                onMouseLeave={(e) => (e.currentTarget.style.color = NAVY)}
-              >
-                Sign Out
-              </button>
+              <div className="hidden md:block">
+                <UserMenu
+                  initials={userInitials}
+                  open={userMenuOpen}
+                  onToggle={() => {
+                    setOpenDropdown(null);
+                    setUserMenuOpen(!userMenuOpen);
+                  }}
+                  onClose={() => setUserMenuOpen(false)}
+                  onSignOut={handleSignOut}
+                />
+              </div>
             </>
           ) : (
             <>
@@ -491,24 +581,43 @@ export function Nav() {
                   href="/dashboard"
                   className="block rounded-full px-4 py-3 min-h-12 text-sm font-semibold text-center flex items-center justify-center"
                   style={{ background: BLUE, color: "#ffffff" }}
+                  onClick={() => setMobileOpen(false)}
                 >
                   Dashboard
                 </Link>
-                <Link
-                  href="/dashboard/account"
-                  className="block px-2 py-2 text-sm"
-                  style={{ color: NAVY }}
+                <div
+                  className="flex items-center gap-3 px-2 py-2 mt-1"
+                  style={{ borderTop: `1px solid ${NAV_BORDER}` }}
                 >
-                  My Account
-                </Link>
-                <button
-                  type="button"
-                  onClick={handleSignOut}
-                  className="block px-2 py-2 text-sm text-left cursor-pointer"
-                  style={{ color: NAVY }}
-                >
-                  Sign Out
-                </button>
+                  <div
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                    style={{
+                      background: SURFACE,
+                      border: `1px solid ${NAV_BORDER}`,
+                      color: NAVY,
+                    }}
+                  >
+                    {userInitials}
+                  </div>
+                  <div className="flex flex-col gap-1 min-w-0">
+                    <Link
+                      href="/dashboard/account"
+                      className="text-sm font-medium"
+                      style={{ color: NAVY }}
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      My Account
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={handleSignOut}
+                      className="text-sm text-left cursor-pointer"
+                      style={{ color: NAVY }}
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
               </>
             ) : (
               <>

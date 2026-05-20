@@ -182,7 +182,14 @@ export function DashboardShell({
           style={{ borderColor: "#1f1d19", background: "#0f0e0c" }}
         >
           <div className="flex flex-col w-full p-4 gap-4">
-            <Link href="/dashboard" className="px-2 py-3">
+            <Link href="/dashboard" className="flex items-center gap-2 px-2 py-3">
+              <img
+                src="/brand/logo_icon.png"
+                alt=""
+                width={32}
+                height={32}
+                className="shrink-0 object-contain"
+              />
               <span
                 className="text-xl font-bold tracking-tight"
                 style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
