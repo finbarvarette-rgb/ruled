@@ -4,9 +4,16 @@ import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { restoreSessionFromPayment, updateRuledSession } from "@/lib/session";
+import {
+  buildDayOfCourtChecklist,
+  buildHowToFileText,
+  extractClaimAmount,
+  getProvinceFiling,
+  inferClaimantName,
+  inferDefendantName,
+} from "@/lib/case-pack";
+import { downloadBrandedPdf } from "@/lib/pdf-generator";
 import { Spinner } from "@/components/Spinner";
-import { supabase } from "@/lib/supabase";
-import { downloadBrandedPdf, downloadPdfZip } from "@/lib/pdf-generator";
 
 const LOADING_BG = "#FAFAFA";
 const LOADING_NAVY = "#0F172A";
@@ -126,149 +133,11 @@ type PaymentData = {
   province: string;
   email: string | null;
   demandLetter: string | null;
-};
-
-type PackDocument = {
-  id: string;
-  title: string;
-  description: string;
-  content: string;
+  courtDocs?: string | null;
+  hearingPrep?: string | null;
 };
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
-
-type TabId = "file" | "documents" | "hearing" | "checklist";
-
-const TABS: { id: TabId; label: string }[] = [
-  { id: "file", label: "How to File" },
-  { id: "documents", label: "Your Documents" },
-  { id: "hearing", label: "Hearing Prep" },
-  { id: "checklist", label: "Day of Court" },
-];
-
-type ProvinceFiling = {
-  courtName: string;
-  location: string;
-  onlinePortal: string | null;
-  filingFee: string;
-  claimLimit: string;
-  formsToBring: string[];
-  filingDeadline: string;
-  instructions: string[];
-};
-
-const PROVINCE_FILING: Record<string, ProvinceFiling> = {
-  Ontario: {
-    courtName: "Ontario Court of Justice — Small Claims Court",
-    location:
-      "File at the courthouse in the municipality where the defendant lives or where the dispute arose. Find your court at ontario.ca/page/small-claims-court-locations.",
-    onlinePortal: "https://www.ontario.ca/page/file-small-claims-court-claim",
-    filingFee:
-      "Approximately $102 for claims up to $500; scales up to about $220 for claims near the $35,000 limit (confirm current schedule before filing).",
-    claimLimit: "$35,000",
-    formsToBring: [
-      "Plaintiff's Claim (Form 7A) — completed and signed",
-      "Copies of all evidence (contracts, invoices, photos, messages)",
-      "Copy of your demand letter and proof it was sent",
-      "Government-issued photo ID",
-      "Filing fee payment (cash, debit, or as accepted at your court)",
-    ],
-    filingDeadline:
-      "File within two years of when the debt arose (limitation period). After your demand letter, allow 14 days for response before filing.",
-    instructions: [
-      "Complete Form 7A with your name, the defendant's name and address, and the amount claimed.",
-      "Attach a brief description of what happened and what you are claiming.",
-      "Pay the filing fee at the court office or file online if eligible.",
-      "The court will issue a claim number and arrange service on the defendant.",
-    ],
-  },
-  "British Columbia": {
-    courtName: "BC Provincial Court — Small Claims",
-    location:
-      "File at the Small Claims registry nearest to where the defendant lives or the contract was performed.",
-    onlinePortal: "https://www2.gov.bc.ca/gov/content/justice/courthouse-services/small-claims",
-    filingFee:
-      "Filing fee depends on claim amount (typically $100–$156 for common claim sizes — verify on the court fee schedule).",
-    claimLimit: "$35,000",
-    formsToBring: [
-      "Notice of Claim (Form 1) — completed",
-      "Copies of evidence and demand letter",
-      "Proof of demand letter delivery",
-      "Photo ID and filing fee",
-    ],
-    filingDeadline:
-      "Two-year limitation period from when the cause of action arose. Wait 14 days after your demand letter before filing unless urgent.",
-    instructions: [
-      "Complete the Notice of Claim with parties, amount, and brief facts.",
-      "File at the registry and pay the filing fee.",
-      "You will receive instructions for serving the defendant.",
-    ],
-  },
-  Alberta: {
-    courtName: "Alberta Court of Justice — Civil (Small Claims)",
-    location: "File at the judicial centre serving the area where the defendant resides.",
-    onlinePortal: "https://albertacourts.ca/cj/civil/small-claims",
-    filingFee: "Typically $100–$200 depending on claim amount — check current Alberta Court fees.",
-    claimLimit: "$50,000",
-    formsToBring: [
-      "Civil Claim (Form 7) — completed",
-      "Evidence copies and demand letter",
-      "ID and filing fee payment",
-    ],
-    filingDeadline:
-      "Limitation period is generally two years. File after your 14-day demand letter deadline if unpaid.",
-    instructions: [
-      "Complete the Civil Claim with claimant, defendant, and relief sought.",
-      "File at the court and pay fees.",
-      "Follow court directions for serving the defendant.",
-    ],
-  },
-  Quebec: {
-    courtName: "Court of Québec — Small Claims Division",
-    location: "File at the courthouse of the district where the defendant lives or is headquartered.",
-    onlinePortal: null,
-    filingFee: "Varies by claim amount — typically under $200 for most small claims.",
-    claimLimit: "$15,000",
-    formsToBring: [
-      "Application initiating proceeding — completed",
-      "Evidence copies (French may be required in some districts)",
-      "Demand letter copy and proof of sending",
-      "ID and filing fee",
-    ],
-    filingDeadline:
-      "Prescription period applies (often three years). Allow 14 days after demand letter before filing.",
-    instructions: [
-      "Complete the application with parties and amount claimed.",
-      "File at the courthouse and pay fees.",
-      "Note: Quebec procedures differ — consider verifying French-language requirements.",
-    ],
-  },
-};
-
-const DEFAULT_FILING: ProvinceFiling = {
-  courtName: "Provincial Small Claims Court",
-  location:
-    "File at the small claims court serving the area where the defendant lives or where the dispute occurred. Check your provincial court website for the correct location.",
-  onlinePortal: null,
-  filingFee:
-    "Varies by province and claim amount — confirm the current fee schedule on your provincial court website before filing.",
-  claimLimit: "Varies by province (typically $15,000–$50,000)",
-  formsToBring: [
-    "Completed small claims initiating form for your province",
-    "Copies of all evidence",
-    "Copy of demand letter and proof of delivery",
-    "Government-issued photo ID",
-    "Filing fee payment",
-  ],
-  filingDeadline:
-    "File before your province's limitation period expires (usually two years). After sending your demand letter, wait 14 days for a response before filing.",
-  instructions: [
-    "Complete your province's small claims form with accurate party names and amounts.",
-    "Attach a clear summary of facts and what you are claiming.",
-    "Pay the filing fee and keep your receipt.",
-    "Serve the defendant according to your province's rules and keep proof of service.",
-  ],
-};
 
 const PREVIEW_DEMAND_LETTER = `Jane Smith
 Smith Renovations Inc.
@@ -370,55 +239,12 @@ Strong. Clear contract, payment proof, and documented abandonment.
 ESTIMATED CLAIM AMOUNT
 $5,000.00`;
 
-function getProvinceFiling(province: string): ProvinceFiling {
-  return PROVINCE_FILING[province] ?? DEFAULT_FILING;
-}
-
-function extractClaimAmount(assessment: string, intake: string): string {
-  const section = assessment.match(/ESTIMATED CLAIM AMOUNT\s*\n+([^\n]+)/i);
-  const fromSection = section?.[1]?.match(/\$?\s*([\d,]+(?:\.\d{2})?)/);
-  if (fromSection) return fromSection[1].replace(/,/g, "");
-  const fromIntake = intake.match(/\$\s*([\d,]+(?:\.\d{2})?)/);
-  if (fromIntake) return fromIntake[1].replace(/,/g, "");
-  return "0";
-}
-
-function inferSenderName(email: string | null, intake: string): string {
-  if (email) {
-    const local = email.split("@")[0]?.replace(/[._]/g, " ").trim();
-    if (local && local.length > 1) {
-      return local
-        .split(" ")
-        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-        .join(" ");
-    }
-  }
-  const iMatch = intake.match(
-    /(?:I am|I'm|My name is)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/
-  );
-  if (iMatch) return iMatch[1];
-  return "Claimant";
-}
-
-function inferDefendantName(intake: string): string {
-  const patterns = [
-    /(?:contractor|client|landlord|tenant|company|business)\s+(?:named\s+)?([A-Z][A-Za-z0-9\s&.'-]{2,40})/i,
-    /(?:from|by|with)\s+([A-Z][A-Za-z0-9\s&.'-]{2,30})(?:\s+who|\s+that|,|\.)/,
-    /([A-Z][a-z]+\s+[A-Z][a-z]+)\s+(?:took|owes|refused|ghosted)/,
-  ];
-  for (const re of patterns) {
-    const m = intake.match(re);
-    if (m?.[1]) return m[1].trim();
-  }
-  return "Defendant";
-}
-
 async function generateDemandLetter(data: PaymentData): Promise<string> {
   const res = await fetch("/api/demand", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      senderName: inferSenderName(data.email, data.intake),
+      senderName: inferClaimantName(data.intake, data.email),
       senderEmail: data.email ?? "claimant@email.com",
       defendantName: inferDefendantName(data.intake),
       defendantAddress: "Address on file",
@@ -457,126 +283,6 @@ async function fetchHearingPrep(assessment: string, province: string): Promise<s
   return json.content ?? "";
 }
 
-function buildDocuments(
-  demandLetter: string,
-  courtDocs: string
-): PackDocument[] {
-  return [
-    {
-      id: "claim-form",
-      title: "Plaintiff's Claim / Notice of Claim",
-      description:
-        "Step-by-step guide for completing your province's claim form with your case details.",
-      content: courtDocs,
-    },
-    {
-      id: "filing-guide",
-      title: "Court Filing Instructions",
-      description:
-        "Where to file, fees, service requirements, and deadlines for your province.",
-      content: courtDocs,
-    },
-    {
-      id: "demand-letter",
-      title: "Demand Letter (Court Copy)",
-      description:
-        "Include a copy of your demand letter with your filing — proof you tried to resolve this first.",
-      content: demandLetter,
-    },
-    {
-      id: "evidence-index",
-      title: "Evidence Index & Binder Guide",
-      description:
-        "Organize exhibits in order — contracts, payments, photos, messages, and delivery proof.",
-      content: courtDocs.includes("EVIDENCE")
-        ? courtDocs
-        : `${courtDocs}\n\n---\n\nEVIDENCE INDEX\n\nList each piece of evidence as Exhibit A, B, C… with a one-line description. Bring three copies: one for the judge, one for the defendant, one for yourself.`,
-    },
-    {
-      id: "affidavit-service",
-      title: "Affidavit of Service Template",
-      description:
-        "Sworn statement proving the defendant was served — required after filing.",
-      content: `AFFIDAVIT OF SERVICE\n\nI, [YOUR FULL NAME], of [YOUR CITY, PROVINCE], swear/affirm:\n\n1. On [DATE], I served [DEFENDANT NAME] with a copy of my claim by [personal delivery / registered mail / method permitted in your province].\n\n2. Service was made at: [ADDRESS]\n\n3. I attach proof of service (tracking number, affidavit of server, or receipt).\n\nSworn before me at [CITY] on [DATE].\n\n_________________________\nSignature\n\n_________________________\nCommissioner / Notary (if required)`,
-    },
-  ];
-}
-
-function buildDayOfCourtChecklist(province: string, claimantName: string): string {
-  return `DAY OF COURT CHECKLIST — ${province.toUpperCase()}
-
-WHAT TO BRING
-☐ Government-issued photo ID
-☐ Original evidence binder (contracts, invoices, photos, messages)
-☐ Three copies of every exhibit (judge, defendant, you)
-☐ Copy of your filed claim and claim number
-☐ Copy of demand letter and proof it was sent
-☐ Proof of service on the defendant
-☐ Pen and notepad
-☐ Printed opening statement (from Hearing Prep tab)
-☐ Printed closing statement (from Hearing Prep tab)
-☐ Water (courthouse security permitting)
-
-BEFORE YOU LEAVE HOME
-☐ Dress business casual — neat, clean, respectful
-☐ Review your opening statement out loud once
-☐ Confirm courthouse address and arrival time (30 min early)
-☐ Turn phone to silent or off
-
-WHEN YOU ARRIVE
-☐ Find the small claims check-in desk or courtroom list
-☐ Check in with court staff and confirm your case is on the docket
-☐ Wait in the gallery — stand when your name or case number is called
-
-WHEN YOUR CASE IS CALLED
-☐ Stand and say: "Your Honour, I am ${claimantName}, the plaintiff."
-☐ Wait for the judge to invite you to speak
-☐ Deliver your opening statement (2–3 minutes)
-☐ Present evidence in the order from your index
-☐ Listen to the defendant without interrupting
-☐ Respond only to what they said — stick to facts
-☐ Deliver your closing statement
-☐ Thank the judge: "Thank you, Your Honour."
-
-STAYING CALM
-☐ Breathe slowly before speaking — pause is fine
-☐ Look at the judge, not the defendant, when addressing the court
-☐ If you don't know an answer: "Your Honour, I don't know. I can check my records."
-☐ It's normal to be nervous — the judge hears small claims every day
-
-AFTER THE HEARING
-☐ Note any deadlines the judge gives you
-☐ If you win, ask about judgment enforcement options in ${province}
-☐ Save all documents from the hearing`;
-}
-
-function buildHowToFileText(
-  province: string,
-  filing: ProvinceFiling,
-  courtDocs: string
-): string {
-  const parts = [
-    `How to File in ${province}`,
-    "",
-    `Court: ${filing.courtName}`,
-    `Where to go: ${filing.location}`,
-    filing.onlinePortal ? `Online portal: ${filing.onlinePortal}` : "",
-    `Filing fee: ${filing.filingFee}`,
-    `Claim limit: ${filing.claimLimit}`,
-    `Deadline to file: ${filing.filingDeadline}`,
-    "",
-    "What Forms to Bring",
-    ...filing.formsToBring.map((item) => `• ${item}`),
-    "",
-    "Step-by-Step Filing",
-    ...filing.instructions.map((step, i) => `${i + 1}. ${step}`),
-  ];
-  if (courtDocs.trim()) {
-    parts.push("", "Your Personalized Filing Guide", courtDocs.trim());
-  }
-  return parts.join("\n");
-}
-
 function downloadPdf(title: string, content: string) {
   const slug = title
     .toLowerCase()
@@ -586,91 +292,6 @@ function downloadPdf(title: string, content: string) {
     documentTitle: title,
     body: content,
   });
-}
-
-async function downloadAllPdf(
-  province: string,
-  filing: ProvinceFiling,
-  courtDocs: string,
-  documents: PackDocument[],
-  hearingPrep: string,
-  checklist: string
-) {
-  await downloadPdfZip([
-    {
-      filename: "How-to-File.pdf",
-      documentTitle: `How to File in ${province}`,
-      body: buildHowToFileText(province, filing, courtDocs),
-    },
-    {
-      filename: "Your-Documents.pdf",
-      documentTitle: "Your Documents",
-      sections: documents.map((d) => ({
-        title: d.title,
-        content: d.content,
-      })),
-    },
-    {
-      filename: "Hearing-Prep.pdf",
-      documentTitle: "Hearing Preparation",
-      body: hearingPrep,
-    },
-    {
-      filename: "Day-of-Court-Checklist.pdf",
-      documentTitle: "Day of Court Checklist",
-      body: checklist,
-    },
-  ]);
-}
-
-function parseHearingSections(text: string): { title: string; body: string }[] {
-  const headers = [
-    "BEFORE THE HEARING",
-    "WHAT TO WEAR AND HOW TO ACT",
-    "WHEN YOU ARRIVE",
-    "YOUR OPENING STATEMENT",
-    "PRESENTING YOUR EVIDENCE",
-    "WHAT THE DEFENDANT WILL SAY",
-    "YOUR CLOSING STATEMENT",
-    "KEY RULES",
-    "AFTER THE HEARING",
-    "COURTROOM ETIQUETTE",
-  ];
-
-  const sections: { title: string; body: string }[] = [];
-  const upper = text.toUpperCase();
-
-  for (let i = 0; i < headers.length; i++) {
-    const header = headers[i];
-    const start = upper.indexOf(header);
-    if (start === -1) continue;
-
-    let end = text.length;
-    for (let j = i + 1; j < headers.length; j++) {
-      const next = upper.indexOf(headers[j], start + header.length);
-      if (next !== -1) {
-        end = next;
-        break;
-      }
-    }
-
-    const body = text.slice(start + header.length, end).trim();
-    if (body) {
-      sections.push({
-        title: header
-          .split(" ")
-          .map((w) => w.charAt(0) + w.slice(1).toLowerCase())
-          .join(" ")
-          .replace(/\b\w/g, (c) => c.toUpperCase()),
-        body,
-      });
-    }
-  }
-
-  if (sections.length === 0) {
-    return [{ title: "Hearing Preparation", body: text }];
-  }
-  return sections;
 }
 
 function SerifDoc({ children }: { children: string }) {
@@ -689,16 +310,56 @@ function SerifDoc({ children }: { children: string }) {
   );
 }
 
+function PackSection({
+  title,
+  content,
+  previewMax = 2400,
+}: {
+  title: string;
+  content: string;
+  previewMax?: number;
+}) {
+  const preview =
+    content.length > previewMax
+      ? `${content.slice(0, previewMax)}…`
+      : content;
+
+  return (
+    <section
+      className="rounded-xl overflow-hidden flex flex-col"
+      style={{ background: "#1a1916", border: "1px solid #2a2825" }}
+    >
+      <div
+        className="px-5 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b"
+        style={{ borderColor: "#2a2825" }}
+      >
+        <h2 className="text-lg font-semibold">{title}</h2>
+        <button
+          type="button"
+          onClick={() => downloadPdf(title, content)}
+          className="shrink-0 rounded-lg px-4 py-2.5 text-xs font-semibold cursor-pointer"
+          style={{ background: "#c8392b", color: "#f5f1eb" }}
+        >
+          Download PDF
+        </button>
+      </div>
+      <div className="px-4 sm:px-5 pb-5 pt-4">
+        <SerifDoc>{preview}</SerifDoc>
+      </div>
+    </section>
+  );
+}
+
 function FullCasePackDeliveryContent() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
+  const caseIdParam = searchParams.get("caseId");
   const isPreview = searchParams.get("preview") === "true";
 
   const [phase, setPhase] = useState<"loading" | "generating" | "ready" | "error">(
     "loading"
   );
   const [error, setError] = useState("");
-  const [activeTab, setActiveTab] = useState<TabId>("file");
   const [province, setProvince] = useState("");
   const [assessment, setAssessment] = useState("");
   const [intake, setIntake] = useState("");
@@ -717,7 +378,7 @@ function FullCasePackDeliveryContent() {
   );
 
   const claimantName = useMemo(
-    () => inferSenderName(null, intake) || "Claimant",
+    () => inferClaimantName(intake, null) || "Claimant",
     [intake]
   );
 
@@ -726,19 +387,14 @@ function FullCasePackDeliveryContent() {
     [province]
   );
 
-  const documents = useMemo(
-    () => buildDocuments(demandLetter, courtDocs),
-    [demandLetter, courtDocs]
+  const howToFileText = useMemo(
+    () => buildHowToFileText(province, filing, courtDocs),
+    [province, filing, courtDocs]
   );
 
   const checklist = useMemo(
     () => buildDayOfCourtChecklist(province, claimantName),
     [province, claimantName]
-  );
-
-  const hearingSections = useMemo(
-    () => parseHearingSections(hearingPrep),
-    [hearingPrep]
   );
 
   useEffect(() => {
@@ -753,14 +409,117 @@ function FullCasePackDeliveryContent() {
       return;
     }
 
-    if (!sessionId) {
-      setError("Invalid payment session.");
-      setPhase("error");
-      return;
+    async function savePack(
+      caseId: string,
+      letter: string,
+      court: string,
+      hearing: string
+    ) {
+      await fetch("/api/cases/documents", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          caseId,
+          demandLetter: letter,
+          courtDocs: court,
+          hearingPrep: hearing,
+        }),
+      }).catch(() => {});
+    }
+
+    async function finishPack(data: PaymentData, notifyDelivery: boolean) {
+      if (data.tier !== "full") {
+        throw new Error(
+          "This delivery page is for Full Case Pack purchases. Check your email for the correct link."
+        );
+      }
+
+      restoreSessionFromPayment({
+        assessment: data.assessment,
+        intake: data.intake,
+        province: data.province,
+        caseId: data.caseId,
+        email: data.email,
+        demandLetter: data.demandLetter,
+      });
+
+      setProvince(data.province);
+      setAssessment(data.assessment);
+      setIntake(data.intake);
+
+      let letter =
+        data.demandLetter ??
+        (typeof window !== "undefined"
+          ? sessionStorage.getItem("ruled_demand_letter")
+          : null);
+      let court = data.courtDocs ?? "";
+      let hearing = data.hearingPrep ?? "";
+
+      const needsGeneration = !letter || !court.trim() || !hearing.trim();
+      if (needsGeneration) {
+        setPhase("generating");
+        const [letterResult, courtResult, hearingResult] = await Promise.all([
+          letter ? Promise.resolve(letter) : generateDemandLetter(data),
+          court.trim()
+            ? Promise.resolve(court)
+            : fetchCourtDocs(data.assessment, data.province),
+          hearing.trim()
+            ? Promise.resolve(hearing)
+            : fetchHearingPrep(data.assessment, data.province),
+        ]);
+        letter = letterResult;
+        court = courtResult;
+        hearing = hearingResult;
+        if (!letter) {
+          throw new Error("Failed to generate demand letter");
+        }
+        await savePack(data.caseId, letter, court, hearing);
+      }
+
+      if (!letter) {
+        throw new Error("Demand letter is missing");
+      }
+
+      updateRuledSession({ demandLetter: letter });
+      setDemandLetter(letter);
+      setCourtDocs(court);
+      setHearingPrep(hearing);
+      setPhase("ready");
+
+      if (notifyDelivery && data.caseId) {
+        void fetch("/api/emails/notify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type: "full", caseId: data.caseId }),
+        }).catch(() => {});
+      }
     }
 
     async function load() {
       try {
+        if (caseIdParam && !sessionId) {
+          const url = `/api/cases/access?caseId=${encodeURIComponent(caseIdParam)}`;
+          const res = await fetch(url, { credentials: "include" });
+          const contentType = res.headers.get("content-type") ?? "";
+          if (!contentType.includes("application/json")) {
+            throw new Error(
+              `Could not load your case (${res.status}). Expected JSON from ${url}.`
+            );
+          }
+          const data = (await res.json()) as PaymentData & { error?: string };
+          if (!res.ok) {
+            throw new Error(data.error ?? "Could not load your case");
+          }
+          await finishPack(data, false);
+          return;
+        }
+
+        if (!sessionId) {
+          setError("Invalid payment session.");
+          setPhase("error");
+          return;
+        }
+
         const res = await fetch("/api/verify-payment", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -770,64 +529,7 @@ function FullCasePackDeliveryContent() {
         if (!res.ok) {
           throw new Error(data.error ?? "Payment verification failed");
         }
-
-        if (data.tier !== "full") {
-          throw new Error(
-            "This delivery page is for Full Case Pack purchases. Check your email for the correct link."
-          );
-        }
-
-        restoreSessionFromPayment({
-          assessment: data.assessment,
-          intake: data.intake,
-          province: data.province,
-          caseId: data.caseId,
-          email: data.email,
-          demandLetter: data.demandLetter,
-        });
-
-        setProvince(data.province);
-        setAssessment(data.assessment);
-        setIntake(data.intake);
-
-        setPhase("generating");
-
-        let letter =
-          data.demandLetter ??
-          (typeof window !== "undefined"
-            ? sessionStorage.getItem("ruled_demand_letter")
-            : null);
-
-        const [letterResult, courtResult, hearingResult] = await Promise.all([
-          letter
-            ? Promise.resolve(letter)
-            : generateDemandLetter(data),
-          fetchCourtDocs(data.assessment, data.province),
-          fetchHearingPrep(data.assessment, data.province),
-        ]);
-
-        letter = letterResult;
-        updateRuledSession({ demandLetter: letter });
-        setDemandLetter(letter);
-        setCourtDocs(courtResult);
-        setHearingPrep(hearingResult);
-        setPhase("ready");
-
-        if (data.caseId) {
-          void supabase
-            .from("cases")
-            .update({
-              demand_letter: letter,
-              court_docs: courtResult,
-              hearing_prep: hearingResult,
-            })
-            .eq("id", data.caseId);
-          void fetch("/api/emails/notify", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ type: "full", caseId: data.caseId }),
-          }).catch(() => {});
-        }
+        await finishPack(data, true);
       } catch (err) {
         setError(
           err instanceof Error
@@ -839,7 +541,7 @@ function FullCasePackDeliveryContent() {
     }
 
     load();
-  }, [sessionId, isPreview]);
+  }, [sessionId, caseIdParam, isPreview]);
 
   const handleChatSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -935,205 +637,15 @@ function FullCasePackDeliveryContent() {
           </p>
         </header>
 
-        {/* Tabs */}
-        <div
-          className="flex gap-1 overflow-x-auto rounded-xl p-1 -mx-1"
-          style={{ background: "#1a1916", border: "1px solid #2a2825" }}
-          role="tablist"
-        >
-          {TABS.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              role="tab"
-              aria-selected={activeTab === tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className="flex-1 min-w-[5.5rem] rounded-lg px-3 py-2.5 text-xs sm:text-sm font-medium cursor-pointer whitespace-nowrap transition-colors"
-              style={{
-                background: activeTab === tab.id ? "#c8392b" : "transparent",
-                color: activeTab === tab.id ? "#f5f1eb" : "#9a9590",
-              }}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Tab panels */}
-        <div role="tabpanel" className="flex flex-col gap-6 min-h-[320px]">
-          {activeTab === "file" && (
-            <>
-              <section
-                className="rounded-xl px-5 sm:px-6 py-6 flex flex-col gap-5"
-                style={{ background: "#1a1916", border: "1px solid #2a2825" }}
-              >
-                <h2 className="text-lg font-semibold">How to File in {province}</h2>
-                <InfoRow label="Court" value={filing.courtName} />
-                <InfoRow label="Where to go" value={filing.location} />
-                {filing.onlinePortal && (
-                  <p className="text-sm">
-                    <span style={{ color: "#9a9590" }}>Online: </span>
-                    <a
-                      href={filing.onlinePortal}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{ color: "#c8392b" }}
-                    >
-                      File online →
-                    </a>
-                  </p>
-                )}
-                <InfoRow label="Filing fee" value={filing.filingFee} />
-                <InfoRow label="Claim limit" value={filing.claimLimit} />
-                <InfoRow label="Deadline to file" value={filing.filingDeadline} />
-              </section>
-
-              <section
-                className="rounded-xl px-5 sm:px-6 py-6 flex flex-col gap-4"
-                style={{ background: "#1a1916", border: "1px solid #2a2825" }}
-              >
-                <h2 className="text-lg font-semibold">What Forms to Bring</h2>
-                <ul className="flex flex-col gap-2">
-                  {filing.formsToBring.map((item) => (
-                    <li
-                      key={item}
-                      className="text-sm flex gap-2 leading-relaxed"
-                      style={{ color: "#d4cfc9" }}
-                    >
-                      <span style={{ color: "#c8392b" }}>•</span>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </section>
-
-              <section
-                className="rounded-xl px-5 sm:px-6 py-6 flex flex-col gap-4"
-                style={{ background: "#1a1916", border: "1px solid #2a2825" }}
-              >
-                <h2 className="text-lg font-semibold">Step-by-Step Filing</h2>
-                <ol className="flex flex-col gap-3">
-                  {filing.instructions.map((step, i) => (
-                    <li key={i} className="flex gap-3 text-sm leading-relaxed">
-                      <span
-                        className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
-                        style={{ background: "#c8392b", color: "#f5f1eb" }}
-                      >
-                        {i + 1}
-                      </span>
-                      <span style={{ color: "#d4cfc9" }}>{step}</span>
-                    </li>
-                  ))}
-                </ol>
-              </section>
-
-              {courtDocs && (
-                <section className="flex flex-col gap-3">
-                  <h2 className="text-sm font-semibold" style={{ color: "#9a9590" }}>
-                    Your personalized filing guide
-                  </h2>
-                  <SerifDoc>{courtDocs}</SerifDoc>
-                </section>
-              )}
-            </>
-          )}
-
-          {activeTab === "documents" && (
-            <>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <button
-                  type="button"
-                  onClick={() =>
-                    void downloadAllPdf(
-                      province,
-                      filing,
-                      courtDocs,
-                      documents,
-                      hearingPrep,
-                      checklist
-                    )
-                  }
-                  className="flex-1 rounded-xl px-5 py-3.5 text-sm font-semibold cursor-pointer"
-                  style={{ background: "#c8392b", color: "#f5f1eb" }}
-                >
-                  Download All as PDF
-                </button>
-              </div>
-
-              <div className="flex flex-col gap-4">
-                {documents.map((doc) => (
-                  <article
-                    key={doc.id}
-                    className="rounded-xl overflow-hidden"
-                    style={{
-                      background: "#1a1916",
-                      border: "1px solid #2a2825",
-                    }}
-                  >
-                    <div
-                      className="px-5 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b"
-                      style={{ borderColor: "#2a2825" }}
-                    >
-                      <div className="flex flex-col gap-1 min-w-0">
-                        <h3 className="font-semibold text-sm">{doc.title}</h3>
-                        <p className="text-xs" style={{ color: "#9a9590" }}>
-                          {doc.description}
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => downloadPdf(doc.title, doc.content)}
-                        className="shrink-0 rounded-lg px-4 py-2 text-xs font-semibold cursor-pointer"
-                        style={{
-                          background: "#0f0e0c",
-                          color: "#f5f1eb",
-                          border: "1px solid #2a2825",
-                        }}
-                      >
-                        Download PDF
-                      </button>
-                    </div>
-                    <div className="px-4 sm:px-5 pb-5 pt-4">
-                      <SerifDoc>
-                        {doc.content.length > 1200
-                          ? `${doc.content.slice(0, 1200)}…`
-                          : doc.content}
-                      </SerifDoc>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </>
-          )}
-
-          {activeTab === "hearing" && (
-            <div className="flex flex-col gap-6">
-              {hearingSections.map((section) => (
-                <section key={section.title} className="flex flex-col gap-3">
-                  <h2 className="text-lg font-semibold">{section.title}</h2>
-                  <SerifDoc>{section.body}</SerifDoc>
-                </section>
-              ))}
-            </div>
-          )}
-
-          {activeTab === "checklist" && (
-            <section className="flex flex-col gap-4">
-              <div className="flex flex-col sm:flex-row gap-3">
-                <button
-                  type="button"
-                  onClick={() =>
-                    downloadPdf("Day of Court Checklist", checklist)
-                  }
-                  className="rounded-xl px-5 py-3.5 text-sm font-semibold cursor-pointer"
-                  style={{ background: "#c8392b", color: "#f5f1eb" }}
-                >
-                  Print Checklist (PDF)
-                </button>
-              </div>
-              <SerifDoc>{checklist}</SerifDoc>
-            </section>
-          )}
+        <div className="flex flex-col gap-8">
+          <PackSection title="How to File" content={howToFileText} />
+          {courtDocs.trim() ? (
+            <PackSection title="Court Documents" content={courtDocs} />
+          ) : null}
+          {hearingPrep.trim() ? (
+            <PackSection title="Hearing Prep Script" content={hearingPrep} />
+          ) : null}
+          <PackSection title="Day of Court Checklist" content={checklist} />
         </div>
 
         <p className="text-sm text-center">
@@ -1249,19 +761,6 @@ function FullCasePackDeliveryContent() {
         </div>
       )}
     </main>
-  );
-}
-
-function InfoRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "#c8392b" }}>
-        {label}
-      </p>
-      <p className="text-sm leading-relaxed" style={{ color: "#d4cfc9" }}>
-        {value}
-      </p>
-    </div>
   );
 }
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { getSupabase } from "@/lib/supabase";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,7 +14,8 @@ export async function POST(req: NextRequest) {
       data: { user },
     } = await supabase.auth.getUser();
 
-    const { data: caseRow, error: fetchErr } = await getSupabase()
+    const admin = getSupabaseAdmin();
+    const { data: caseRow, error: fetchErr } = await admin
       .from("cases")
       .select("id,user_id,email,demand_letter_sent_at")
       .eq("id", caseId)
@@ -36,7 +37,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true, alreadyMarked: true });
     }
 
-    const { error: updateErr } = await getSupabase()
+    const { error: updateErr } = await admin
       .from("cases")
       .update({ demand_letter_sent_at: new Date().toISOString() })
       .eq("id", caseId);

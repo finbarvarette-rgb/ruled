@@ -1,4 +1,5 @@
 import type { Case } from "@/lib/supabase";
+import { deliveryHref, getPackDocumentsForCase } from "@/lib/case-pack";
 
 export const PIPELINE_STEPS = [
   { id: "assessment", label: "Case Assessment" },
@@ -122,21 +123,15 @@ export function getCaseMeta(caseRecord: Case): CaseMeta {
     {
       id: "demand",
       title: "Demand Letter",
-      available: hasDemandLetter || hasDemandTier,
+      available: (hasDemandTier && caseRecord.paid) || hasDemandLetter,
       content: caseRecord.demand_letter,
     },
-    {
-      id: "court",
-      title: "Court Filing Documents",
-      available: hasFullTier || !!caseRecord.court_docs?.trim(),
-      content: caseRecord.court_docs,
-    },
-    {
-      id: "hearing",
-      title: "Hearing Preparation",
-      available: hasFullTier || !!caseRecord.hearing_prep?.trim(),
-      content: caseRecord.hearing_prep,
-    },
+    ...getPackDocumentsForCase(caseRecord).map((doc) => ({
+      id: doc.id,
+      title: doc.title,
+      available: hasFullTier && caseRecord.paid,
+      content: doc.content,
+    })),
   ];
 
   return {
@@ -165,7 +160,7 @@ export function getNextStep(
   if (meta.hasFullTier) {
     return {
       kind: "link",
-      href: "/success/full-case-pack",
+      href: deliveryHref(caseRecord.id, "full"),
       label: "Open your Full Case Pack →",
       sublabel: "Court documents, hearing prep, and filing guide",
     };
@@ -187,7 +182,7 @@ export function getNextStep(
     const dayWord = meta.daysSinceStart === 1 ? "day" : "days";
     return {
       kind: "link",
-      href: "/success/demand-letter",
+      href: deliveryHref(caseRecord.id, "demand"),
       label: `It's been ${meta.daysSinceStart} ${dayWord} since your letter was prepared. If no response, here's what to do →`,
       sublabel: "Review how to send your letter and what to do after 14 days",
     };

@@ -232,6 +232,50 @@ ${formatAssessmentPlainText(options.assessment)}
   });
 }
 
+/** Payment confirmed — product purchased */
+export async function sendPurchaseConfirmationEmail(params: {
+  to: string;
+  productName: string;
+  amountCents: number | null;
+  caseId: string;
+  tier: "demand" | "full";
+}): Promise<boolean> {
+  const appUrl = getAppUrl();
+  const dashboardUrl = `${appUrl}/dashboard/documents`;
+  const amountLabel =
+    params.amountCents != null
+      ? `$${(params.amountCents / 100).toFixed(2)} CAD`
+      : params.tier === "full"
+        ? "$199.00 CAD"
+        : "$49.00 CAD";
+
+  const html = layout(
+    `${heading("Payment confirmed — thank you")}
+    ${paragraph(`Your purchase of <strong>${escapeHtml(params.productName)}</strong> is complete.`)}
+    ${paragraph(`Amount paid: <strong>${escapeHtml(amountLabel)}</strong>`)}
+    ${paragraph("Your documents are in your Ruled dashboard. Open them anytime to review, download PDFs, or continue your case.")}
+    ${cta(dashboardUrl, "Open your documents")}
+    ${amberNote("Keep this email for your records. Your Stripe receipt is also available under Billing in your dashboard.")}`,
+    `Payment confirmed for ${params.productName}`
+  );
+
+  const text = `Payment confirmed — thank you
+
+Product: ${params.productName}
+Amount paid: ${amountLabel}
+
+Open your documents: ${dashboardUrl}
+
+— Ruled · hello@ruled.ca`;
+
+  return sendEmail({
+    to: params.to,
+    subject: `Payment confirmed — ${params.productName}`,
+    html,
+    text,
+  });
+}
+
 /** Demand letter purchased & generated */
 export async function sendDemandLetterDeliveryEmail(
   to: string,
@@ -239,8 +283,8 @@ export async function sendDemandLetterDeliveryEmail(
 ): Promise<boolean> {
   const appUrl = getAppUrl();
   const letterUrl = caseId
-    ? `${appUrl}/success/demand-letter?case=${caseId}`
-    : `${appUrl}/success/demand-letter`;
+    ? `${appUrl}/success/demand-letter?caseId=${caseId}`
+    : `${appUrl}/dashboard/documents`;
 
   const html = layout(
     `${heading("Your demand letter is ready to send")}
@@ -274,8 +318,8 @@ export async function sendFullCasePackDeliveryEmail(
 ): Promise<boolean> {
   const appUrl = getAppUrl();
   const packUrl = caseId
-    ? `${appUrl}/success/full-case-pack?case=${caseId}`
-    : `${appUrl}/success/full-case-pack`;
+    ? `${appUrl}/success/full-case-pack?caseId=${caseId}`
+    : `${appUrl}/dashboard/documents`;
 
   const html = layout(
     `${heading("Your full case pack is ready")}
@@ -307,8 +351,8 @@ export async function sendDemandReminderEmail(
 ): Promise<boolean> {
   const appUrl = getAppUrl();
   const demandUrl = options.caseId
-    ? `${appUrl}/success/demand-letter?case=${options.caseId}`
-    : `${appUrl}/success/demand-letter`;
+    ? `${appUrl}/success/demand-letter?caseId=${options.caseId}`
+    : `${appUrl}/dashboard/documents`;
   const provinceLabel = options.province?.trim()
     ? escapeHtml(options.province.trim())
     : "your province";

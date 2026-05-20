@@ -33,11 +33,25 @@ export default async function DocumentsPage() {
     ? `user_id.eq.${user!.id},email.eq.${user!.email}`
     : `user_id.eq.${user!.id}`;
 
-  const { data: cases } = await supabase
+  const { data: cases, error: casesError } = await supabase
     .from("cases")
     .select("*")
     .or(filter)
     .order("created_at", { ascending: false });
+
+  if (casesError) {
+    console.error("[dashboard/documents] cases query error:", casesError.message);
+  } else {
+    console.log("[dashboard/documents] user cases for Open links:", {
+      userId: user!.id,
+      email: user!.email,
+      caseIds: (cases ?? []).map((c) => ({
+        id: c.id,
+        paid: c.paid,
+        tier: c.tier_purchased,
+      })),
+    });
+  }
 
   return <DocumentsClient cases={cases ?? []} />;
 }

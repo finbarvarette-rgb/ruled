@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabase } from "@/lib/supabase";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 import {
   sendDemandLetterDeliveryEmail,
   sendFullCasePackDeliveryEmail,
@@ -21,7 +21,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { data: caseRow, error } = await getSupabase()
+    const supabase = getSupabaseAdmin();
+    const { data: caseRow, error } = await supabase
       .from("cases")
       .select(
         "id,email,tier_purchased,paid,demand_letter,demand_delivery_email_sent_at,full_pack_delivery_email_sent_at"
@@ -54,7 +55,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Failed to send email" }, { status: 500 });
       }
 
-      await getSupabase()
+      await supabase
         .from("cases")
         .update({ demand_delivery_email_sent_at: new Date().toISOString() })
         .eq("id", caseId);
@@ -79,7 +80,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Failed to send email" }, { status: 500 });
     }
 
-    await getSupabase()
+    await supabase
       .from("cases")
       .update({ full_pack_delivery_email_sent_at: new Date().toISOString() })
       .eq("id", caseId);

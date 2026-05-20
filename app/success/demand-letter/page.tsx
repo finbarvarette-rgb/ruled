@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { deliveryHref } from "@/lib/case-pack";
 import { restoreSessionFromPayment, updateRuledSession } from "@/lib/session";
 import { startCheckout } from "@/lib/checkout";
 import { Spinner } from "@/components/Spinner";
@@ -250,6 +251,7 @@ function DemandLetterDeliveryContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
+  const caseIdParam = searchParams.get("caseId");
   const isPreview = searchParams.get("preview") === "true";
 
   const [phase, setPhase] = useState<
@@ -282,64 +284,101 @@ function DemandLetterDeliveryContent() {
       return;
     }
 
-    if (!sessionId) {
-      setError("Invalid payment session.");
-      setPhase("error");
-      return;
+    async function finishLoad(data: PaymentData, notifyDelivery: boolean) {
+      restoreSessionFromPayment({
+        assessment: data.assessment,
+        intake: data.intake,
+        province: data.province,
+        caseId: data.caseId,
+        email: data.email,
+        demandLetter: data.demandLetter,
+      });
+
+      setProvince(data.province);
+      setCaseId(data.caseId);
+      setEmail(data.email);
+
+      if (data.tier === "full") {
+        const fullPath = sessionId
+          ? `/success/full-case-pack?session_id=${sessionId}`
+          : deliveryHref(data.caseId, "full");
+        router.replace(fullPath);
+        return;
+      }
+
+      let finalLetter =
+        data.demandLetter ??
+        (typeof window !== "undefined"
+          ? sessionStorage.getItem("ruled_demand_letter")
+          : null);
+
+      if (!finalLetter) {
+        setPhase("generating");
+        finalLetter = await generateDemandLetter(data);
+        await fetch("/api/cases/documents", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            caseId: data.caseId,
+            demandLetter: finalLetter,
+          }),
+        }).catch(() => {});
+      }
+
+      updateRuledSession({ demandLetter: finalLetter });
+      setLetter(finalLetter);
+      setPhase("ready");
+
+      if (notifyDelivery && data.caseId) {
+        void fetch("/api/emails/notify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type: "demand", caseId: data.caseId }),
+        }).catch(() => {});
+      }
+    }
+
+    async function loadFromAccess(id: string) {
+      const url = `/api/cases/access?caseId=${encodeURIComponent(id)}`;
+      const res = await fetch(url, { credentials: "include" });
+      const contentType = res.headers.get("content-type") ?? "";
+      if (!contentType.includes("application/json")) {
+        throw new Error(
+          `Could not load your case (${res.status}). Expected JSON from ${url}.`
+        );
+      }
+      const data = (await res.json()) as PaymentData & { error?: string };
+      if (!res.ok) {
+        throw new Error(data.error ?? "Could not load your case");
+      }
+      await finishLoad(data, false);
+    }
+
+    async function loadFromPayment() {
+      const res = await fetch("/api/verify-payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId }),
+      });
+      const data = (await res.json()) as PaymentData & { error?: string };
+      if (!res.ok) {
+        throw new Error(data.error ?? "Payment verification failed");
+      }
+      await finishLoad(data, true);
     }
 
     async function load() {
       try {
-        const res = await fetch("/api/verify-payment", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sessionId }),
-        });
-        const data = (await res.json()) as PaymentData & { error?: string };
-        if (!res.ok) {
-          throw new Error(data.error ?? "Payment verification failed");
-        }
-
-        restoreSessionFromPayment({
-          assessment: data.assessment,
-          intake: data.intake,
-          province: data.province,
-          caseId: data.caseId,
-          email: data.email,
-          demandLetter: data.demandLetter,
-        });
-
-        setProvince(data.province);
-        setCaseId(data.caseId);
-        setEmail(data.email);
-
-        if (data.tier === "full") {
-          router.replace(`/success/full-case-pack?session_id=${sessionId}`);
+        if (caseIdParam && !sessionId) {
+          await loadFromAccess(caseIdParam);
           return;
         }
-
-        let finalLetter =
-          data.demandLetter ??
-          (typeof window !== "undefined"
-            ? sessionStorage.getItem("ruled_demand_letter")
-            : null);
-
-        if (!finalLetter) {
-          setPhase("generating");
-          finalLetter = await generateDemandLetter(data);
+        if (!sessionId) {
+          setError("Invalid payment session.");
+          setPhase("error");
+          return;
         }
-
-        updateRuledSession({ demandLetter: finalLetter });
-        setLetter(finalLetter);
-        setPhase("ready");
-
-        if (data.caseId) {
-          void fetch("/api/emails/notify", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ type: "demand", caseId: data.caseId }),
-          }).catch(() => {});
-        }
+        await loadFromPayment();
       } catch (err) {
         setError(
           err instanceof Error
@@ -351,7 +390,7 @@ function DemandLetterDeliveryContent() {
     }
 
     load();
-  }, [sessionId, router, isPreview]);
+  }, [sessionId, caseIdParam, router, isPreview]);
 
   async function handleCopy() {
     if (!letter) return;

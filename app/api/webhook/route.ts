@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
-import { getSupabase } from "@/lib/supabase";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { billingFromSession } from "@/lib/stripe-billing";
+import { maybeSendPurchaseConfirmationEmail } from "@/lib/purchase-email";
 
 export async function POST(req: NextRequest) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -35,29 +37,34 @@ export async function POST(req: NextRequest) {
     const tier = session.metadata?.tier;
 
     if (caseId && tier) {
+      const admin = getSupabaseAdmin();
       let receiptUrl: string | null = null;
       let amountPaidCents: number | null = null;
+
       try {
-        amountPaidCents =
-          typeof session.amount_total === "number" ? session.amount_total : null;
-        const piId =
-          typeof session.payment_intent === "string"
-            ? session.payment_intent
-            : null;
-        if (piId) {
-          const pi = await getStripe().paymentIntents.retrieve(piId, {
-            expand: ["latest_charge"],
-          });
-          const charge = pi.latest_charge as Stripe.Charge | null;
-          receiptUrl = charge?.receipt_url ?? null;
-        }
-      } catch {
-        // non-critical
+        const billing = await billingFromSession(session);
+        receiptUrl = billing.receiptUrl;
+        amountPaidCents = billing.amountPaidCents;
+      } catch (err) {
+        console.error("Webhook billing fetch:", err);
       }
 
-      const { error } = await getSupabase()
+      const { data: caseRow, error: fetchErr } = await admin
         .from("cases")
-        .update({ paid: true, tier_purchased: tier })
+        .select("email")
+        .eq("id", caseId)
+        .single();
+
+      const { error } = await admin
+        .from("cases")
+        .update({
+          paid: true,
+          tier_purchased: tier,
+          stripe_session_id: session.id,
+          amount_paid_cents: amountPaidCents,
+          receipt_url: receiptUrl,
+          purchased_at: new Date().toISOString(),
+        })
         .eq("id", caseId);
 
       if (error) {
@@ -68,22 +75,19 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // Store receipt/billing fields when available
-      try {
-        await getSupabase()
-          .from("cases")
-          .update({
-            stripe_session_id: session.id,
-            amount_paid_cents: amountPaidCents,
-            receipt_url: receiptUrl,
-            purchased_at: new Date().toISOString(),
-          })
-          .eq("id", caseId);
-      } catch {
-        // non-critical
-      }
-    }
+      const email =
+        caseRow?.email ??
+        session.customer_details?.email ??
+        session.customer_email ??
+        null;
 
+      void maybeSendPurchaseConfirmationEmail({
+        caseId,
+        tier,
+        email,
+        amountPaidCents,
+      }).catch((err) => console.error("Purchase confirmation email:", err));
+    }
   }
 
   return NextResponse.json({ received: true });

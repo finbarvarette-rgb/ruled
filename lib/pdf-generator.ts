@@ -399,6 +399,16 @@ export function downloadAssessmentPdf(params: {
 }
 
 /** Legal letter layout with preserved line breaks and block spacing */
+function isDateLine(line: string): boolean {
+  return /^(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}$/i.test(
+    line.trim()
+  );
+}
+
+function isReLine(line: string): boolean {
+  return /^RE:\s/i.test(line.trim());
+}
+
 export function downloadDemandLetterPdf(
   letter: string,
   filename = "ruled-demand-letter.pdf"
@@ -408,17 +418,31 @@ export function downloadDemandLetterPdf(
 
   const lines = normalizeNewlines(letter).split("\n");
   let buffer: string[] = [];
+  let blockIndex = 0;
 
   const flushBuffer = (gap: number) => {
     if (buffer.length === 0) return;
-    builder.addParagraph(buffer.join("\n"), gap);
+    const text = buffer.join("\n");
+    const joined = buffer.join(" ");
+    if (isReLine(joined)) {
+      builder.addSectionTitle(text.trim());
+    } else if (isDateLine(text)) {
+      builder.addParagraph(text, 14);
+    } else if (blockIndex === 0) {
+      builder.addParagraph(text, 6);
+    } else {
+      builder.addParagraph(text, gap);
+    }
     buffer = [];
+    blockIndex += 1;
   };
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     if (!line.trim()) {
-      flushBuffer(i < 8 ? 4 : 10);
+      const gap =
+        blockIndex < 2 ? 6 : blockIndex < 4 ? 10 : i > lines.length - 8 ? 8 : 12;
+      flushBuffer(gap);
       continue;
     }
     buffer.push(line);

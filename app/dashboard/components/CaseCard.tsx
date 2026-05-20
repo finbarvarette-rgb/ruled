@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { Case } from "@/lib/supabase";
 import { startCheckout } from "@/lib/checkout";
 import { Spinner } from "@/components/Spinner";
+import { deliveryHref } from "@/lib/case-pack";
 import { getCaseMeta, getNextStep, type CaseMeta } from "../case-utils";
 import { dash } from "../theme";
 import { CasePipeline } from "./CasePipeline";
@@ -123,7 +124,11 @@ export function CaseCard({ caseRecord }: { caseRecord: Case }) {
             View Assessment
           </ActionButton>
           {meta.hasDemandTier ? (
-            <ActionButton onClick={() => openDelivery("/success/demand-letter")}>
+            <ActionButton
+              onClick={() =>
+                openDelivery(deliveryHref(caseRecord.id, "demand"))
+              }
+            >
               View Demand Letter
             </ActionButton>
           ) : (
@@ -141,7 +146,11 @@ export function CaseCard({ caseRecord }: { caseRecord: Case }) {
             </ActionButton>
           )}
           {meta.hasFullTier ? (
-            <ActionButton onClick={() => openDelivery("/success/full-case-pack")}>
+            <ActionButton
+              onClick={() =>
+                openDelivery(deliveryHref(caseRecord.id, "full"))
+              }
+            >
               View Case Pack
             </ActionButton>
           ) : (

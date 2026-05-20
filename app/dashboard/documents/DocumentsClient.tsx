@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo } from "react";
 import type { Case } from "@/lib/supabase";
+import { deliveryHref } from "@/lib/case-pack";
 import {
   downloadAssessmentPdf,
   downloadBrandedPdf,
@@ -30,14 +32,26 @@ function downloadCaseDocument(
       downloadDemandLetterPdf(content, `ruled-demand-letter-${slug}.pdf`);
       break;
     case "court":
-      downloadBrandedPdf(`ruled-court-filing-${slug}.pdf`, {
-        documentTitle: "Court Filing Documents",
+      downloadBrandedPdf(`ruled-court-documents-${slug}.pdf`, {
+        documentTitle: "Court Documents",
         body: content,
       });
       break;
     case "hearing":
       downloadBrandedPdf(`ruled-hearing-prep-${slug}.pdf`, {
-        documentTitle: "Hearing Preparation",
+        documentTitle: "Hearing Prep Script",
+        body: content,
+      });
+      break;
+    case "how-to-file":
+      downloadBrandedPdf(`ruled-how-to-file-${slug}.pdf`, {
+        documentTitle: "How to File",
+        body: content,
+      });
+      break;
+    case "checklist":
+      downloadBrandedPdf(`ruled-day-of-court-${slug}.pdf`, {
+        documentTitle: "Day of Court Checklist",
         body: content,
       });
       break;
@@ -49,12 +63,27 @@ function downloadCaseDocument(
   }
 }
 
+function openHref(caseRecord: Case, docId: string): string | null {
+  if (docId === "demand") {
+    return deliveryHref(caseRecord.id, "demand");
+  }
+  if (
+    docId === "how-to-file" ||
+    docId === "court" ||
+    docId === "hearing" ||
+    docId === "checklist"
+  ) {
+    return deliveryHref(caseRecord.id, "full");
+  }
+  return null;
+}
+
 export function DocumentsClient({ cases }: { cases: Case[] }) {
   const grouped = useMemo(() => {
     return cases
       .map((c) => {
         const meta = getCaseMeta(c);
-        const docs = meta.documents.filter((d) => d.available && d.content?.trim());
+        const docs = meta.documents.filter((d) => d.available);
         return { caseRecord: c, title: generateCaseTitle(c), docs };
       })
       .filter((g) => g.docs.length > 0);
@@ -98,33 +127,52 @@ export function DocumentsClient({ cases }: { cases: Case[] }) {
                 </div>
 
                 <ul className="flex flex-col gap-2">
-                  {g.docs.map((doc) => (
-                    <li
-                      key={doc.id}
-                      className="rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
-                      style={{ ...dash.nested }}
-                    >
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold">{doc.title}</p>
-                        <p className="text-xs truncate" style={{ color: dash.mainMuted }}>
-                          {g.title}
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          downloadCaseDocument(
-                            { id: doc.id, title: doc.title, content: doc.content! },
-                            g.caseRecord
-                          )
-                        }
-                        className="rounded-lg px-4 py-2 text-xs font-semibold cursor-pointer shrink-0"
-                        style={{ background: "#c8392b", color: "#f5f1eb" }}
+                  {g.docs.map((doc) => {
+                    const hasContent = !!doc.content?.trim();
+                    const href = openHref(g.caseRecord, doc.id);
+
+                    return (
+                      <li
+                        key={doc.id}
+                        className="rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
+                        style={{ ...dash.nested }}
                       >
-                        Download PDF
-                      </button>
-                    </li>
-                  ))}
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold">{doc.title}</p>
+                          <p className="text-xs truncate" style={{ color: dash.mainMuted }}>
+                            {g.title}
+                          </p>
+                        </div>
+                        {hasContent ? (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              downloadCaseDocument(
+                                {
+                                  id: doc.id,
+                                  title: doc.title,
+                                  content: doc.content!,
+                                },
+                                g.caseRecord
+                              )
+                            }
+                            className="rounded-lg px-4 py-2 text-xs font-semibold cursor-pointer shrink-0"
+                            style={{ background: "#c8392b", color: "#f5f1eb" }}
+                          >
+                            Download PDF
+                          </button>
+                        ) : href ? (
+                          <Link
+                            href={href}
+                            className="rounded-lg px-4 py-2 text-xs font-semibold shrink-0 text-center"
+                            style={{ background: "#c8392b", color: "#f5f1eb" }}
+                          >
+                            Open to generate
+                          </Link>
+                        ) : null}
+                      </li>
+                    );
+                  })}
                 </ul>
               </section>
             ))}

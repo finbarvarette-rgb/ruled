@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { fetchCheckoutBilling } from "@/lib/stripe-billing";
+import { maybeSendPurchaseConfirmationEmail } from "@/lib/purchase-email";
 
 export async function POST(req: NextRequest) {
   try {
@@ -39,12 +41,35 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Case not found" }, { status: 404 });
     }
 
+    let receiptUrl: string | null = caseRow.receipt_url ?? null;
+    let amountPaidCents: number | null = caseRow.amount_paid_cents ?? null;
+
+    try {
+      const billing = await fetchCheckoutBilling(sessionId);
+      if (billing.receiptUrl) receiptUrl = billing.receiptUrl;
+      if (billing.amountPaidCents != null) {
+        amountPaidCents = billing.amountPaidCents;
+      }
+    } catch (billingErr) {
+      console.error("Verify payment billing fetch:", billingErr);
+    }
+
+    const customerEmail =
+      caseRow.email ??
+      session.customer_details?.email ??
+      session.customer_email ??
+      null;
+
     const { error: updateError } = await supabase
       .from("cases")
       .update({
         paid: true,
         tier_purchased: tier,
-        email: caseRow.email ?? session.customer_details?.email ?? session.customer_email,
+        email: customerEmail,
+        stripe_session_id: sessionId,
+        amount_paid_cents: amountPaidCents,
+        receipt_url: receiptUrl,
+        purchased_at: caseRow.purchased_at ?? new Date().toISOString(),
       })
       .eq("id", caseId);
 
@@ -56,14 +81,23 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    void maybeSendPurchaseConfirmationEmail({
+      caseId,
+      tier,
+      email: customerEmail,
+      amountPaidCents,
+    }).catch((err) => console.error("Purchase confirmation email:", err));
+
     return NextResponse.json({
       tier,
       caseId,
       assessment: caseRow.case_assessment,
       intake: caseRow.intake_text,
       province: caseRow.province,
-      email: caseRow.email ?? session.customer_details?.email ?? session.customer_email,
+      email: customerEmail,
       demandLetter: caseRow.demand_letter ?? null,
+      courtDocs: caseRow.court_docs ?? null,
+      hearingPrep: caseRow.hearing_prep ?? null,
     });
   } catch (err) {
     console.error("Verify payment error:", err);
