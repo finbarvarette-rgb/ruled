@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import type { Case } from "@/lib/supabase";
 import { startCheckout } from "@/lib/checkout";
 import { Spinner } from "@/components/Spinner";
@@ -147,36 +148,30 @@ export function CaseAssessmentsClient({ cases }: { cases: Case[] }) {
                     View Full Assessment
                   </button>
                   {!meta.hasDemandTier && (
-                    <button
-                      type="button"
-                      onClick={() => handleCheckout("demand", c)}
-                      disabled={checkoutLoading === "demand"}
-                      className="rounded-lg px-4 py-3 min-h-11 text-sm font-semibold cursor-pointer disabled:opacity-60 inline-flex items-center justify-center gap-2 w-full sm:w-auto"
+                    <Link
+                      href={`/dashboard/demand-letter/${c.id}`}
+                      className="rounded-lg px-4 py-3 min-h-11 text-sm font-semibold inline-flex items-center justify-center w-full sm:w-auto"
                       style={{
                         background: "transparent",
                         color: dash.mainText,
                         border: dash.chromeBorder,
                       }}
                     >
-                      {checkoutLoading === "demand" && <Spinner />}
                       Get Demand Letter
-                    </button>
+                    </Link>
                   )}
                   {!meta.hasFullTier && (
-                    <button
-                      type="button"
-                      onClick={() => handleCheckout("full", c)}
-                      disabled={checkoutLoading === "full"}
-                      className="rounded-lg px-4 py-3 min-h-11 text-sm font-semibold cursor-pointer disabled:opacity-60 inline-flex items-center justify-center gap-2 w-full sm:w-auto"
+                    <Link
+                      href={`/dashboard/full-case-pack/${c.id}`}
+                      className="rounded-lg px-4 py-3 min-h-11 text-sm font-semibold inline-flex items-center justify-center w-full sm:w-auto"
                       style={{
                         background: "transparent",
                         color: dash.mainText,
                         border: dash.chromeBorder,
                       }}
                     >
-                      {checkoutLoading === "full" && <Spinner />}
                       Get Full Case Pack
-                    </button>
+                    </Link>
                   )}
                 </div>
               </article>
