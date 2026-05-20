@@ -2,17 +2,51 @@
 
 import { useMemo } from "react";
 import type { Case } from "@/lib/supabase";
+import {
+  downloadAssessmentPdf,
+  downloadBrandedPdf,
+  downloadDemandLetterPdf,
+} from "@/lib/pdf-generator";
 import { generateCaseTitle, getCaseMeta } from "../case-utils";
 import { dash } from "../theme";
 
-function downloadTextFile(filename: string, content: string) {
-  const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
+function downloadCaseDocument(
+  doc: { id: string; title: string; content: string },
+  caseRecord: Case
+) {
+  const slug = caseRecord.id.slice(0, 8);
+  const content = doc.content;
+
+  switch (doc.id) {
+    case "assessment":
+      downloadAssessmentPdf({
+        assessment: content,
+        intake: caseRecord.intake_text,
+        province: caseRecord.province,
+        filename: `ruled-assessment-${slug}.pdf`,
+      });
+      break;
+    case "demand":
+      downloadDemandLetterPdf(content, `ruled-demand-letter-${slug}.pdf`);
+      break;
+    case "court":
+      downloadBrandedPdf(`ruled-court-filing-${slug}.pdf`, {
+        documentTitle: "Court Filing Documents",
+        body: content,
+      });
+      break;
+    case "hearing":
+      downloadBrandedPdf(`ruled-hearing-prep-${slug}.pdf`, {
+        documentTitle: "Hearing Preparation",
+        body: content,
+      });
+      break;
+    default:
+      downloadBrandedPdf(`ruled-${doc.id}-${slug}.pdf`, {
+        documentTitle: doc.title,
+        body: content,
+      });
+  }
 }
 
 export function DocumentsClient({ cases }: { cases: Case[] }) {
@@ -78,11 +112,16 @@ export function DocumentsClient({ cases }: { cases: Case[] }) {
                       </div>
                       <button
                         type="button"
-                        onClick={() => downloadTextFile(`ruled-${doc.id}-${g.caseRecord.id.slice(0, 8)}.txt`, doc.content!)}
+                        onClick={() =>
+                          downloadCaseDocument(
+                            { id: doc.id, title: doc.title, content: doc.content! },
+                            g.caseRecord
+                          )
+                        }
                         className="rounded-lg px-4 py-2 text-xs font-semibold cursor-pointer shrink-0"
                         style={{ background: "#c8392b", color: "#f5f1eb" }}
                       >
-                        Download
+                        Download PDF
                       </button>
                     </li>
                   ))}
@@ -95,4 +134,3 @@ export function DocumentsClient({ cases }: { cases: Case[] }) {
     </main>
   );
 }
-

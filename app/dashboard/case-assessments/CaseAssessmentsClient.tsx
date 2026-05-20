@@ -7,7 +7,15 @@ import { Spinner } from "@/components/Spinner";
 import { extractClaimAmount, generateCaseTitle, getCaseMeta, getNextStep } from "../case-utils";
 import { saveCaseToSession } from "../components/dashboard-session";
 import { dash } from "../theme";
-import { downloadAssessmentPdf } from "@/lib/pdf-generator";
+import {
+  buildAssessmentSections,
+  downloadAssessmentPdf,
+} from "@/lib/pdf-generator";
+
+const NAVY = "#0F172A";
+const BODY_TEXT = "#0F172A";
+const SECTION_BORDER = "#E2E8F0";
+const BLUE = "#2563EB";
 
 export function CaseAssessmentsClient({ cases }: { cases: Case[] }) {
   const [openCase, setOpenCase] = useState<Case | null>(null);
@@ -178,62 +186,157 @@ export function CaseAssessmentsClient({ cases }: { cases: Case[] }) {
       </div>
 
       {openCase && (
-        <div
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:px-4 sm:py-4"
-          style={{ background: "rgba(5, 5, 5, 0.85)" }}
-          onClick={() => setOpenCase(null)}
-          role="presentation"
-        >
-          <div
-            className="w-full sm:max-w-3xl rounded-t-2xl sm:rounded-2xl overflow-hidden max-h-[90dvh] flex flex-col"
-            style={{ ...dash.panel }}
-            onClick={(e) => e.stopPropagation()}
-            role="dialog"
-            aria-label="Full assessment"
-          >
-            <div
-              className="px-4 sm:px-6 py-4 flex items-center justify-between gap-3 border-b shrink-0"
-              style={{ borderColor: dash.rowDivider }}
-            >
-              <p className="text-sm font-semibold">Full assessment</p>
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  type="button"
-                  onClick={() =>
-                    downloadAssessmentPdf({
-                      assessment: openCase.case_assessment,
-                      intake: openCase.intake_text,
-                      province: openCase.province,
-                      filename: `ruled-assessment-${openCase.id.slice(0, 8)}.pdf`,
-                    })
-                  }
-                  className="text-xs font-semibold rounded-md px-3 py-2 cursor-pointer"
-                  style={{ background: "#c8392b", color: "#f5f1eb" }}
-                >
-                  Download PDF
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setOpenCase(null)}
-                  className="text-sm cursor-pointer min-h-11 min-w-11 flex items-center justify-center"
-                  style={{ color: dash.mainMuted }}
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-            <div className="p-4 sm:p-6 overflow-y-auto flex-1 min-h-0">
-              <pre
-                className="whitespace-pre-wrap text-sm leading-relaxed break-words"
-                style={{ color: dash.mainText }}
-              >
-                {openCase.case_assessment}
-              </pre>
-            </div>
-          </div>
-        </div>
+        <AssessmentModal
+          caseRecord={openCase}
+          onClose={() => setOpenCase(null)}
+        />
       )}
     </main>
+  );
+}
+
+function AssessmentModal({
+  caseRecord,
+  onClose,
+}: {
+  caseRecord: Case;
+  onClose: () => void;
+}) {
+  const sections = useMemo(
+    () =>
+      buildAssessmentSections(
+        caseRecord.case_assessment,
+        caseRecord.intake_text,
+        caseRecord.province
+      ),
+    [caseRecord]
+  );
+
+  const title = generateCaseTitle(caseRecord);
+
+  function handleDownloadPdf() {
+    downloadAssessmentPdf({
+      assessment: caseRecord.case_assessment,
+      intake: caseRecord.intake_text,
+      province: caseRecord.province,
+      filename: `ruled-assessment-${caseRecord.id.slice(0, 8)}.pdf`,
+    });
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:px-4 sm:py-6"
+      style={{ background: "rgba(15, 23, 42, 0.55)" }}
+      onClick={onClose}
+      role="presentation"
+    >
+      <div
+        className="w-full sm:max-w-3xl rounded-t-2xl sm:rounded-xl overflow-hidden max-h-[92dvh] flex flex-col shadow-2xl"
+        style={{ background: "#ffffff" }}
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-labelledby="assessment-modal-title"
+      >
+        <div
+          className="px-5 sm:px-6 py-4 flex items-center justify-between gap-4 shrink-0"
+          style={{ background: NAVY }}
+        >
+          <div className="min-w-0 flex flex-col gap-0.5">
+            <h2
+              id="assessment-modal-title"
+              className="text-base sm:text-lg font-semibold text-white tracking-tight"
+            >
+              Your Case Assessment
+            </h2>
+            <p className="text-xs text-white/75 truncate">{title}</p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="shrink-0 min-h-10 min-w-10 rounded-lg flex items-center justify-center text-sm font-medium cursor-pointer transition-opacity hover:opacity-80"
+            style={{ color: "#ffffff", border: "1px solid rgba(255,255,255,0.25)" }}
+            aria-label="Close"
+          >
+            Close
+          </button>
+        </div>
+
+        <div className="overflow-y-auto flex-1 min-h-0 px-5 sm:px-6 py-6 bg-white">
+          <div className="flex flex-col">
+            {sections.map((section, index) => (
+              <article
+                key={section.title}
+                className="py-5 first:pt-0 last:pb-0"
+                style={
+                  index < sections.length - 1
+                    ? { borderBottom: `1px solid ${SECTION_BORDER}` }
+                    : undefined
+                }
+              >
+                <h3
+                  className="text-sm font-semibold tracking-tight mb-3"
+                  style={{
+                    color: NAVY,
+                    fontFamily: "Georgia, 'Times New Roman', serif",
+                  }}
+                >
+                  {section.title}
+                </h3>
+                <AssessmentSectionBody content={section.content} />
+              </article>
+            ))}
+          </div>
+        </div>
+
+        <div
+          className="shrink-0 px-5 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t bg-white"
+          style={{ borderColor: SECTION_BORDER }}
+        >
+          <p className="text-xs" style={{ color: "#64748B" }}>
+            {caseRecord.province}
+            <span className="mx-2" aria-hidden>
+              ·
+            </span>
+            Ruled provides legal information, not legal advice.
+          </p>
+          <button
+            type="button"
+            onClick={handleDownloadPdf}
+            className="w-full sm:w-auto rounded-full px-6 py-3 min-h-11 text-sm font-semibold cursor-pointer shrink-0"
+            style={{ background: BLUE, color: "#ffffff" }}
+          >
+            Download PDF
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AssessmentSectionBody({ content }: { content: string }) {
+  const paragraphs = content
+    .replace(/\r\n/g, "\n")
+    .split(/\n\n+/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+
+  return (
+    <div className="flex flex-col gap-3">
+      {paragraphs.map((para, i) => (
+        <p
+          key={i}
+          className="text-sm leading-relaxed whitespace-pre-wrap break-words"
+          style={{ color: BODY_TEXT }}
+        >
+          {para.split("\n").map((line, j, arr) => (
+            <span key={j}>
+              {line}
+              {j < arr.length - 1 && <br />}
+            </span>
+          ))}
+        </p>
+      ))}
+    </div>
   );
 }
 
