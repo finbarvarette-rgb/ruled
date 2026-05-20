@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { Suspense } from "react";
 import { Spinner } from "@/components/Spinner";
-import { createBrowserClient } from "@supabase/ssr";
 import {
   m,
   marketingBtnPrimary,
@@ -26,20 +25,15 @@ function ForgotPasswordForm() {
     setError("");
     setLoading(true);
     try {
-      const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      );
-      const appUrl =
-        process.env.NEXT_PUBLIC_APP_URL ?? window.location.origin;
-      const resetNext = encodeURIComponent("/auth/reset-password");
-      const { error: sbError } = await supabase.auth.resetPasswordForEmail(
-        email.trim(),
-        {
-          redirectTo: `${appUrl.replace(/\/$/, "")}/auth/callback?next=${resetNext}`,
-        }
-      );
-      if (sbError) throw new Error(sbError.message);
+      const res = await fetch("/api/auth/reset-password-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        throw new Error(data.error ?? "Something went wrong. Please try again.");
+      }
       setSent(true);
     } catch (err) {
       setError(

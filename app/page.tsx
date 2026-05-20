@@ -175,8 +175,8 @@ export default function Home() {
         }}
       >
         <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-6 text-center relative z-10">
-          <Stat icon="users" value="50K+" label="Canadians Helped" />
-          <Stat icon="money" value="$150M+" label="Recovered" />
+          <Stat icon="gavel" value="$35,000" label="Maximum claim limit in most provinces" />
+          <Stat icon="trophy" value="76%" label="of claimants win when properly prepared" />
           <Stat icon="chart" value="40%" label="Resolve Before Court" />
           <Stat icon="map" value="All 10" label="Provinces Supported" />
         </div>
@@ -494,7 +494,7 @@ function Stat({
   value,
   label,
 }: {
-  icon: "users" | "money" | "chart" | "map";
+  icon: "gavel" | "trophy" | "chart" | "map";
   value: string;
   label: string;
 }) {
@@ -512,7 +512,7 @@ function Stat({
   );
 }
 
-function StatIcon({ type }: { type: "users" | "money" | "chart" | "map" }) {
+function StatIcon({ type }: { type: "gavel" | "trophy" | "chart" | "map" }) {
   const iconProps = {
     width: 28,
     height: 28,
@@ -524,21 +524,25 @@ function StatIcon({ type }: { type: "users" | "money" | "chart" | "map" }) {
     strokeLinejoin: "round" as const,
   };
 
-  if (type === "users") {
+  if (type === "gavel") {
     return (
       <svg {...iconProps} aria-hidden>
-        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-        <circle cx="9" cy="7" r="4" />
-        <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        <path d="M12 3v18" />
+        <path d="M5 8h14" />
+        <path d="M5 8 2.5 14h5L5 8z" />
+        <path d="M19 8l-2.5 6h5L19 8z" />
       </svg>
     );
   }
-  if (type === "money") {
+  if (type === "trophy") {
     return (
       <svg {...iconProps} aria-hidden>
-        <line x1="12" y1="1" x2="12" y2="23" />
-        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+        <path d="M6 9H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-2" />
+        <path d="M6 5h12v2a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V5z" />
+        <path d="M10 15v2" />
+        <path d="M14 15v2" />
+        <path d="M8 21h8" />
+        <path d="M9 17h6v4H9z" />
       </svg>
     );
   }

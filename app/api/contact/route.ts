@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { sendContactFormEmail } from "@/lib/email";
+import { Resend } from "resend";
+
+const CONTACT_RECIPIENT = "finbarvarette@gmail.com";
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,11 +22,28 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const sent = await sendContactFormEmail(
-      trimmedName,
-      trimmedEmail,
-      trimmedMessage
-    );
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      console.error("RESEND_API_KEY not configured");
+      return NextResponse.json(
+        { error: "Failed to send message" },
+        { status: 500 }
+      );
+    }
+
+    const resend = new Resend(apiKey);
+    const { error: sendError } = await resend.emails.send({
+      from: "Ruled <hello@ruled.ca>",
+      to: CONTACT_RECIPIENT,
+      replyTo: trimmedEmail,
+      subject: `Contact form — ${trimmedName}`,
+      text: `Name: ${trimmedName}\nEmail: ${trimmedEmail}\n\n${trimmedMessage}`,
+    });
+
+    const sent = !sendError;
+    if (sendError) {
+      console.error("Resend contact email error:", sendError);
+    }
     if (!sent) {
       return NextResponse.json(
         { error: "Failed to send message" },
