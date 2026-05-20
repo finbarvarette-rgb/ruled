@@ -8,6 +8,12 @@ import {
   getAllSlugs,
   getPostBySlug,
 } from "@/lib/blog/utils";
+import {
+  m,
+  marketingBtnPrimary,
+  marketingCard,
+  marketingPageMain,
+} from "@/lib/marketing-theme";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -35,24 +41,27 @@ export default async function BlogPostPage({ params }: PageProps) {
   const readTime = estimateReadTime(post.content);
 
   return (
-    <main className="flex flex-col flex-1 min-h-screen px-4 sm:px-6 py-12 md:py-16">
+    <main
+      className="flex flex-col flex-1 min-h-screen px-4 sm:px-6 py-12 md:py-16"
+      style={marketingPageMain}
+    >
       <article className="max-w-2xl mx-auto w-full flex flex-col gap-10">
         <header className="flex flex-col gap-5">
-          <Link href="/blog" className="text-sm w-fit" style={{ color: "#9a9590" }}>
+          <Link href="/blog" className="text-sm w-fit" style={{ color: m.muted }}>
             &larr; All posts
           </Link>
           <div className="flex flex-wrap items-center gap-3">
             <CategoryTag category={post.category} />
-            <time className="text-sm" style={{ color: "#9a9590" }} dateTime={post.date}>
+            <time className="text-sm" style={{ color: m.muted }} dateTime={post.date}>
               {formatBlogDate(post.date)}
             </time>
-            <span className="text-sm" style={{ color: "#6b6560" }}>
+            <span className="text-sm" style={{ color: m.muted }}>
               · {readTime} min read
             </span>
           </div>
           <h1
             className="text-2xl md:text-3xl font-semibold tracking-tight leading-snug break-words"
-            style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+            style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: m.text }}
           >
             {post.title}
           </h1>
@@ -62,12 +71,12 @@ export default async function BlogPostPage({ params }: PageProps) {
 
         <section
           className="rounded-xl p-6 md:p-8 flex flex-col gap-4"
-          style={{ background: "#1a1916", border: "1px solid #2a2825" }}
+          style={marketingCard}
         >
           <Link
             href="/onboarding"
-            className="inline-flex items-center justify-center min-h-12 rounded-lg px-6 py-4 text-sm font-semibold w-full sm:w-fit text-center"
-            style={{ background: "#c8392b", color: "#f5f1eb" }}
+            className="inline-flex items-center justify-center min-h-12 rounded-full px-6 py-4 text-sm font-semibold w-full sm:w-fit text-center"
+            style={marketingBtnPrimary}
           >
             Ready to fight back? Start your free case assessment &rarr;
           </Link>

@@ -1,4 +1,10 @@
 import Link from "next/link";
+import {
+  m,
+  marketingBtnPrimary,
+  marketingCard,
+  marketingPageMain,
+} from "@/lib/marketing-theme";
 
 const INCLUDED = [
   "Custom demand letter based on your case details",
@@ -52,22 +58,27 @@ const FAQ = [
 
 function SampleLetterPreview() {
   return (
-    <section className="flex flex-col gap-3">
-      <p className="text-sm text-center" style={{ color: "#9a9590" }}>
+    <section
+      className="flex flex-col gap-3 rounded-xl px-4 sm:px-5 py-5"
+      style={{ background: m.surface }}
+    >
+      <p className="text-sm text-center" style={{ color: m.subtext }}>
         Your letter will look like this — personalized to your case
       </p>
       <div
         className="relative rounded-xl overflow-hidden"
         style={{
-          background: "#ffffff",
-          border: "1px solid #2a2825",
+          background: m.white,
+          border: `1px solid ${m.border}`,
+          borderLeft: `4px solid ${m.blue}`,
+          boxShadow: "0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(15, 23, 42, 0.06)",
         }}
       >
         <div
           className="px-4 sm:px-6 py-6 text-left break-words"
           style={{
             fontFamily: "Georgia, 'Times New Roman', serif",
-            color: "#0f0e0c",
+            color: m.text,
           }}
         >
           <p className="text-sm leading-relaxed">Alex Morgan</p>
@@ -96,7 +107,7 @@ function SampleLetterPreview() {
             backdropFilter: "blur(7px)",
             WebkitBackdropFilter: "blur(7px)",
             background:
-              "linear-gradient(to bottom, transparent 0%, rgba(245, 241, 235, 0.4) 35%, rgba(245, 241, 235, 0.95) 100%)",
+              "linear-gradient(to bottom, transparent 0%, rgba(250, 250, 250, 0.4) 35%, rgba(250, 250, 250, 0.95) 100%)",
           }}
           aria-hidden
         />
@@ -107,29 +118,31 @@ function SampleLetterPreview() {
 
 export default function DemandPreviewPage() {
   return (
-    <main className="flex flex-col flex-1 min-h-screen overflow-x-hidden">
-      {/* Hero */}
-      <section className="hero-section relative px-4 sm:px-6 py-14 md:py-20 overflow-hidden">
-        <div className="hero-blobs" aria-hidden>
-          <div className="hero-blob hero-blob-1" />
-          <div className="hero-blob hero-blob-2" />
-        </div>
-        <div className="relative z-10 max-w-2xl mx-auto w-full flex flex-col gap-6 text-center">
+    <main className="flex flex-col flex-1 min-h-screen overflow-x-hidden" style={marketingPageMain}>
+      <section
+        className="relative px-4 sm:px-6 py-14 md:py-20 overflow-hidden"
+        style={{ background: m.white, borderBottom: `1px solid ${m.border}` }}
+      >
+        <div className="max-w-2xl mx-auto w-full flex flex-col gap-6 text-center">
           <p
             className="text-xs font-bold tracking-widest uppercase"
-            style={{ color: "#c8392b" }}
+            style={{ color: m.amber }}
           >
             Demand Letter — $49
           </p>
           <h1
-            className="hero-headline-serif text-left sm:text-center"
-            style={{ fontSize: "clamp(1.75rem, 5vw, 2.5rem)" }}
+            className="text-left sm:text-center font-bold tracking-tight"
+            style={{
+              fontFamily: "Georgia, 'Times New Roman', serif",
+              fontSize: "clamp(1.75rem, 5vw, 2.5rem)",
+              color: m.text,
+            }}
           >
             A professionally drafted demand letter — built around your case
           </h1>
           <p
             className="text-base md:text-lg leading-relaxed text-left sm:text-center"
-            style={{ color: "#9a9590" }}
+            style={{ color: m.subtext }}
           >
             Send it in minutes. 40% of cases resolve without ever going to court.
           </p>
@@ -139,43 +152,44 @@ export default function DemandPreviewPage() {
       <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 pb-16 md:pb-20 flex flex-col gap-10 md:gap-12">
         <SampleLetterPreview />
 
-        {/* What's included */}
-        <section
-          className="rounded-xl px-5 sm:px-6 py-6 flex flex-col gap-5"
-          style={{ background: "#1a1916", border: "1px solid #2a2825" }}
-        >
-          <h2 className="text-lg font-semibold">What&apos;s Included</h2>
+        <section className="rounded-xl px-5 sm:px-6 py-6 flex flex-col gap-5" style={marketingCard}>
+          <h2 className="text-lg font-semibold" style={{ color: m.text }}>
+            What&apos;s Included
+          </h2>
           <ul className="flex flex-col gap-3">
             {INCLUDED.map((item) => (
               <li key={item} className="flex gap-3 text-sm leading-relaxed">
-                <span className="shrink-0 font-bold" style={{ color: "#c8392b" }}>
+                <span className="shrink-0 font-bold" style={{ color: m.green }}>
                   ✓
                 </span>
-                <span style={{ color: "#d4cfc9" }}>{item}</span>
+                <span style={{ color: m.subtext }}>{item}</span>
               </li>
             ))}
           </ul>
         </section>
 
-        {/* How it works */}
         <section className="flex flex-col gap-6">
-          <h2 className="text-lg font-semibold text-center">How It Works</h2>
+          <h2 className="text-lg font-semibold text-center" style={{ color: m.text }}>
+            How It Works
+          </h2>
           <div className="grid grid-cols-1 gap-4">
             {HOW_IT_WORKS.map((item) => (
               <div
                 key={item.step}
                 className="rounded-xl px-5 py-5 flex gap-4"
-                style={{ background: "#1a1916", border: "1px solid #2a2825" }}
+                style={marketingCard}
               >
                 <span
                   className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold"
-                  style={{ background: "#c8392b", color: "#f5f1eb" }}
+                  style={{ background: m.blue, color: m.white }}
                 >
                   {item.step}
                 </span>
                 <div className="flex flex-col gap-1">
-                  <p className="text-sm font-semibold">{item.title}</p>
-                  <p className="text-sm" style={{ color: "#9a9590" }}>
+                  <p className="text-sm font-semibold" style={{ color: m.text }}>
+                    {item.title}
+                  </p>
+                  <p className="text-sm" style={{ color: m.subtext }}>
                     {item.description}
                   </p>
                 </div>
@@ -184,23 +198,21 @@ export default function DemandPreviewPage() {
           </div>
         </section>
 
-        {/* Primary CTA */}
         <section className="flex flex-col gap-3 items-center">
           <Link
             href="/onboarding"
-            className="w-full max-w-md min-h-12 rounded-xl px-6 py-4 text-base font-semibold text-center flex items-center justify-center"
-            style={{ background: "#c8392b", color: "#f5f1eb" }}
+            className="w-full max-w-md min-h-12 rounded-full px-6 py-4 text-base font-semibold text-center flex items-center justify-center"
+            style={marketingBtnPrimary}
           >
             Start Free Assessment → Get Your Letter
           </Link>
-          <p className="text-xs text-center" style={{ color: "#6b6560" }}>
+          <p className="text-xs text-center" style={{ color: m.muted }}>
             Free assessment first · $49 for your letter · No lawyer required
           </p>
         </section>
 
-        {/* FAQ */}
         <section className="flex flex-col gap-6">
-          <h2 className="text-lg font-semibold text-center">
+          <h2 className="text-lg font-semibold text-center" style={{ color: m.text }}>
             Demand Letter FAQ
           </h2>
           <div className="flex flex-col gap-4">
@@ -208,10 +220,12 @@ export default function DemandPreviewPage() {
               <div
                 key={item.question}
                 className="rounded-xl px-5 py-5 flex flex-col gap-2"
-                style={{ background: "#1a1916", border: "1px solid #2a2825" }}
+                style={marketingCard}
               >
-                <h3 className="text-sm font-semibold">{item.question}</h3>
-                <p className="text-sm leading-relaxed" style={{ color: "#9a9590" }}>
+                <h3 className="text-sm font-semibold" style={{ color: m.text }}>
+                  {item.question}
+                </h3>
+                <p className="text-sm leading-relaxed" style={{ color: m.subtext }}>
                   {item.answer}
                 </p>
               </div>
@@ -220,7 +234,7 @@ export default function DemandPreviewPage() {
         </section>
 
         <p className="text-sm text-center">
-          <Link href="/" style={{ color: "#9a9590" }}>
+          <Link href="/" style={{ color: m.muted }}>
             &larr; Back to home
           </Link>
         </p>

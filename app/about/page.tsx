@@ -1,4 +1,11 @@
 import Link from "next/link";
+import {
+  m,
+  marketingBtnPrimary,
+  marketingCard,
+  marketingPageMain,
+  ruledLogoSuffixStyle,
+} from "@/lib/marketing-theme";
 
 const STEPS = [
   {
@@ -20,24 +27,27 @@ const STEPS = [
 
 export default function AboutPage() {
   return (
-    <main className="flex flex-col flex-1 min-h-screen px-4 sm:px-6 py-12 md:py-16">
+    <main
+      className="flex flex-col flex-1 min-h-screen px-4 sm:px-6 py-12 md:py-16"
+      style={marketingPageMain}
+    >
       <article className="max-w-2xl mx-auto w-full flex flex-col gap-12">
         <div className="flex flex-col gap-4">
-          <Link href="/" className="text-sm w-fit" style={{ color: "#9a9590" }}>
+          <Link href="/" className="text-sm w-fit" style={{ color: m.muted }}>
             &larr; Home
           </Link>
           <span
             className="text-3xl font-bold tracking-tight"
-            style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+            style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: m.text }}
           >
-            ruled<span style={{ color: "#c8392b" }}>.ca</span>
+            ruled<span style={ruledLogoSuffixStyle()}>.ca</span>
           </span>
-          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
+          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight" style={{ color: m.text }}>
             Why We Built Ruled
           </h1>
         </div>
 
-        <p className="text-base leading-relaxed" style={{ color: "#d4cfc9" }}>
+        <p className="text-base leading-relaxed" style={{ color: m.subtext }}>
           Every year, millions of Canadians get stiffed by contractors, landlords,
           and businesses. Most never fight back — not because they don&apos;t have a
           case, but because the system feels impossible to navigate without a
@@ -47,28 +57,32 @@ export default function AboutPage() {
         </p>
 
         <section className="flex flex-col gap-6">
-          <h2 className="text-xl font-semibold">How It Works</h2>
+          <h2 className="text-xl font-semibold" style={{ color: m.text }}>
+            How It Works
+          </h2>
           <div className="flex flex-col gap-4">
             {STEPS.map((step, i) => (
               <div
                 key={step.title}
                 className="rounded-xl p-5 flex flex-col gap-2"
-                style={{ background: "#1a1916", border: "1px solid #2a2825" }}
+                style={marketingCard}
               >
-                <span className="text-xs font-bold" style={{ color: "#c8392b" }}>
+                <span className="text-xs font-bold" style={{ color: m.amber }}>
                   Step {i + 1}
                 </span>
-                <h3 className="font-semibold">{step.title}</h3>
-                <p className="text-sm" style={{ color: "#9a9590" }}>
+                <h3 className="font-semibold" style={{ color: m.text }}>
+                  {step.title}
+                </h3>
+                <p className="text-sm" style={{ color: m.subtext }}>
                   {step.description}
                 </p>
               </div>
             ))}
           </div>
           <Link
-            href="/#assessment"
-            className="inline-flex justify-center rounded-lg px-6 py-4 text-sm font-semibold w-full sm:w-auto"
-            style={{ background: "#c8392b", color: "#f5f1eb" }}
+            href="/onboarding"
+            className="inline-flex justify-center rounded-full px-6 py-4 text-sm font-semibold w-full sm:w-auto"
+            style={marketingBtnPrimary}
           >
             Start Your Free Assessment
           </Link>

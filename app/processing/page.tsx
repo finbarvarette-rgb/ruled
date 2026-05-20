@@ -9,6 +9,12 @@ import {
   ONBOARDING_PROVINCE_KEY,
   ONBOARDING_EMAIL_KEY,
 } from "@/lib/constants";
+import {
+  m,
+  marketingBtnPrimary,
+  marketingPageMain,
+  ruledLogoSuffixStyle,
+} from "@/lib/marketing-theme";
 
 export default function ProcessingPage() {
   const router = useRouter();
@@ -74,31 +80,31 @@ export default function ProcessingPage() {
   return (
     <main
       className="flex flex-col flex-1 min-h-screen items-center justify-center px-6 gap-6"
-      style={{ background: "#0f0e0c" }}
+      style={marketingPageMain}
     >
       <span
         className="text-4xl font-bold tracking-tight"
-        style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+        style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: m.text }}
       >
-        ruled<span style={{ color: "#c8392b" }}>.ca</span>
+        ruled<span style={ruledLogoSuffixStyle()}>.ca</span>
       </span>
       {!error ? (
         <>
           <Spinner className="w-12 h-12" />
-          <p className="text-lg" style={{ color: "#9a9590" }}>
+          <p className="text-lg" style={{ color: m.subtext }}>
             Analyzing your case...
           </p>
         </>
       ) : (
         <>
-          <p className="text-sm text-center max-w-md" style={{ color: "#c8392b" }}>
+          <p className="text-sm text-center max-w-md" style={{ color: m.blue }}>
             {error}
           </p>
           <button
             type="button"
             onClick={() => router.push("/onboarding")}
-            className="rounded-lg px-6 py-3 text-sm font-semibold cursor-pointer"
-            style={{ background: "#c8392b", color: "#f5f1eb" }}
+            className="rounded-full px-6 py-3 text-sm font-semibold cursor-pointer"
+            style={marketingBtnPrimary}
           >
             Try again
           </button>

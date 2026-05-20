@@ -12,12 +12,16 @@ import {
   ONBOARDING_PROVINCE_KEY,
   ONBOARDING_EMAIL_KEY,
 } from "@/lib/constants";
+import {
+  m,
+  marketingCard,
+  marketingBtnPrimary,
+  marketingBtnSecondary,
+  marketingInput,
+  marketingPageMain,
+} from "@/lib/marketing-theme";
 
-const inputStyle = {
-  background: "#1a1916",
-  color: "#f5f1eb",
-  border: "1px solid #2a2825",
-};
+const inputStyle = marketingInput;
 
 function getSupabaseBrowser() {
   return createBrowserClient(
@@ -231,18 +235,21 @@ function OnboardingContent() {
 
   if (needsVerification) {
     return (
-      <main className="flex flex-col flex-1 min-h-screen px-4 sm:px-6 py-12 md:py-16">
+      <main
+        className="flex flex-col flex-1 min-h-screen px-4 sm:px-6 py-12 md:py-16"
+        style={marketingPageMain}
+      >
         <div className="max-w-xl mx-auto w-full flex flex-col gap-8">
           <div className="flex flex-col gap-3">
             <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
               Check your inbox
             </h1>
-            <p className="text-sm leading-relaxed" style={{ color: "#9a9590" }}>
+            <p className="text-sm leading-relaxed" style={{ color: m.subtext }}>
               We sent a verification link to{" "}
-              <span style={{ color: "#f5f1eb" }}>{email}</span>. Click it to
+              <span style={{ color: m.text }}>{email}</span>. Click it to
               verify your account and see your case assessment.
             </p>
-            <p className="text-sm leading-relaxed" style={{ color: "#9a9590" }}>
+            <p className="text-sm leading-relaxed" style={{ color: m.subtext }}>
               Your case details have been saved — they will be waiting when you
               come back.
             </p>
@@ -250,7 +257,7 @@ function OnboardingContent() {
           <Link
             href="/login"
             className="text-sm w-fit"
-            style={{ color: "#c8392b" }}
+            style={{ color: m.blue }}
           >
             Already verified? Sign in &rarr;
           </Link>
@@ -260,9 +267,12 @@ function OnboardingContent() {
   }
 
   return (
-    <main className="flex flex-col flex-1 min-h-screen px-4 sm:px-6 py-12 md:py-16">
+    <main
+      className="flex flex-col flex-1 min-h-screen px-4 sm:px-6 py-12 md:py-16"
+      style={marketingPageMain}
+    >
       <div className="max-w-xl mx-auto w-full flex flex-col gap-8">
-        <Link href="/" className="text-sm w-fit" style={{ color: "#9a9590" }}>
+        <Link href="/" className="text-sm w-fit" style={{ color: m.subtext }}>
           &larr; Back to home
         </Link>
 
@@ -274,7 +284,7 @@ function OnboardingContent() {
               <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
                 Tell us what happened.
               </h1>
-              <p className="text-sm leading-relaxed" style={{ color: "#9a9590" }}>
+              <p className="text-sm leading-relaxed" style={{ color: m.subtext }}>
                 Describe your situation in plain language. Who owes you money,
                 how much, and why.
               </p>
@@ -288,15 +298,15 @@ function OnboardingContent() {
                 placeholder="Example: My contractor took a $5,000 deposit, did half the work, and stopped responding..."
                 className="w-full rounded-xl px-4 py-4 text-base sm:text-sm leading-relaxed resize-none outline-none min-h-[10rem]"
                 style={inputStyle}
-                onFocus={(e) => (e.currentTarget.style.borderColor = "#c8392b")}
-                onBlur={(e) => (e.currentTarget.style.borderColor = "#2a2825")}
+                onFocus={(e) => (e.currentTarget.style.borderColor = m.blue)}
+                onBlur={(e) => (e.currentTarget.style.borderColor = m.border)}
               />
               <select
                 required
                 value={province}
                 onChange={(e) => setProvince(e.target.value)}
                 className="w-full rounded-lg px-4 py-3.5 text-base sm:text-sm outline-none appearance-none cursor-pointer min-h-12"
-                style={{ ...inputStyle, color: province ? "#f5f1eb" : "#9a9590" }}
+                style={{ ...inputStyle, color: province ? m.text : m.subtext }}
               >
                 <option value="" disabled>
                   Select your province
@@ -308,15 +318,15 @@ function OnboardingContent() {
                 ))}
               </select>
               {error && (
-                <p className="text-sm" style={{ color: "#c8392b" }}>
+                <p className="text-sm" style={{ color: m.blue }}>
                   {error}
                 </p>
               )}
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full min-h-12 rounded-lg px-6 py-4 text-base sm:text-sm font-semibold disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2"
-                style={{ background: "#c8392b", color: "#f5f1eb" }}
+                className="w-full min-h-12 rounded-full px-6 py-4 text-base sm:text-sm font-semibold disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2"
+                style={marketingBtnPrimary}
               >
                 {loading && <Spinner />}
                 {loading ? "Continuing…" : "Continue"}
@@ -329,7 +339,7 @@ function OnboardingContent() {
               <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
                 Create a free account to save your assessment
               </h1>
-              <p className="text-sm leading-relaxed" style={{ color: "#9a9590" }}>
+              <p className="text-sm leading-relaxed" style={{ color: m.subtext }}>
                 Your case details are saved. Create an account so your assessment
                 and next steps stay in your dashboard.
               </p>
@@ -339,11 +349,10 @@ function OnboardingContent() {
               type="button"
               disabled={loading}
               onClick={handleGoogleSignIn}
-              className="w-full min-h-12 rounded-lg px-6 py-3.5 text-sm font-semibold disabled:opacity-60 cursor-pointer flex items-center justify-center gap-3"
+              className="w-full min-h-12 rounded-full px-6 py-3.5 text-sm font-semibold disabled:opacity-60 cursor-pointer flex items-center justify-center gap-3"
               style={{
-                background: "#1a1916",
-                color: "#f5f1eb",
-                border: "1px solid #2a2825",
+                ...marketingBtnSecondary,
+                background: m.white,
               }}
             >
               <GoogleIcon />
@@ -351,16 +360,16 @@ function OnboardingContent() {
             </button>
 
             <div className="flex items-center gap-3">
-              <div className="flex-1 h-px" style={{ background: "#2a2825" }} />
-              <span className="text-xs" style={{ color: "#9a9590" }}>
+              <div className="flex-1 h-px" style={{ background: m.border }} />
+              <span className="text-xs" style={{ color: m.subtext }}>
                 or
               </span>
-              <div className="flex-1 h-px" style={{ background: "#2a2825" }} />
+              <div className="flex-1 h-px" style={{ background: m.border }} />
             </div>
 
             <div
               className="flex rounded-lg p-1 gap-1"
-              style={{ background: "#1a1916", border: "1px solid #2a2825" }}
+              style={{ ...marketingCard, padding: "4px" }}
             >
               <button
                 type="button"
@@ -370,8 +379,8 @@ function OnboardingContent() {
                 }}
                 className="flex-1 rounded-md px-3 py-2.5 min-h-10 text-xs font-semibold cursor-pointer"
                 style={{
-                  background: authMode === "signup" ? "#c8392b" : "transparent",
-                  color: authMode === "signup" ? "#f5f1eb" : "#9a9590",
+                  background: authMode === "signup" ? m.blue : "transparent",
+                  color: authMode === "signup" ? m.white : m.subtext,
                 }}
               >
                 Create account
@@ -384,8 +393,8 @@ function OnboardingContent() {
                 }}
                 className="flex-1 rounded-md px-3 py-2.5 min-h-10 text-xs font-semibold cursor-pointer"
                 style={{
-                  background: authMode === "signin" ? "#c8392b" : "transparent",
-                  color: authMode === "signin" ? "#f5f1eb" : "#9a9590",
+                  background: authMode === "signin" ? m.blue : "transparent",
+                  color: authMode === "signin" ? m.white : m.subtext,
                 }}
               >
                 Sign in
@@ -405,8 +414,8 @@ function OnboardingContent() {
                 autoComplete="email"
                 className="w-full rounded-lg px-4 py-3.5 text-base sm:text-sm outline-none min-h-12"
                 style={inputStyle}
-                onFocus={(e) => (e.currentTarget.style.borderColor = "#c8392b")}
-                onBlur={(e) => (e.currentTarget.style.borderColor = "#2a2825")}
+                onFocus={(e) => (e.currentTarget.style.borderColor = m.blue)}
+                onBlur={(e) => (e.currentTarget.style.borderColor = m.border)}
               />
               <input
                 type="password"
@@ -423,8 +432,8 @@ function OnboardingContent() {
                 }
                 className="w-full rounded-lg px-4 py-3.5 text-base sm:text-sm outline-none min-h-12"
                 style={inputStyle}
-                onFocus={(e) => (e.currentTarget.style.borderColor = "#c8392b")}
-                onBlur={(e) => (e.currentTarget.style.borderColor = "#2a2825")}
+                onFocus={(e) => (e.currentTarget.style.borderColor = m.blue)}
+                onBlur={(e) => (e.currentTarget.style.borderColor = m.border)}
               />
               {authMode === "signup" && (
                 <input
@@ -437,23 +446,23 @@ function OnboardingContent() {
                   className="w-full rounded-lg px-4 py-3.5 text-base sm:text-sm outline-none min-h-12"
                   style={inputStyle}
                   onFocus={(e) =>
-                    (e.currentTarget.style.borderColor = "#c8392b")
+                    (e.currentTarget.style.borderColor = m.blue)
                   }
                   onBlur={(e) =>
-                    (e.currentTarget.style.borderColor = "#2a2825")
+                    (e.currentTarget.style.borderColor = m.border)
                   }
                 />
               )}
               {error && (
-                <p className="text-sm" style={{ color: "#c8392b" }}>
+                <p className="text-sm" style={{ color: m.blue }}>
                   {error}
                 </p>
               )}
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full min-h-12 rounded-lg px-6 py-4 text-base sm:text-sm font-semibold disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2"
-                style={{ background: "#c8392b", color: "#f5f1eb" }}
+                className="w-full min-h-12 rounded-full px-6 py-4 text-base sm:text-sm font-semibold disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2"
+                style={marketingBtnPrimary}
               >
                 {loading && <Spinner />}
                 {loading
@@ -466,7 +475,7 @@ function OnboardingContent() {
               </button>
             </form>
 
-            <p className="text-xs text-center leading-relaxed" style={{ color: "#6b6560" }}>
+            <p className="text-xs text-center leading-relaxed" style={{ color: m.muted }}>
               By continuing you agree to our{" "}
               <Link href="/terms" className="underline">
                 Terms of Service

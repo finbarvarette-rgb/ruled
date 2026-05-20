@@ -7,9 +7,16 @@ import { Spinner } from "@/components/Spinner";
 import { updateRuledSession, readRuledSession } from "@/lib/session";
 import {
   parseCaseStrength,
-  strengthBadgeStyle,
   type CaseStrength,
 } from "@/lib/case-strength";
+import {
+  m,
+  marketingBtnPrimary,
+  marketingBtnSecondary,
+  marketingCard,
+  marketingPageMain,
+  marketingStrengthBadgeStyle,
+} from "@/lib/marketing-theme";
 
 const OLD_SECTION_HEADERS = [
   "CASE STRENGTH",
@@ -299,8 +306,8 @@ function AssessmentBody({ content }: { content: string }) {
     elements.push(
       <ul
         key={k++}
-        className="list-disc pl-5 flex flex-col gap-1.5 marker:text-[#c8392b]"
-        style={{ color: "#d4cfc9" }}
+        className="list-disc pl-5 flex flex-col gap-1.5 marker:text-[#2563EB]"
+        style={{ color: m.subtext }}
       >
         {pendingList.map((item, i) => (
           <li key={i} className="leading-relaxed">
@@ -325,7 +332,7 @@ function AssessmentBody({ content }: { content: string }) {
     }
     flushList();
     elements.push(
-      <p key={k++} className="leading-relaxed" style={{ color: "#d4cfc9" }}>
+      <p key={k++} className="leading-relaxed" style={{ color: m.subtext }}>
         {trimmed}
       </p>
     );
@@ -339,15 +346,15 @@ function DemandLetterPreview() {
     <div
       className="relative rounded-xl overflow-hidden"
       style={{
-        background: "#ffffff",
-        border: "1px solid #2a2825",
+        background: m.white,
+        border: `1px solid ${m.border}`,
       }}
     >
       <div
         className="px-4 sm:px-6 py-5 text-left break-words"
         style={{
           fontFamily: "Georgia, 'Times New Roman', serif",
-          color: "#0f0e0c",
+          color: m.text,
         }}
       >
         <p className="text-xs font-bold tracking-widest uppercase mb-3">
@@ -374,7 +381,7 @@ function DemandLetterPreview() {
           backdropFilter: "blur(6px)",
           WebkitBackdropFilter: "blur(6px)",
           background:
-            "linear-gradient(to bottom, transparent 0%, rgba(15, 14, 12, 0.15) 40%, rgba(15, 14, 12, 0.55) 100%)",
+            "linear-gradient(to bottom, transparent 0%, rgba(250, 250, 250, 0.2) 40%, rgba(250, 250, 250, 0.85) 100%)",
         }}
         aria-hidden
       />
@@ -484,20 +491,23 @@ export default function ResultsPage() {
 
   if (!mounted || !rawText) return null;
 
-  const strengthStyle = strength ? strengthBadgeStyle(strength) : null;
+  const strengthStyle = strength ? marketingStrengthBadgeStyle(strength) : null;
   const isWeak = strength === "Weak";
   const nextHeadline = isWeak
     ? "Even a weaker case can benefit from a demand letter."
     : "You have a case worth pursuing. Here's your next move.";
 
   return (
-    <main className="flex flex-col flex-1 min-h-screen px-4 sm:px-6 py-10 md:py-14 overflow-x-hidden">
+    <main
+      className="flex flex-col flex-1 min-h-screen px-4 sm:px-6 py-10 md:py-14 overflow-x-hidden"
+      style={marketingPageMain}
+    >
       <div className="max-w-2xl mx-auto w-full flex flex-col gap-8 min-w-0">
         {/* Header */}
         <header className="flex flex-col gap-4">
           <p
             className="text-xs font-medium tracking-wide uppercase"
-            style={{ color: "#9a9590" }}
+            style={{ color: m.muted }}
           >
             Step 3 of 3 — Your results
           </p>
@@ -512,12 +522,8 @@ export default function ResultsPage() {
               type="button"
               disabled={saveLoading}
               onClick={handleSaveAssessment}
-              className="w-full sm:w-fit min-h-12 rounded-lg px-5 py-3 text-sm font-semibold disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2"
-              style={{
-                background: "#1a1916",
-                color: "#f5f1eb",
-                border: "1px solid #2a2825",
-              }}
+              className="w-full sm:w-fit min-h-12 rounded-full px-5 py-3 text-sm font-semibold disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2"
+              style={marketingBtnSecondary}
             >
               {saveLoading && <Spinner />}
               {saveLoading ? "Saving…" : "Save My Assessment"}
@@ -525,7 +531,7 @@ export default function ResultsPage() {
             {saveMessage && (
               <p
                 className="text-sm"
-                style={{ color: saveMessage.includes("✅") ? "#9a9590" : "#c8392b" }}
+                style={{ color: saveMessage.includes("✅") ? m.green : m.blue }}
               >
                 {saveMessage}
               </p>
@@ -533,14 +539,14 @@ export default function ResultsPage() {
           </div>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
             {province && (
-              <span style={{ color: "#f5f1eb" }}>{province}</span>
+              <span style={{ color: m.text }}>{province}</span>
             )}
             {province && (
               <span style={{ color: "#6b6560" }} aria-hidden>
                 ·
               </span>
             )}
-            <span style={{ color: "#9a9590" }}>{caseType}</span>
+            <span style={{ color: m.subtext }}>{caseType}</span>
           </div>
           {strength && strengthStyle && (
             <span
@@ -558,11 +564,11 @@ export default function ResultsPage() {
             <article
               key={section.title}
               className="rounded-xl px-5 sm:px-6 py-5 flex flex-col gap-3"
-              style={{ background: "#1a1916", border: "1px solid #2a2825" }}
+              style={marketingCard}
             >
               <h2
                 className="text-sm font-semibold tracking-tight break-words"
-                style={{ color: "#f5f1eb" }}
+                style={{ color: m.text }}
               >
                 {section.title}
               </h2>
@@ -575,20 +581,20 @@ export default function ResultsPage() {
         <section
           className="rounded-xl px-5 sm:px-6 py-6 md:py-8 flex flex-col gap-6"
           style={{
-            background: "#1a1916",
-            border: "1px solid #c8392b",
+            ...marketingCard,
+            border: `2px solid ${m.blue}`,
           }}
         >
           <div className="flex flex-col gap-2">
             <h2 className="text-lg md:text-xl font-semibold tracking-tight">
               What Should You Do Next?
             </h2>
-            <p className="text-sm font-medium" style={{ color: "#c8392b" }}>
+            <p className="text-sm font-medium" style={{ color: m.blue }}>
               {nextHeadline}
             </p>
           </div>
 
-          <p className="text-sm leading-relaxed" style={{ color: "#d4cfc9" }}>
+          <p className="text-sm leading-relaxed" style={{ color: m.subtext }}>
             The fastest way to get your money back — before going to court — is a
             demand letter. It is a formal written notice that gives the other
             party one final chance to pay. About 40% of cases resolve at this
@@ -598,7 +604,7 @@ export default function ResultsPage() {
           <DemandLetterPreview />
 
           <div className="flex flex-col gap-3">
-            <p className="text-sm font-semibold" style={{ color: "#f5f1eb" }}>
+            <p className="text-sm font-semibold" style={{ color: m.text }}>
               What&apos;s included in your $49 demand letter:
             </p>
             <ul className="flex flex-col gap-2">
@@ -606,9 +612,9 @@ export default function ResultsPage() {
                 <li
                   key={item}
                   className="flex gap-2 text-sm leading-relaxed"
-                  style={{ color: "#d4cfc9" }}
+                  style={{ color: m.subtext }}
                 >
-                  <span style={{ color: "#c8392b" }} aria-hidden>
+                  <span style={{ color: m.green }} aria-hidden>
                     ✓
                   </span>
                   {item}
@@ -618,7 +624,7 @@ export default function ResultsPage() {
           </div>
 
           {checkoutError && (
-            <p className="text-sm" style={{ color: "#c8392b" }}>
+            <p className="text-sm" style={{ color: m.blue }}>
               {checkoutError}
             </p>
           )}
@@ -627,8 +633,8 @@ export default function ResultsPage() {
             type="button"
             disabled={checkoutLoading !== null}
             onClick={() => handleCheckout("demand")}
-            className="w-full min-h-12 rounded-xl px-6 py-4 text-base font-semibold cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2"
-            style={{ background: "#c8392b", color: "#f5f1eb" }}
+            className="w-full min-h-12 rounded-full px-6 py-4 text-base font-semibold cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2"
+            style={marketingBtnPrimary}
           >
             {checkoutLoading === "demand" && <Spinner />}
             {checkoutLoading === "demand"
@@ -641,7 +647,7 @@ export default function ResultsPage() {
             disabled={checkoutLoading !== null}
             onClick={() => handleCheckout("full")}
             className="text-sm text-center cursor-pointer disabled:opacity-60 w-full min-h-11 py-2"
-            style={{ color: "#9a9590" }}
+            style={{ color: m.muted }}
           >
             {checkoutLoading === "full"
               ? "Redirecting…"
@@ -650,7 +656,7 @@ export default function ResultsPage() {
 
           <p
             className="text-xs text-center tracking-wide"
-            style={{ color: "#6b6560" }}
+            style={{ color: m.muted }}
           >
             Secure checkout · Delivered in minutes · 30-day guarantee
           </p>

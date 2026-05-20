@@ -1,4 +1,5 @@
 import type { BlogBlock } from "@/lib/blog/types";
+import { m } from "@/lib/marketing-theme";
 
 export function BlogPostContent({ blocks }: { blocks: BlogBlock[] }) {
   return (
@@ -10,7 +11,7 @@ export function BlogPostContent({ blocks }: { blocks: BlogBlock[] }) {
               <h2
                 key={i}
                 className="text-xl font-semibold tracking-tight pt-2 break-words"
-                style={{ color: "#f5f1eb" }}
+                style={{ color: m.text }}
               >
                 {block.text}
               </h2>
@@ -20,7 +21,7 @@ export function BlogPostContent({ blocks }: { blocks: BlogBlock[] }) {
               <h3
                 key={i}
                 className="text-base font-semibold tracking-tight break-words"
-                style={{ color: "#f5f1eb" }}
+                style={{ color: m.text }}
               >
                 {block.text}
               </h3>
@@ -30,7 +31,7 @@ export function BlogPostContent({ blocks }: { blocks: BlogBlock[] }) {
               <p
                 key={i}
                 className="text-base leading-relaxed break-words"
-                style={{ color: "#d4cfc9" }}
+                style={{ color: m.subtext }}
               >
                 {block.text}
               </p>
@@ -39,11 +40,11 @@ export function BlogPostContent({ blocks }: { blocks: BlogBlock[] }) {
             return (
               <ul
                 key={i}
-                className="list-disc pl-5 flex flex-col gap-2 text-base leading-relaxed marker:text-[#c8392b]"
-                style={{ color: "#d4cfc9" }}
+                className="list-disc pl-5 flex flex-col gap-2 text-base leading-relaxed"
+                style={{ color: m.subtext }}
               >
                 {block.items.map((item, j) => (
-                  <li key={j} className="break-words">
+                  <li key={j} className="break-words marker:text-[#2563EB]">
                     {item}
                   </li>
                 ))}
@@ -53,11 +54,11 @@ export function BlogPostContent({ blocks }: { blocks: BlogBlock[] }) {
             return (
               <ol
                 key={i}
-                className="list-decimal pl-5 flex flex-col gap-2 text-base leading-relaxed marker:text-[#c8392b]"
-                style={{ color: "#d4cfc9" }}
+                className="list-decimal pl-5 flex flex-col gap-2 text-base leading-relaxed"
+                style={{ color: m.subtext }}
               >
                 {block.items.map((item, j) => (
-                  <li key={j} className="break-words">
+                  <li key={j} className="break-words marker:text-[#2563EB]">
                     {item}
                   </li>
                 ))}
@@ -76,9 +77,9 @@ export function CategoryTag({ category }: { category: string }) {
     <span
       className="text-xs font-semibold px-2.5 py-1 rounded-full shrink-0"
       style={{
-        background: "rgba(200, 57, 43, 0.12)",
-        color: "#c8392b",
-        border: "1px solid rgba(200, 57, 43, 0.30)",
+        background: "rgba(245, 158, 11, 0.12)",
+        color: m.amber,
+        border: "1px solid rgba(245, 158, 11, 0.35)",
       }}
     >
       {category}

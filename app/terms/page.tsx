@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { m, marketingPageMain, ruledLogoSuffixStyle } from "@/lib/marketing-theme";
 
 export default function TermsPage() {
   return (
@@ -68,7 +69,7 @@ export default function TermsPage() {
       <Section title="Contact">
         <p>
           Questions about these terms? Email{" "}
-          <a href="mailto:hello@ruled.ca" style={{ color: "#c8392b" }}>
+          <a href="mailto:hello@ruled.ca" style={{ color: m.blue }}>
             hello@ruled.ca
           </a>
           .
@@ -88,28 +89,33 @@ function LegalPage({
   children: React.ReactNode;
 }) {
   return (
-    <main className="flex flex-col flex-1 min-h-screen px-6 py-16 md:py-24">
+    <main
+      className="flex flex-col flex-1 min-h-screen px-6 py-16 md:py-24"
+      style={marketingPageMain}
+    >
       <article className="max-w-2xl mx-auto w-full flex flex-col gap-10">
         <div className="flex flex-col gap-4">
           <Link
             href="/"
             className="text-sm w-fit"
-            style={{ color: "#9a9590" }}
+            style={{ color: m.muted }}
           >
             &larr; Back to home
           </Link>
           <span
             className="text-2xl font-bold tracking-tight"
-            style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+            style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: m.text }}
           >
-            ruled<span style={{ color: "#c8392b" }}>.ca</span>
+            ruled<span style={ruledLogoSuffixStyle()}>.ca</span>
           </span>
-          <h1 className="text-3xl font-semibold tracking-tight">{title}</h1>
-          <p className="text-sm" style={{ color: "#9a9590" }}>
+          <h1 className="text-3xl font-semibold tracking-tight" style={{ color: m.text }}>
+            {title}
+          </h1>
+          <p className="text-sm" style={{ color: m.muted }}>
             Last updated: {updated}
           </p>
         </div>
-        <div className="flex flex-col gap-8 text-sm leading-relaxed" style={{ color: "#d4cfc9" }}>
+        <div className="flex flex-col gap-8 text-sm leading-relaxed" style={{ color: m.subtext }}>
           {children}
         </div>
       </article>
@@ -126,7 +132,7 @@ function Section({
 }) {
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="text-lg font-semibold" style={{ color: "#f5f1eb" }}>
+      <h2 className="text-lg font-semibold" style={{ color: m.text }}>
         {title}
       </h2>
       {children}

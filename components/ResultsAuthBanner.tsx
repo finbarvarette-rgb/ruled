@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { m, marketingBtnPrimary, marketingCard } from "@/lib/marketing-theme";
 
 export function ResultsAuthBanner() {
   const [show, setShow] = useState(false);
@@ -22,18 +23,18 @@ export function ResultsAuthBanner() {
   return (
     <div
       className="rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
-      style={{ background: "#1a1916", border: "1px solid #c8392b" }}
+      style={{ ...marketingCard, border: `1px solid ${m.blue}` }}
     >
-      <p className="text-sm">
+      <p className="text-sm" style={{ color: m.text }}>
         <span className="font-semibold">Save your case and track your outcome</span>
         {" — "}
-        <span style={{ color: "#9a9590" }}>Sign up free.</span>
+        <span style={{ color: m.subtext }}>Sign up free.</span>
       </p>
       <div className="flex items-center gap-3 shrink-0">
         <Link
           href="/login"
-          className="rounded-lg px-4 py-2 text-sm font-semibold"
-          style={{ background: "#c8392b", color: "#f5f1eb" }}
+          className="rounded-full px-4 py-2 text-sm font-semibold"
+          style={marketingBtnPrimary}
         >
           Sign up free
         </Link>
@@ -44,7 +45,7 @@ export function ResultsAuthBanner() {
             setDismissed(true);
           }}
           className="text-xs cursor-pointer"
-          style={{ color: "#9a9590" }}
+          style={{ color: m.muted }}
           aria-label="Dismiss"
         >
           Dismiss
