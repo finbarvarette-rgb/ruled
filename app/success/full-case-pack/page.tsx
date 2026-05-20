@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { restoreSessionFromPayment, updateRuledSession } from "@/lib/session";
 import { Spinner } from "@/components/Spinner";
+import { supabase } from "@/lib/supabase";
 
 type PaymentData = {
   tier: string;
@@ -679,6 +680,22 @@ function FullCasePackDeliveryContent() {
         setCourtDocs(courtResult);
         setHearingPrep(hearingResult);
         setPhase("ready");
+
+        if (data.caseId) {
+          void supabase
+            .from("cases")
+            .update({
+              demand_letter: letter,
+              court_docs: courtResult,
+              hearing_prep: hearingResult,
+            })
+            .eq("id", data.caseId);
+          void fetch("/api/emails/notify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ type: "full", caseId: data.caseId }),
+          }).catch(() => {});
+        }
       } catch (err) {
         setError(
           err instanceof Error

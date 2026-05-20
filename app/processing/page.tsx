@@ -31,16 +31,20 @@ export default function ProcessingPage() {
       }
 
       try {
+        const onboardingEmail = sessionStorage.getItem(ONBOARDING_EMAIL_KEY);
         const res = await fetch("/api/assess", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ intake, province }),
+          body: JSON.stringify({
+            intake,
+            province,
+            email: onboardingEmail ?? undefined,
+          }),
         });
 
         if (!res.ok) throw new Error("Assessment failed");
 
         const data = await res.json();
-        const onboardingEmail = sessionStorage.getItem(ONBOARDING_EMAIL_KEY);
         const {
           data: { user },
         } = await supabase.auth.getUser();

@@ -193,6 +193,8 @@ function DemandLetterDeliveryContent() {
   const [email, setEmail] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [upsellLoading, setUpsellLoading] = useState(false);
+  const [markSentLoading, setMarkSentLoading] = useState(false);
+  const [markSentDone, setMarkSentDone] = useState(false);
 
   useEffect(() => {
     if (isPreview) {
@@ -254,6 +256,14 @@ function DemandLetterDeliveryContent() {
         updateRuledSession({ demandLetter: finalLetter });
         setLetter(finalLetter);
         setPhase("ready");
+
+        if (data.caseId) {
+          void fetch("/api/emails/notify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ type: "demand", caseId: data.caseId }),
+          }).catch(() => {});
+        }
       } catch (err) {
         setError(
           err instanceof Error
@@ -285,6 +295,24 @@ function DemandLetterDeliveryContent() {
     } catch {
       setError("Could not start checkout. Please try again.");
       setUpsellLoading(false);
+    }
+  }
+
+  async function handleMarkSent() {
+    if (!caseId || markSentDone) return;
+    setMarkSentLoading(true);
+    try {
+      const res = await fetch("/api/emails/mark-demand-sent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ caseId }),
+      });
+      if (!res.ok) throw new Error("Failed");
+      setMarkSentDone(true);
+    } catch {
+      setError("Could not save your send date. Please try again.");
+    } finally {
+      setMarkSentLoading(false);
     }
   }
 
@@ -441,6 +469,24 @@ function DemandLetterDeliveryContent() {
               last
             />
           </div>
+          {!isPreview && caseId && (
+            <button
+              type="button"
+              disabled={markSentLoading || markSentDone}
+              onClick={handleMarkSent}
+              className="w-full rounded-xl px-5 py-3.5 text-sm font-semibold cursor-pointer disabled:opacity-60 mt-2"
+              style={{
+                background: markSentDone ? "#2a2825" : "#2563EB",
+                color: "#f5f1eb",
+              }}
+            >
+              {markSentDone
+                ? "14-day clock started — we'll email you on day 14"
+                : markSentLoading
+                  ? "Saving…"
+                  : "I've sent my letter — start my 14-day clock"}
+            </button>
+          )}
         </section>
 
         {/* Upsell */}

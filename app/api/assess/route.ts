@@ -3,6 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { getSupabase } from "@/lib/supabase";
 import { FORMATTING_RULE, sanitizeText } from "@/lib/prompts";
 import { createClient } from "@/lib/supabase/server";
+import { sendCaseAssessmentDeliveryEmail } from "@/lib/email-service";
 
 const SYSTEM_PROMPT = `${FORMATTING_RULE}You are a Canadian small claims court specialist with deep knowledge of provincial small claims procedures, contract law, and evidence rules. Your job is to assess a claimant's case and produce a structured, plain-English case assessment. You are not a lawyer and do not provide legal advice — you provide legal information and procedural guidance only.
 
@@ -45,7 +46,11 @@ function getAnthropicClient() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { intake, province } = body as { intake: string; province: string };
+    const { intake, province, email: bodyEmail } = body as {
+      intake: string;
+      province: string;
+      email?: string;
+    };
 
     if (!intake || !province) {
       return NextResponse.json(
@@ -90,12 +95,13 @@ export async function POST(req: NextRequest) {
       // IMPORTANT: use the authenticated server client for inserts when logged in,
       // otherwise the case may be written without a user/email link, making it
       // invisible to the dashboard under RLS.
+      const caseEmail = userEmail ?? bodyEmail?.trim() ?? null;
       const insertPayload = {
         intake_text: intake,
         province,
         case_assessment: assessment,
         ...(userId ? { user_id: userId } : {}),
-        ...(userEmail ? { email: userEmail } : {}),
+        ...(caseEmail ? { email: caseEmail } : {}),
       };
 
       const { data, error: dbErr } = userId
@@ -112,6 +118,28 @@ export async function POST(req: NextRequest) {
 
       if (dbErr) console.error("Supabase insert error:", dbErr);
       else if (data) caseId = data.id;
+
+      const deliveryEmail = caseEmail;
+      if (deliveryEmail && caseId) {
+        const { data: existing } = await getSupabase()
+          .from("cases")
+          .select("assessment_email_sent_at")
+          .eq("id", caseId)
+          .single();
+
+        if (!existing?.assessment_email_sent_at) {
+          const sent = await sendCaseAssessmentDeliveryEmail(deliveryEmail, {
+            caseId,
+            assessment,
+          });
+          if (sent) {
+            await getSupabase()
+              .from("cases")
+              .update({ assessment_email_sent_at: new Date().toISOString() })
+              .eq("id", caseId);
+          }
+        }
+      }
     } catch (dbErr) {
       console.error("Supabase insert error:", dbErr);
     }

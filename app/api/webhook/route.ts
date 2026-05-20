@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
 import { getSupabase } from "@/lib/supabase";
-import { sendPaymentConfirmationEmail } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -85,11 +84,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const customerEmail =
-      session.customer_details?.email ?? session.customer_email ?? null;
-    if (customerEmail && tier) {
-      await sendPaymentConfirmationEmail(customerEmail, tier);
-    }
   }
 
   return NextResponse.json({ received: true });

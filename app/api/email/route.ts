@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { sendAssessmentEmail } from "@/lib/email";
+import { sendCaseAssessmentDeliveryEmail } from "@/lib/email-service";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, assessment } = (await req.json()) as {
+    const { email, assessment, caseId } = (await req.json()) as {
       email?: string;
       assessment?: string;
+      caseId?: string;
     };
 
     const trimmedEmail = email?.trim();
@@ -16,7 +17,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const sent = await sendAssessmentEmail(trimmedEmail, assessment);
+    const sent = await sendCaseAssessmentDeliveryEmail(trimmedEmail, {
+      assessment,
+      caseId: caseId ?? null,
+    });
     if (!sent) {
       return NextResponse.json(
         { error: "Failed to send email" },

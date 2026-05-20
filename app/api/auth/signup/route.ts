@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { sendWelcomeEmail } from "@/lib/email-service";
 
 export async function POST(req: NextRequest) {
   try {
@@ -84,6 +85,12 @@ export async function POST(req: NextRequest) {
 
     // If session exists immediately → email confirmation is disabled in Supabase
     const hasSession = !!data.session;
+
+    if (data.user) {
+      void sendWelcomeEmail(trimmedEmail).catch((err) =>
+        console.error("Welcome email error:", err)
+      );
+    }
 
     return NextResponse.json({ success: true, needsVerification: !hasSession });
   } catch (err) {

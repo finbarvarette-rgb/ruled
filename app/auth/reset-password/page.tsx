@@ -6,12 +6,14 @@ import { Suspense } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import Link from "next/link";
 import { Spinner } from "@/components/Spinner";
-
-const inputStyle = {
-  background: "#1a1916",
-  color: "#f5f1eb",
-  border: "1px solid #2a2825",
-};
+import {
+  m,
+  marketingBtnPrimary,
+  marketingCard,
+  marketingInput,
+  marketingPageMain,
+  ruledLogoSuffixStyle,
+} from "@/lib/marketing-theme";
 
 function ResetPasswordForm() {
   const router = useRouter();
@@ -27,23 +29,45 @@ function ResetPasswordForm() {
   const [done, setDone] = useState(false);
 
   useEffect(() => {
-    if (!code) {
-      setExchangeError("Invalid or expired reset link. Please request a new one.");
-      return;
-    }
-
     const supabase = createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
 
-    supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
-      if (error) {
-        setExchangeError("This reset link has expired or already been used. Please request a new one.");
+    const { data: listener } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setReady(true);
+        setExchangeError("");
+      }
+    });
+
+    async function init() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setReady(true);
+        return;
+      }
+
+      if (!code) {
+        setExchangeError(
+          "Invalid or expired reset link. Please request a new one from the forgot password page."
+        );
+        return;
+      }
+
+      const { error: exchangeErr } = await supabase.auth.exchangeCodeForSession(code);
+      if (exchangeErr) {
+        setExchangeError(
+          "This reset link has expired or already been used. Please request a new one."
+        );
       } else {
         setReady(true);
       }
-    });
+    }
+
+    void init();
+
+    return () => listener.subscription.unsubscribe();
   }, [code]);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -77,31 +101,39 @@ function ResetPasswordForm() {
 
   if (exchangeError) {
     return (
-      <main className="flex flex-col flex-1 min-h-screen px-6 py-16 md:py-24">
-        <div className="max-w-md mx-auto w-full flex flex-col gap-10 items-center text-center">
+      <main
+        className="flex flex-col flex-1 min-h-screen px-4 sm:px-6 py-12 md:py-16"
+        style={marketingPageMain}
+      >
+        <div className="max-w-md mx-auto w-full flex flex-col gap-8 items-center text-center">
           <Link
             href="/"
             className="text-4xl font-bold tracking-tight"
-            style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+            style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: m.text }}
           >
-            ruled<span style={{ color: "#c8392b" }}>.ca</span>
+            ruled<span style={ruledLogoSuffixStyle()}>.ca</span>
           </Link>
-          <div className="flex flex-col gap-3 w-full">
-            <h1 className="text-2xl font-semibold tracking-tight">Link expired</h1>
-            <p className="text-sm leading-relaxed" style={{ color: "#9a9590" }}>
+          <div
+            className="w-full rounded-xl p-6 sm:p-8 flex flex-col gap-4"
+            style={marketingCard}
+          >
+            <h1 className="text-2xl font-semibold tracking-tight" style={{ color: m.text }}>
+              Link expired
+            </h1>
+            <p className="text-sm leading-relaxed" style={{ color: m.subtext }}>
               {exchangeError}
             </p>
+            <Link
+              href="/forgot-password"
+              className="w-full min-h-12 rounded-full px-6 py-4 text-sm font-semibold text-center flex items-center justify-center"
+              style={marketingBtnPrimary}
+            >
+              Request a new link
+            </Link>
+            <Link href="/login" className="text-sm" style={{ color: m.muted }}>
+              Back to sign in
+            </Link>
           </div>
-          <Link
-            href="/forgot-password"
-            className="w-full rounded-lg px-6 py-4 text-sm font-semibold text-center"
-            style={{ background: "#c8392b", color: "#f5f1eb" }}
-          >
-            Request a new link
-          </Link>
-          <Link href="/login" className="text-sm" style={{ color: "#9a9590" }}>
-            Back to sign in
-          </Link>
         </div>
       </main>
     );
@@ -109,7 +141,10 @@ function ResetPasswordForm() {
 
   if (!ready) {
     return (
-      <main className="flex flex-1 items-center justify-center min-h-screen">
+      <main
+        className="flex flex-1 items-center justify-center min-h-screen"
+        style={marketingPageMain}
+      >
         <Spinner className="w-10 h-10" />
       </main>
     );
@@ -117,18 +152,23 @@ function ResetPasswordForm() {
 
   if (done) {
     return (
-      <main className="flex flex-col flex-1 min-h-screen px-6 py-16 md:py-24">
-        <div className="max-w-md mx-auto w-full flex flex-col gap-10 items-center text-center">
+      <main
+        className="flex flex-col flex-1 min-h-screen px-4 sm:px-6 py-12 md:py-16"
+        style={marketingPageMain}
+      >
+        <div className="max-w-md mx-auto w-full flex flex-col gap-8 items-center text-center">
           <Link
             href="/"
             className="text-4xl font-bold tracking-tight"
-            style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+            style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: m.text }}
           >
-            ruled<span style={{ color: "#c8392b" }}>.ca</span>
+            ruled<span style={ruledLogoSuffixStyle()}>.ca</span>
           </Link>
-          <div className="flex flex-col gap-3 w-full">
-            <h1 className="text-2xl font-semibold tracking-tight">Password updated</h1>
-            <p className="text-sm leading-relaxed" style={{ color: "#9a9590" }}>
+          <div className="flex flex-col gap-3 w-full" style={marketingCard}>
+            <h1 className="text-2xl font-semibold tracking-tight p-6 pb-0" style={{ color: m.text }}>
+              Password updated
+            </h1>
+            <p className="text-sm leading-relaxed px-6 pb-6" style={{ color: m.subtext }}>
               Your password has been changed. Redirecting you to your dashboard…
             </p>
           </div>
@@ -138,65 +178,75 @@ function ResetPasswordForm() {
   }
 
   return (
-    <main className="flex flex-col flex-1 min-h-screen px-6 py-16 md:py-24">
-      <div className="max-w-md mx-auto w-full flex flex-col gap-10 items-center text-center">
+    <main
+      className="flex flex-col flex-1 min-h-screen px-4 sm:px-6 py-12 md:py-16"
+      style={marketingPageMain}
+    >
+      <div className="max-w-md mx-auto w-full flex flex-col gap-8 items-center text-center">
         <Link
           href="/"
           className="text-4xl font-bold tracking-tight"
-          style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+          style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: m.text }}
         >
-          ruled<span style={{ color: "#c8392b" }}>.ca</span>
+          ruled<span style={ruledLogoSuffixStyle()}>.ca</span>
         </Link>
 
-        <div className="flex flex-col gap-3 w-full">
-          <h1 className="text-2xl font-semibold tracking-tight">Set a new password</h1>
-          <p className="text-sm leading-relaxed" style={{ color: "#9a9590" }}>
-            Choose a strong password for your account.
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4">
-          <input
-            type="password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="New password (min. 8 characters)"
-            className="w-full rounded-lg px-4 py-3 text-sm outline-none"
-            style={inputStyle}
-            onFocus={(e) => (e.currentTarget.style.borderColor = "#c8392b")}
-            onBlur={(e) => (e.currentTarget.style.borderColor = "#2a2825")}
-          />
-          <input
-            type="password"
-            required
-            value={confirm}
-            onChange={(e) => setConfirm(e.target.value)}
-            placeholder="Confirm new password"
-            className="w-full rounded-lg px-4 py-3 text-sm outline-none"
-            style={inputStyle}
-            onFocus={(e) => (e.currentTarget.style.borderColor = "#c8392b")}
-            onBlur={(e) => (e.currentTarget.style.borderColor = "#2a2825")}
-          />
-          {error && (
-            <p className="text-sm text-left" style={{ color: "#c8392b" }}>
-              {error}
+        <div
+          className="w-full rounded-xl p-6 sm:p-8 flex flex-col gap-6"
+          style={marketingCard}
+        >
+          <div className="flex flex-col gap-3 w-full text-center">
+            <h1 className="text-2xl font-semibold tracking-tight" style={{ color: m.text }}>
+              Set a new password
+            </h1>
+            <p className="text-sm leading-relaxed" style={{ color: m.subtext }}>
+              Choose a strong password for your account.
             </p>
-          )}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-lg px-6 py-4 text-sm font-semibold disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2"
-            style={{ background: "#c8392b", color: "#f5f1eb" }}
-          >
-            {loading && <Spinner />}
-            {loading ? "Updating…" : "Update Password"}
-          </button>
-        </form>
+          </div>
 
-        <Link href="/login" className="text-sm" style={{ color: "#9a9590" }}>
-          &larr; Back to sign in
-        </Link>
+          <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4">
+            <input
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="New password (min. 8 characters)"
+              className="w-full rounded-lg px-4 py-3 text-sm outline-none"
+              style={marketingInput}
+              onFocus={(e) => (e.currentTarget.style.borderColor = m.blue)}
+              onBlur={(e) => (e.currentTarget.style.borderColor = m.border)}
+            />
+            <input
+              type="password"
+              required
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+              placeholder="Confirm new password"
+              className="w-full rounded-lg px-4 py-3 text-sm outline-none"
+              style={marketingInput}
+              onFocus={(e) => (e.currentTarget.style.borderColor = m.blue)}
+              onBlur={(e) => (e.currentTarget.style.borderColor = m.border)}
+            />
+            {error && (
+              <p className="text-sm text-left" style={{ color: m.blue }}>
+                {error}
+              </p>
+            )}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full min-h-12 rounded-full px-6 py-4 text-sm font-semibold disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2"
+              style={marketingBtnPrimary}
+            >
+              {loading && <Spinner />}
+              {loading ? "Updating…" : "Update Password"}
+            </button>
+          </form>
+
+          <Link href="/login" className="text-sm" style={{ color: m.muted }}>
+            &larr; Back to sign in
+          </Link>
+        </div>
       </div>
     </main>
   );
@@ -206,7 +256,10 @@ export default function ResetPasswordPage() {
   return (
     <Suspense
       fallback={
-        <main className="flex flex-1 items-center justify-center min-h-screen">
+        <main
+          className="flex flex-1 items-center justify-center min-h-screen"
+          style={marketingPageMain}
+        >
           <Spinner className="w-10 h-10" />
         </main>
       }

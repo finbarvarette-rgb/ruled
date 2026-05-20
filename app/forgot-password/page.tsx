@@ -32,9 +32,12 @@ function ForgotPasswordForm() {
       );
       const appUrl =
         process.env.NEXT_PUBLIC_APP_URL ?? window.location.origin;
+      const resetNext = encodeURIComponent("/auth/reset-password");
       const { error: sbError } = await supabase.auth.resetPasswordForEmail(
         email.trim(),
-        { redirectTo: `${appUrl}/auth/reset-password` }
+        {
+          redirectTo: `${appUrl.replace(/\/$/, "")}/auth/callback?next=${resetNext}`,
+        }
       );
       if (sbError) throw new Error(sbError.message);
       setSent(true);
