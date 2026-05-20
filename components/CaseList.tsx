@@ -21,15 +21,7 @@ export function CaseList({ cases }: { cases: Case[] }) {
   }
 
   if (cases.length === 0) {
-    return (
-      <p className="text-sm" style={{ color: "#9a9590" }}>
-        No cases yet.{" "}
-        <a href="/onboarding" style={{ color: "#c8392b" }}>
-          Start a free assessment
-        </a>
-        .
-      </p>
-    );
+    return null;
   }
 
   return (

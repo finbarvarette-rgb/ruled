@@ -6,6 +6,7 @@ const TIERS = [
     subtitle: "Case Assessment",
     price: "Free",
     popular: false,
+    trustLine: "No account required to start",
     features: [
       "AI analysis of your case strength",
       "Evidence checklist",
@@ -20,6 +21,7 @@ const TIERS = [
     subtitle: "Demand Letter",
     price: "$49",
     popular: false,
+    trustLine: "Delivered in minutes after payment",
     features: [
       "Everything in Free",
       "Professional demand letter drafted to your case",
@@ -27,7 +29,7 @@ const TIERS = [
       "Ready to send within minutes",
       "Resolves 40% of cases before court",
     ],
-    cta: "Get Demand Letter",
+    cta: "Start Free — Upgrade After →",
     href: "/onboarding",
   },
   {
@@ -35,6 +37,7 @@ const TIERS = [
     subtitle: "Full Case Pack",
     price: "$199",
     popular: true,
+    trustLine: "Everything you need to walk into court ready",
     features: [
       "Everything in Demand Letter",
       "Province-specific court filing documents",
@@ -45,7 +48,7 @@ const TIERS = [
       "Unlimited AI Q&A about your case",
       "Download all documents",
     ],
-    cta: "Get Full Case Pack",
+    cta: "Start Free — Upgrade After →",
     href: "/onboarding",
   },
 ] as const;
@@ -87,6 +90,12 @@ function TierCard({
       <div>
         <p className="text-2xl font-bold">{tier.price}</p>
         <h3 className="text-lg font-semibold mt-1">{tier.subtitle}</h3>
+        <p
+          className="text-xs mt-2 leading-relaxed"
+          style={{ color: isPopular ? "rgba(245,241,235,0.85)" : "#9a9590" }}
+        >
+          {tier.trustLine}
+        </p>
       </div>
       <ul className="flex flex-col gap-2 flex-1 text-sm">
         {tier.features.map((feature) => (

@@ -2,17 +2,16 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
 import { startCheckout } from "@/lib/checkout";
 import { Spinner } from "@/components/Spinner";
-import { ResultsStickyBar } from "@/components/ResultsStickyBar";
-import { updateRuledSession, sessionIsValid, readRuledSession } from "@/lib/session";
+import { updateRuledSession, readRuledSession } from "@/lib/session";
 import {
   parseCaseStrength,
   strengthBadgeStyle,
+  type CaseStrength,
 } from "@/lib/case-strength";
 
-const SECTION_HEADERS = [
+const OLD_SECTION_HEADERS = [
   "CASE STRENGTH",
   "LEGAL BASIS",
   "KEY EVIDENCE IN YOUR FAVOUR",
@@ -23,41 +22,49 @@ const SECTION_HEADERS = [
   "PROVINCE RULES",
 ];
 
-type Section = {
-  header: string;
-  content: string;
-};
+const NEW_SECTION_HEADERS = [
+  "Summary of Your Situation",
+  "What Evidence You Have",
+  "What the Other Side May Argue",
+  "Strengths of Your Case",
+  "Weaknesses / Risks to Consider",
+  "Overall Conclusion",
+];
 
-// Inline markdown: **bold**, *italic*
-function InlineText({ text }: { text: string }) {
-  const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g);
-  return (
-    <>
-      {parts.map((part, i) => {
-        if (part.startsWith("**") && part.endsWith("**")) {
-          return (
-            <strong key={i} style={{ color: "#f5f1eb", fontWeight: 600 }}>
-              {part.slice(2, -2)}
-            </strong>
-          );
-        }
-        if (part.startsWith("*") && part.endsWith("*")) {
-          return <em key={i}>{part.slice(1, -1)}</em>;
-        }
-        return <span key={i}>{part}</span>;
-      })}
-    </>
-  );
+const DEMAND_INCLUDES = [
+  "Custom-drafted demand letter based on your specific case",
+  "Sending instructions (email and registered mail)",
+  "14-day payment deadline with legal language",
+  "What to do if they don't respond",
+  "Saved to your Ruled dashboard",
+];
+
+function verdictLabel(strength: CaseStrength): string {
+  switch (strength) {
+    case "Strong":
+      return "Strong Case";
+    case "Moderate":
+      return "Moderate Case";
+    case "Weak":
+      return "Weak Case";
+  }
 }
 
-function isHashOnlyLine(line: string): boolean {
-  const t = line.trim();
-  if (!t.includes("#")) return false;
-  return /^[\s#]+$/.test(t);
-}
-
-function isHorizontalRule(line: string): boolean {
-  return /^[-*_]{3,}\s*$/.test(line.trim());
+function inferCaseType(intake: string): string {
+  const t = intake.toLowerCase();
+  if (/contractor|renovation|trades|construction|deposit/.test(t)) {
+    return "Contractor / trades dispute";
+  }
+  if (/landlord|tenant|rent|lease|deposit/.test(t)) {
+    return "Landlord / tenant dispute";
+  }
+  if (/invoice|client|business|supplier|chargeback/.test(t)) {
+    return "Business / contract dispute";
+  }
+  if (/wedding|event|service/.test(t)) {
+    return "Service dispute";
+  }
+  return "Small claims dispute";
 }
 
 function normalizeNewlines(text: string): string {
@@ -79,35 +86,210 @@ function stripHashAndRuleLines(text: string): string {
     .trim();
 }
 
-function stripDuplicateSectionHeaderLines(text: string): string {
-  return text
-    .split("\n")
-    .filter((line) => {
-      const trimmed = line.trim();
-      if (!trimmed) return true;
-      if (isHashOnlyLine(trimmed) || isHorizontalRule(trimmed)) return false;
-      const md = trimmed.match(/^#{1,6}\s+(.+)$/);
-      if (md && SECTION_HEADERS.includes(md[1].trim().toUpperCase())) {
-        return false;
-      }
-      return true;
-    })
-    .join("\n")
-    .replace(/\n{3,}/g, "\n\n")
+function findSectionContent(
+  text: string,
+  header: string,
+  allHeaders: string[]
+): string {
+  const cleaned = stripHashAndRuleLines(text);
+  const escaped = header.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const re = new RegExp(
+    `(?:^|\\n)\\s*(?:#{1,6}\\s+)?(${escaped})\\s*(?:\\n|$)`,
+    "i"
+  );
+  const match = cleaned.match(re);
+  if (!match || match.index === undefined) return "";
+
+  const contentStart = match.index + match[0].length;
+  let contentEnd = cleaned.length;
+
+  for (const other of allHeaders) {
+    if (other.toUpperCase() === header.toUpperCase()) continue;
+    const otherEscaped = other.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const otherRe = new RegExp(
+      `(?:^|\\n)\\s*(?:#{1,6}\\s+)?(${otherEscaped})\\s*(?:\\n|$)`,
+      "i"
+    );
+    const otherMatch = cleaned.slice(contentStart).match(otherRe);
+    if (otherMatch && otherMatch.index !== undefined) {
+      const end = contentStart + otherMatch.index;
+      if (end < contentEnd) contentEnd = end;
+    }
+  }
+
+  return cleaned.slice(contentStart, contentEnd).trim();
+}
+
+function extractCaseStrengthDetail(text: string): string {
+  const block = findSectionContent(text, "CASE STRENGTH", OLD_SECTION_HEADERS);
+  if (!block) return "";
+  return block
+    .replace(/^(Strong|Moderate|Weak)[.\s]*/i, "")
     .trim();
 }
 
-function sanitizeSectionContent(text: string): string {
-  return stripDuplicateSectionHeaderLines(stripHashAndRuleLines(text));
+function parseLegacySections(text: string) {
+  const all = [...OLD_SECTION_HEADERS, ...NEW_SECTION_HEADERS];
+  return {
+    caseStrength: findSectionContent(text, "CASE STRENGTH", OLD_SECTION_HEADERS),
+    legalBasis: findSectionContent(text, "LEGAL BASIS", OLD_SECTION_HEADERS),
+    evidence: findSectionContent(
+      text,
+      "KEY EVIDENCE IN YOUR FAVOUR",
+      OLD_SECTION_HEADERS
+    ),
+    weaknesses: findSectionContent(text, "WEAKNESSES", OLD_SECTION_HEADERS),
+    otherSide: findSectionContent(
+      text,
+      "WHAT THE OTHER SIDE WILL ARGUE",
+      OLD_SECTION_HEADERS
+    ),
+    nextStep: findSectionContent(
+      text,
+      "RECOMMENDED NEXT STEP",
+      OLD_SECTION_HEADERS
+    ),
+    claimAmount: findSectionContent(
+      text,
+      "ESTIMATED CLAIM AMOUNT",
+      OLD_SECTION_HEADERS
+    ),
+    provinceRules: findSectionContent(text, "PROVINCE RULES", OLD_SECTION_HEADERS),
+    strengthDetail: extractCaseStrengthDetail(text),
+    newFormat: {
+      summary: findSectionContent(
+        text,
+        "Summary of Your Situation",
+        NEW_SECTION_HEADERS
+      ),
+      evidence: findSectionContent(
+        text,
+        "What Evidence You Have",
+        NEW_SECTION_HEADERS
+      ),
+      otherSide: findSectionContent(
+        text,
+        "What the Other Side May Argue",
+        NEW_SECTION_HEADERS
+      ),
+      strengths: findSectionContent(
+        text,
+        "Strengths of Your Case",
+        NEW_SECTION_HEADERS
+      ),
+      weaknesses: findSectionContent(
+        text,
+        "Weaknesses / Risks to Consider",
+        NEW_SECTION_HEADERS
+      ),
+      conclusion: findSectionContent(
+        text,
+        "Overall Conclusion",
+        NEW_SECTION_HEADERS
+      ),
+    },
+  };
 }
 
-function parseBulletLine(line: string): string | null {
-  const match = line.trim().match(/^(?:\s*[-*•]\s*)+(.+)$/);
-  return match ? match[1].trim() : null;
+function buildDisplaySections(
+  assessment: string,
+  intake: string,
+  province: string
+) {
+  const legacy = parseLegacySections(assessment);
+  const hasNewFormat = Boolean(legacy.newFormat.summary);
+
+  const applicableLawHeader = `Applicable Law in ${province || "Your Province"}`;
+
+  if (hasNewFormat) {
+    const applicableFromLegacy = [legacy.legalBasis, legacy.provinceRules]
+      .filter(Boolean)
+      .join("\n\n");
+    return [
+      {
+        title: "Summary of Your Situation",
+        content: legacy.newFormat.summary || intake,
+      },
+      {
+        title: "What Evidence You Have",
+        content: legacy.newFormat.evidence || legacy.evidence,
+      },
+      {
+        title: "What the Other Side May Argue",
+        content: legacy.newFormat.otherSide || legacy.otherSide,
+      },
+      {
+        title: applicableLawHeader,
+        content: applicableFromLegacy,
+      },
+      {
+        title: "Strengths of Your Case",
+        content: legacy.newFormat.strengths || legacy.evidence,
+      },
+      {
+        title: "Weaknesses / Risks to Consider",
+        content: legacy.newFormat.weaknesses || legacy.weaknesses,
+      },
+      {
+        title: "Overall Conclusion",
+        content:
+          legacy.newFormat.conclusion ||
+          [legacy.nextStep, legacy.claimAmount].filter(Boolean).join("\n\n"),
+      },
+    ].filter((s) => s.content.trim());
+  }
+
+  const summaryParts = [
+    intake.trim(),
+    legacy.strengthDetail || legacy.caseStrength,
+  ].filter(Boolean);
+
+  const applicableLaw = [legacy.legalBasis, legacy.provinceRules]
+    .filter(Boolean)
+    .join("\n\n");
+
+  const conclusionParts = [
+    legacy.strengthDetail,
+    legacy.nextStep,
+    legacy.claimAmount,
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+
+  return [
+    {
+      title: "Summary of Your Situation",
+      content: summaryParts.join("\n\n"),
+    },
+    {
+      title: "What Evidence You Have",
+      content: legacy.evidence,
+    },
+    {
+      title: "What the Other Side May Argue",
+      content: legacy.otherSide,
+    },
+    {
+      title: applicableLawHeader,
+      content: applicableLaw,
+    },
+    {
+      title: "Strengths of Your Case",
+      content: legacy.evidence || legacy.legalBasis,
+    },
+    {
+      title: "Weaknesses / Risks to Consider",
+      content: legacy.weaknesses,
+    },
+    {
+      title: "Overall Conclusion",
+      content: conclusionParts,
+    },
+  ].filter((s) => s.content.trim());
 }
 
-function MarkdownBlock({ content }: { content: string }) {
-  const lines = sanitizeSectionContent(content).split("\n");
+function AssessmentBody({ content }: { content: string }) {
+  const lines = stripHashAndRuleLines(content).split("\n");
   const elements: React.ReactNode[] = [];
   const pendingList: string[] = [];
   let k = 0;
@@ -121,8 +303,8 @@ function MarkdownBlock({ content }: { content: string }) {
         style={{ color: "#d4cfc9" }}
       >
         {pendingList.map((item, i) => (
-          <li key={i} className="leading-relaxed pl-0.5">
-            <InlineText text={item} />
+          <li key={i} className="leading-relaxed">
+            {item}
           </li>
         ))}
       </ul>
@@ -132,138 +314,94 @@ function MarkdownBlock({ content }: { content: string }) {
 
   for (const line of lines) {
     const trimmed = line.trim();
-    if (!trimmed) { flushList(); continue; }
-    if (isHashOnlyLine(trimmed) || isHorizontalRule(trimmed)) continue;
-
-    const headingMatch = trimmed.match(/^(#{1,4})\s+(.+)$/);
-    if (headingMatch) {
+    if (!trimmed) {
       flushList();
-      const level = headingMatch[1].length;
-      const headText = headingMatch[2];
-      elements.push(
-        <p
-          key={k++}
-          className={level <= 2 ? "text-sm font-semibold mt-2" : "text-sm font-medium mt-1"}
-          style={{ color: "#f5f1eb" }}
-        >
-          <InlineText text={headText} />
-        </p>
-      );
       continue;
     }
-
-    const bulletText = parseBulletLine(trimmed);
-    if (bulletText) {
-      pendingList.push(bulletText);
+    const bullet = trimmed.match(/^(?:\s*[-*•]\s*)+(.+)$/);
+    if (bullet) {
+      pendingList.push(bullet[1].trim());
       continue;
     }
-
     flushList();
     elements.push(
       <p key={k++} className="leading-relaxed" style={{ color: "#d4cfc9" }}>
-        <InlineText text={trimmed} />
+        {trimmed}
       </p>
     );
   }
-
   flushList();
   return <div className="flex flex-col gap-2">{elements}</div>;
 }
 
-function findSectionHeader(
-  text: string,
-  header: string,
-  fromIndex: number
-): { headerStart: number; contentStart: number } | null {
-  const escaped = header.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const re = new RegExp(
-    `(?:^|\\n)\\s*(?:#{1,6}\\s+)?(${escaped})\\s*(?:\\n|$)`,
-    "i"
+function DemandLetterPreview() {
+  return (
+    <div
+      className="relative rounded-xl overflow-hidden"
+      style={{
+        background: "#ffffff",
+        border: "1px solid #2a2825",
+      }}
+    >
+      <div
+        className="px-6 py-5 text-left"
+        style={{
+          fontFamily: "Georgia, 'Times New Roman', serif",
+          color: "#0f0e0c",
+        }}
+      >
+        <p className="text-xs font-bold tracking-widest uppercase mb-3">
+          Formal Demand for Payment
+        </p>
+        <p className="text-sm leading-relaxed mb-2">[Date]</p>
+        <p className="text-sm leading-relaxed mb-4">
+          [Defendant Name]
+          <br />
+          [Defendant Address]
+        </p>
+        <p className="text-sm font-semibold mb-3">
+          RE: Formal Demand for Payment — $[Amount]
+        </p>
+        <p className="text-sm leading-relaxed">
+          Dear [Defendant Name], I am writing to formally demand payment of
+          $[Amount] for [services/goods provided] on [date]. Despite repeated
+          requests, this amount remains outstanding...
+        </p>
+      </div>
+      <div
+        className="absolute inset-x-0 bottom-0 h-3/5 pointer-events-none"
+        style={{
+          backdropFilter: "blur(6px)",
+          WebkitBackdropFilter: "blur(6px)",
+          background:
+            "linear-gradient(to bottom, transparent 0%, rgba(15, 14, 12, 0.15) 40%, rgba(15, 14, 12, 0.55) 100%)",
+        }}
+        aria-hidden
+      />
+    </div>
   );
-  const slice = text.slice(fromIndex);
-  const match = slice.match(re);
-  if (!match || match.index === undefined) return null;
-  const headerStart =
-    fromIndex + match.index + match[0].indexOf(match[1]);
-  const contentStart = headerStart + match[1].length;
-  return { headerStart, contentStart };
-}
-
-function parseAssessment(text: string): Section[] {
-  if (!text) return [];
-  const cleaned = stripHashAndRuleLines(text);
-  const sections: Section[] = [];
-  let searchFrom = 0;
-
-  for (let i = 0; i < SECTION_HEADERS.length; i++) {
-    const header = SECTION_HEADERS[i];
-    const nextHeader = SECTION_HEADERS[i + 1];
-    const found = findSectionHeader(cleaned, header, searchFrom);
-    if (!found) continue;
-
-    const { contentStart } = found;
-    let contentEnd = cleaned.length;
-    if (nextHeader) {
-      const next = findSectionHeader(cleaned, nextHeader, contentStart);
-      if (next) contentEnd = next.headerStart;
-    }
-
-    const content = sanitizeSectionContent(
-      cleaned.slice(contentStart, contentEnd === -1 ? cleaned.length : contentEnd)
-    );
-    if (content) sections.push({ header, content });
-    searchFrom = contentEnd;
-  }
-
-  if (sections.length === 0) {
-    sections.push({
-      header: "Assessment",
-      content: sanitizeSectionContent(cleaned),
-    });
-  }
-  return sections;
-}
-
-function readSessionMeta(): {
-  assessment: string;
-  caseId: string | null;
-  province: string;
-  intake: string;
-  email: string | null;
-} {
-  const s = readRuledSession();
-  return {
-    assessment: s.assessment,
-    caseId: s.caseId,
-    province: s.province,
-    intake: s.intake,
-    email: s.email,
-  };
 }
 
 export default function ResultsPage() {
   const router = useRouter();
-
   const [mounted, setMounted] = useState(false);
   const [rawText, setRawText] = useState("");
-  const sections = useMemo(() => parseAssessment(rawText), [rawText]);
-  const [email, setEmail] = useState("");
-  const [emailSent, setEmailSent] = useState(false);
-  const [emailLoading, setEmailLoading] = useState(false);
+  const [province, setProvince] = useState("");
+  const [intake, setIntake] = useState("");
   const [caseId, setCaseId] = useState<string | null>(null);
+  const [email, setEmail] = useState<string | null>(null);
   const [checkoutLoading, setCheckoutLoading] = useState<
     "demand" | "full" | null
   >(null);
   const [checkoutError, setCheckoutError] = useState("");
-  const [emailError, setEmailError] = useState("");
-  const [province, setProvince] = useState("");
 
   useEffect(() => {
-    const meta = readSessionMeta();
-    setRawText(meta.assessment);
-    if (meta.caseId) setCaseId(meta.caseId);
-    if (meta.province) setProvince(meta.province);
-    if (meta.email) setEmail(meta.email);
+    const s = readRuledSession();
+    setRawText(s.assessment);
+    setProvince(s.province);
+    setIntake(s.intake);
+    setCaseId(s.caseId);
+    setEmail(s.email);
     setMounted(true);
   }, []);
 
@@ -272,31 +410,19 @@ export default function ResultsPage() {
   }, [mounted, rawText, router]);
 
   const strength = useMemo(() => parseCaseStrength(rawText), [rawText]);
-
-  function goToDemandLetter() {
-    persistSessionForCheckout();
-    router.push("/demand-preview");
-  }
+  const caseType = useMemo(() => inferCaseType(intake), [intake]);
+  const displaySections = useMemo(
+    () => buildDisplaySections(rawText, intake, province),
+    [rawText, intake, province]
+  );
 
   function persistSessionForCheckout() {
-    const stored = sessionStorage.getItem("ruled_assessment");
-    let intake = "";
-    let prov = "";
-    if (stored) {
-      try {
-        const data = JSON.parse(stored);
-        intake = data.intake ?? "";
-        prov = data.province ?? "";
-      } catch {
-        /* ignore */
-      }
-    }
     updateRuledSession({
       assessment: rawText,
-      province: prov,
+      province,
       intake,
       caseId,
-      email: email || null,
+      email,
     });
   }
 
@@ -305,253 +431,168 @@ export default function ResultsPage() {
     setCheckoutLoading(tier);
     persistSessionForCheckout();
     try {
-      await startCheckout(tier, caseId, email || undefined);
+      await startCheckout(tier, caseId, email ?? undefined);
     } catch {
       setCheckoutError("Could not start checkout. Please try again.");
       setCheckoutLoading(null);
     }
   }
 
-  async function handleEmailSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!email) return;
-    setEmailError("");
-    setEmailLoading(true);
-    try {
-      if (caseId) {
-        await supabase.from("cases").update({ email }).eq("id", caseId);
-      } else {
-        const stored = sessionStorage.getItem("ruled_assessment");
-        if (stored) {
-          const { intake, province: p } = JSON.parse(stored);
-          const { data } = await supabase
-            .from("cases")
-            .select("id")
-            .eq("intake_text", intake)
-            .eq("province", p)
-            .order("created_at", { ascending: false })
-            .limit(1)
-            .single();
-          if (data) {
-            await supabase.from("cases").update({ email }).eq("id", data.id);
-            setCaseId(data.id);
-          }
-        }
-      }
-      const stored = sessionStorage.getItem("ruled_assessment");
-      if (stored) {
-        const data = JSON.parse(stored);
-        sessionStorage.setItem(
-          "ruled_assessment",
-          JSON.stringify({ ...data, email })
-        );
-      }
-      const emailRes = await fetch("/api/email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, assessment: rawText }),
-      });
-      if (!emailRes.ok) {
-        throw new Error("Email delivery failed");
-      }
-      setEmailSent(true);
-    } catch (err) {
-      console.error("Email save error:", err);
-      setEmailError("Could not send email. Please try again.");
-    } finally {
-      setEmailLoading(false);
-    }
-  }
-
   if (!mounted || !rawText) return null;
 
   const strengthStyle = strength ? strengthBadgeStyle(strength) : null;
+  const isWeak = strength === "Weak";
+  const nextHeadline = isWeak
+    ? "Even a weaker case can benefit from a demand letter."
+    : "You have a case worth pursuing. Here's your next move.";
 
   return (
-    <main className="flex flex-col flex-1 min-h-screen px-4 sm:px-6 py-12 md:py-16 pb-28 overflow-x-hidden">
-      <div className="max-w-2xl mx-auto w-full flex flex-col gap-8 md:gap-10 min-w-0">
-
-        {/* Nav */}
-        <div className="flex items-center">
-          <button
-            type="button"
-            onClick={() => router.push("/onboarding")}
-            className="text-sm transition-colors cursor-pointer"
+    <main className="flex flex-col flex-1 min-h-screen px-4 sm:px-6 py-10 md:py-14 overflow-x-hidden">
+      <div className="max-w-2xl mx-auto w-full flex flex-col gap-8 min-w-0">
+        {/* Header */}
+        <header className="flex flex-col gap-4">
+          <p
+            className="text-xs font-medium tracking-wide uppercase"
             style={{ color: "#9a9590" }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "#f5f1eb")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "#9a9590")}
           >
-            &larr; New assessment
-          </button>
-        </div>
-
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Your Case Assessment
-        </h1>
-
-        {/* Case summary */}
-        <div
-          className="rounded-xl px-4 sm:px-6 py-4 flex flex-wrap items-center gap-3"
-          style={{ background: "#1a1916", border: "1px solid #2a2825" }}
-        >
-          {province && (
-            <span className="text-sm" style={{ color: "#9a9590" }}>
-              {province}
-            </span>
-          )}
-          <span className="text-sm" style={{ color: "#9a9590" }}>
-            {new Date().toLocaleDateString("en-CA", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
-          </span>
+            Step 3 of 3 — Your results
+          </p>
+          <h1
+            className="text-2xl md:text-3xl font-semibold tracking-tight"
+            style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+          >
+            Your Case Assessment
+          </h1>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+            {province && (
+              <span style={{ color: "#f5f1eb" }}>{province}</span>
+            )}
+            {province && (
+              <span style={{ color: "#6b6560" }} aria-hidden>
+                ·
+              </span>
+            )}
+            <span style={{ color: "#9a9590" }}>{caseType}</span>
+          </div>
           {strength && strengthStyle && (
             <span
-              className="text-xs font-bold px-2.5 py-1 rounded-full ml-auto"
+              className="inline-flex self-start items-center text-sm font-bold px-4 py-2 rounded-full"
               style={strengthStyle}
             >
-              {strength}
+              {verdictLabel(strength)}
             </span>
           )}
-        </div>
+        </header>
 
-        {/* Email capture */}
-        <div
-          className="rounded-xl px-6 py-6 flex flex-col gap-4"
-          style={{ background: "#1a1916", border: "1px solid #2a2825" }}
-        >
-          <div>
-            <h2 className="text-base font-semibold">Save your case assessment</h2>
-            <p className="text-sm mt-1" style={{ color: "#9a9590" }}>
-              We&apos;ll send a copy to your inbox.
-            </p>
-          </div>
-          {emailSent ? (
-            <p className="text-sm" style={{ color: "#c8392b" }}>
-              Saved. Check your inbox shortly.
-            </p>
-          ) : (
-            <>
-              {emailError && (
-                <p className="text-sm" style={{ color: "#c8392b" }}>
-                  {emailError}
-                </p>
-              )}
-              <form
-                onSubmit={handleEmailSubmit}
-                className="flex flex-col sm:flex-row gap-3"
-              >
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  required
-                  className="flex-1 rounded-lg px-4 py-3 text-sm outline-none"
-                  style={{
-                    background: "#0f0e0c",
-                    color: "#f5f1eb",
-                    border: "1px solid #2a2825",
-                  }}
-                  onFocus={(e) => {
-                    e.currentTarget.style.borderColor = "#c8392b";
-                  }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.borderColor = "#2a2825";
-                  }}
-                />
-                <button
-                  type="submit"
-                  disabled={emailLoading}
-                  className="rounded-lg px-4 py-3 text-sm font-semibold transition-opacity disabled:opacity-60 cursor-pointer whitespace-nowrap flex items-center justify-center gap-2 sm:shrink-0"
-                  style={{ background: "#f5f1eb", color: "#0f0e0c" }}
-                >
-                  {emailLoading && <Spinner className="w-4 h-4" />}
-                  {emailLoading ? "Sending..." : "Send to my email"}
-                </button>
-              </form>
-            </>
-          )}
-        </div>
-
-        {/* Section cards */}
-        <div className="flex flex-col gap-4">
-          {sections.map((section) => (
-            <div
-              key={section.header}
-              className="rounded-xl px-4 sm:px-6 py-5 flex flex-col gap-3 min-w-0"
+        {/* Assessment body */}
+        <section className="flex flex-col gap-6">
+          {displaySections.map((section) => (
+            <article
+              key={section.title}
+              className="rounded-xl px-5 sm:px-6 py-5 flex flex-col gap-3"
               style={{ background: "#1a1916", border: "1px solid #2a2825" }}
             >
               <h2
-                className="text-xs font-bold tracking-widest uppercase"
-                style={{ color: "#c8392b" }}
+                className="text-sm font-semibold tracking-tight"
+                style={{ color: "#f5f1eb" }}
               >
-                {section.header}
+                {section.title}
               </h2>
-              <MarkdownBlock content={section.content} />
-            </div>
+              <AssessmentBody content={section.content} />
+            </article>
           ))}
-        </div>
+        </section>
 
-        {/* CTAs */}
-        <div className="flex flex-col gap-3">
+        {/* What Should You Do Next? */}
+        <section
+          className="rounded-xl px-5 sm:px-6 py-6 md:py-8 flex flex-col gap-6"
+          style={{
+            background: "#1a1916",
+            border: "1px solid #c8392b",
+          }}
+        >
+          <div className="flex flex-col gap-2">
+            <h2 className="text-lg md:text-xl font-semibold tracking-tight">
+              What Should You Do Next?
+            </h2>
+            <p className="text-sm font-medium" style={{ color: "#c8392b" }}>
+              {nextHeadline}
+            </p>
+          </div>
+
+          <p className="text-sm leading-relaxed" style={{ color: "#d4cfc9" }}>
+            The fastest way to get your money back — before going to court — is a
+            demand letter. It is a formal written notice that gives the other
+            party one final chance to pay. About 40% of cases resolve at this
+            stage alone, without ever filing in small claims court.
+          </p>
+
+          <DemandLetterPreview />
+
+          <div className="flex flex-col gap-3">
+            <p className="text-sm font-semibold" style={{ color: "#f5f1eb" }}>
+              What&apos;s included in your $49 demand letter:
+            </p>
+            <ul className="flex flex-col gap-2">
+              {DEMAND_INCLUDES.map((item) => (
+                <li
+                  key={item}
+                  className="flex gap-2 text-sm leading-relaxed"
+                  style={{ color: "#d4cfc9" }}
+                >
+                  <span style={{ color: "#c8392b" }} aria-hidden>
+                    ✓
+                  </span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+
           {checkoutError && (
             <p className="text-sm" style={{ color: "#c8392b" }}>
               {checkoutError}
             </p>
           )}
-          <div className="flex flex-col sm:flex-row gap-4">
-            <button
-              type="button"
-              disabled={checkoutLoading !== null}
-              onClick={goToDemandLetter}
-              className="flex-1 rounded-xl px-6 py-4 text-sm font-semibold cursor-pointer disabled:opacity-60"
-              style={{ background: "#c8392b", color: "#f5f1eb" }}
-              onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
-              onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-            >
-              Generate Demand Letter — $49
-            </button>
-            <button
-              type="button"
-              disabled={checkoutLoading !== null}
-              onClick={() => handleCheckout("full")}
-              className="flex-1 rounded-xl px-6 py-4 text-sm font-semibold cursor-pointer disabled:opacity-60"
-              style={{
-                background: "#1a1916",
-                color: "#f5f1eb",
-                border: "1px solid #2a2825",
-              }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.borderColor = "#c8392b")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.borderColor = "#2a2825")
-              }
-            >
-              {checkoutLoading === "full"
-                ? "Redirecting…"
-                : "Get Full Case Pack — $199"}
-            </button>
-          </div>
-        </div>
 
-        {/* Disclaimer */}
-        <p className="text-xs leading-relaxed pb-4" style={{ color: "#9a9590" }}>
+          <button
+            type="button"
+            disabled={checkoutLoading !== null}
+            onClick={() => handleCheckout("demand")}
+            className="w-full rounded-xl px-6 py-4 text-base font-semibold cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2"
+            style={{ background: "#c8392b", color: "#f5f1eb" }}
+          >
+            {checkoutLoading === "demand" && <Spinner />}
+            {checkoutLoading === "demand"
+              ? "Redirecting to checkout…"
+              : "Generate My Demand Letter — $49"}
+          </button>
+
+          <button
+            type="button"
+            disabled={checkoutLoading !== null}
+            onClick={() => handleCheckout("full")}
+            className="text-sm text-center cursor-pointer disabled:opacity-60 w-full py-1"
+            style={{ color: "#9a9590" }}
+          >
+            {checkoutLoading === "full"
+              ? "Redirecting…"
+              : "Skip to Full Case Pack — $199"}
+          </button>
+
+          <p
+            className="text-xs text-center tracking-wide"
+            style={{ color: "#6b6560" }}
+          >
+            Secure checkout · Delivered in minutes · 30-day guarantee
+          </p>
+        </section>
+
+        <p className="text-xs leading-relaxed pb-6" style={{ color: "#6b6560" }}>
           Ruled provides legal information, not legal advice. This is not a
-          substitute for a lawyer. The information above is for general guidance
-          only and may not reflect the most current laws or apply to your
-          specific circumstances.
+          substitute for a lawyer.
         </p>
-
       </div>
-
-      <ResultsStickyBar
-        onDemandLetter={goToDemandLetter}
-        onFullPack={() => handleCheckout("full")}
-        checkoutLoading={checkoutLoading}
-      />
     </main>
   );
 }

@@ -1,212 +1,229 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { readRuledSession } from "@/lib/session";
-import { startCheckout } from "@/lib/checkout";
-import { Spinner } from "@/components/Spinner";
 import Link from "next/link";
 
-const EXAMPLE_LETTER = `[Your Name]
-[Your Address]
-[City, Province, Postal Code]
-[Date]
+const INCLUDED = [
+  "Custom demand letter based on your case details",
+  "Proper legal language and tone",
+  "14-day payment demand (standard legal timeline)",
+  "Step-by-step sending instructions",
+  "What to expect after sending",
+  "Saved to your dashboard",
+];
 
-To: [Defendant Name]
-    [Defendant Address]
+const HOW_IT_WORKS = [
+  {
+    step: "1",
+    title: "Complete your free case assessment",
+    description: "Describe your situation in plain language — about 5 minutes.",
+  },
+  {
+    step: "2",
+    title: "Purchase your demand letter",
+    description: "One flat fee of $49. No hourly lawyer rates.",
+  },
+  {
+    step: "3",
+    title: "Download, send, and wait 14 days",
+    description: "Send by email and registered mail. Many cases settle here.",
+  },
+];
 
-RE: FORMAL DEMAND FOR PAYMENT — $[Amount]
+const FAQ = [
+  {
+    question: "How long is the letter?",
+    answer:
+      "Typically one to two pages. It includes your case facts, the amount owed, applicable legal language for your province, and a clear 14-day payment deadline.",
+  },
+  {
+    question: "Can I edit it?",
+    answer:
+      "Yes. You receive the full letter as text you can copy or download. Review it, adjust details if needed, then send it yourself.",
+  },
+  {
+    question: "What if they ignore it?",
+    answer:
+      "If they do not pay or respond within 14 days, your next step is usually filing in your province's small claims court. Ruled can help you prepare with the Full Case Pack ($199).",
+  },
+  {
+    question: "Is this legally binding?",
+    answer:
+      "A demand letter is not a court order, but it is a formal legal notice. It creates a clear record of your claim and deadline, which can support you if you file in court later.",
+  },
+];
 
-Dear [Defendant Name],
-
-I am writing to formally demand payment of $[Amount] owed to me arising from [brief description of dispute], which occurred on [date].
-
-Despite my previous attempts to resolve this matter informally, you have failed to provide satisfactory remedy. This letter constitutes formal notice that if payment is not received within 14 days of this letter's date, I intend to file a claim in the Ontario Small Claims Court for the full amount owed, plus court filing fees and any applicable interest.
-
-DETAILS OF CLAIM:
-— Incident date: [Date]
-— Amount owed: $[Amount]
-— Basis of claim: [Legal basis]
-
-Please remit payment by [date 14 days out] to avoid legal proceedings.
-
-Sincerely,
-[Your Name]`;
+function SampleLetterPreview() {
+  return (
+    <section className="flex flex-col gap-3">
+      <p className="text-sm text-center" style={{ color: "#9a9590" }}>
+        Your letter will look like this — personalized to your case
+      </p>
+      <div
+        className="relative rounded-xl overflow-hidden"
+        style={{
+          background: "#ffffff",
+          border: "1px solid #2a2825",
+        }}
+      >
+        <div
+          className="px-6 sm:px-8 py-6 text-left"
+          style={{
+            fontFamily: "Georgia, 'Times New Roman', serif",
+            color: "#0f0e0c",
+          }}
+        >
+          <p className="text-sm leading-relaxed">Alex Morgan</p>
+          <p className="text-sm leading-relaxed">Morgan Contracting</p>
+          <p className="text-sm leading-relaxed mb-4">alex.morgan@email.com</p>
+          <p className="text-sm leading-relaxed mb-4">May 18, 2026</p>
+          <p className="text-sm leading-relaxed mb-4">
+            Summit Renovations Ltd.
+            <br />
+            456 King Street West, Toronto, ON M5H 1A1
+          </p>
+          <p className="text-sm font-semibold mb-3">
+            RE: Formal Demand for Payment — $5,000.00
+          </p>
+          <p className="text-sm leading-relaxed">
+            Dear Summit Renovations Ltd., I am writing regarding the renovation
+            contract we entered into on March 1, 2026. I paid a deposit of
+            $5,000.00 on March 5, 2026. You began work but ceased before
+            completion and have not responded to my requests to resolve this
+            matter.
+          </p>
+        </div>
+        <div
+          className="absolute inset-x-0 bottom-0 h-[58%] pointer-events-none"
+          style={{
+            backdropFilter: "blur(7px)",
+            WebkitBackdropFilter: "blur(7px)",
+            background:
+              "linear-gradient(to bottom, transparent 0%, rgba(245, 241, 235, 0.4) 35%, rgba(245, 241, 235, 0.95) 100%)",
+          }}
+          aria-hidden
+        />
+      </div>
+    </section>
+  );
+}
 
 export default function DemandPreviewPage() {
-  const router = useRouter();
-  const [mounted, setMounted] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [caseId, setCaseId] = useState<string | null>(null);
-  const [email, setEmail] = useState<string | null>(null);
-
-  useEffect(() => {
-    const s = readRuledSession();
-    if (!s.assessment) {
-      router.replace("/");
-      return;
-    }
-    setCaseId(s.caseId);
-    setEmail(s.email);
-    setMounted(true);
-  }, [router]);
-
-  async function handleCheckout() {
-    setError("");
-    setLoading(true);
-    try {
-      await startCheckout("demand", caseId, email ?? undefined);
-    } catch {
-      setError("Could not start checkout. Please try again.");
-      setLoading(false);
-    }
-  }
-
-  if (!mounted) return null;
-
   return (
-    <main className="flex flex-col flex-1 min-h-screen px-4 sm:px-6 py-12 md:py-16 overflow-x-hidden">
-      <div className="max-w-2xl mx-auto w-full flex flex-col gap-10 min-w-0">
-
-        {/* Back */}
-        <Link
-          href="/results"
-          className="text-sm transition-colors w-fit"
-          style={{ color: "#9a9590" }}
-        >
-          &larr; Back to assessment
-        </Link>
-
-        {/* Headline */}
-        <div className="flex flex-col gap-4">
-          <div
+    <main className="flex flex-col flex-1 min-h-screen overflow-x-hidden">
+      {/* Hero */}
+      <section className="hero-section relative px-4 sm:px-6 py-14 md:py-20 overflow-hidden">
+        <div className="hero-blobs" aria-hidden>
+          <div className="hero-blob hero-blob-1" />
+          <div className="hero-blob hero-blob-2" />
+        </div>
+        <div className="relative z-10 max-w-2xl mx-auto w-full flex flex-col gap-6 text-center">
+          <p
             className="text-xs font-bold tracking-widest uppercase"
             style={{ color: "#c8392b" }}
           >
             Demand Letter — $49
-          </div>
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight leading-tight">
-            Make them take you seriously.
+          </p>
+          <h1
+            className="hero-headline-serif text-left sm:text-center"
+            style={{ fontSize: "clamp(1.75rem, 5vw, 2.5rem)" }}
+          >
+            A professionally drafted demand letter — built around your case
           </h1>
-          <p className="text-base leading-relaxed" style={{ color: "#9a9590" }}>
-            A professionally drafted demand letter puts the other party on notice — legally and formally. Most disputes settle after receiving one.
+          <p
+            className="text-base md:text-lg leading-relaxed text-left sm:text-center"
+            style={{ color: "#9a9590" }}
+          >
+            Send it in minutes. 40% of cases resolve without ever going to court.
           </p>
         </div>
+      </section>
 
-        {/* What you get */}
-        <div
-          className="rounded-xl px-6 py-6 flex flex-col gap-4"
+      <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 pb-16 md:pb-20 flex flex-col gap-10 md:gap-12">
+        <SampleLetterPreview />
+
+        {/* What's included */}
+        <section
+          className="rounded-xl px-5 sm:px-6 py-6 flex flex-col gap-5"
           style={{ background: "#1a1916", border: "1px solid #2a2825" }}
         >
-          <h2 className="text-base font-semibold">What&apos;s included</h2>
-          <div className="flex flex-col gap-3">
-            {[
-              ["Personalized to your case", "Written specifically for your situation, province, and claim amount — not a generic template."],
-              ["Legally grounded", "Cites the applicable consumer protection or contract law for your province."],
-              ["14-day payment demand", "Sets a clear deadline and explicitly states your intent to file in small claims court."],
-              ["Ready to send", "Download as a text file, copy, and send by email or registered mail."],
-            ].map(([title, desc]) => (
-              <div key={title} className="flex gap-3">
-                <span style={{ color: "#c8392b" }} className="mt-0.5 shrink-0">✓</span>
-                <div>
-                  <p className="text-sm font-semibold" style={{ color: "#f5f1eb" }}>{title}</p>
-                  <p className="text-sm mt-0.5" style={{ color: "#9a9590" }}>{desc}</p>
+          <h2 className="text-lg font-semibold">What&apos;s Included</h2>
+          <ul className="flex flex-col gap-3">
+            {INCLUDED.map((item) => (
+              <li key={item} className="flex gap-3 text-sm leading-relaxed">
+                <span className="shrink-0 font-bold" style={{ color: "#c8392b" }}>
+                  ✓
+                </span>
+                <span style={{ color: "#d4cfc9" }}>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {/* How it works */}
+        <section className="flex flex-col gap-6">
+          <h2 className="text-lg font-semibold text-center">How It Works</h2>
+          <div className="grid grid-cols-1 gap-4">
+            {HOW_IT_WORKS.map((item) => (
+              <div
+                key={item.step}
+                className="rounded-xl px-5 py-5 flex gap-4"
+                style={{ background: "#1a1916", border: "1px solid #2a2825" }}
+              >
+                <span
+                  className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold"
+                  style={{ background: "#c8392b", color: "#f5f1eb" }}
+                >
+                  {item.step}
+                </span>
+                <div className="flex flex-col gap-1">
+                  <p className="text-sm font-semibold">{item.title}</p>
+                  <p className="text-sm" style={{ color: "#9a9590" }}>
+                    {item.description}
+                  </p>
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </section>
 
-        {/* Example */}
-        <div className="flex flex-col gap-3">
-          <h2 className="text-base font-semibold">Example letter</h2>
-          <p className="text-sm" style={{ color: "#9a9590" }}>
-            Your letter will look like this — filled in with your specific details.
-          </p>
-          <div
-            className="rounded-xl px-6 py-6 text-sm leading-relaxed whitespace-pre-wrap relative overflow-hidden"
-            style={{
-              background: "#ffffff",
-              color: "#1a1916",
-              fontFamily: "Georgia, 'Times New Roman', serif",
-              lineHeight: "1.8",
-            }}
-          >
-            {EXAMPLE_LETTER}
-            {/* Fade at bottom */}
-            <div
-              className="absolute bottom-0 left-0 right-0 h-24"
-              style={{
-                background: "linear-gradient(to bottom, transparent, #ffffff)",
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Trust signals */}
-        <div className="grid grid-cols-3 gap-4 text-center">
-          {[
-            ["$2.4M+", "in claims filed by users"],
-            ["4.8 / 5", "average user rating"],
-            ["14 days", "average resolution time"],
-          ].map(([stat, label]) => (
-            <div
-              key={stat}
-              className="rounded-xl px-4 py-5 flex flex-col gap-1"
-              style={{ background: "#1a1916", border: "1px solid #2a2825" }}
-            >
-              <span className="text-xl font-bold" style={{ color: "#c8392b" }}>{stat}</span>
-              <span className="text-xs" style={{ color: "#9a9590" }}>{label}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* CTA */}
-        <div className="flex flex-col gap-3">
-          {error && (
-            <p className="text-sm" style={{ color: "#c8392b" }}>{error}</p>
-          )}
-          <button
-            type="button"
-            disabled={loading}
-            onClick={handleCheckout}
-            className="w-full rounded-xl px-6 py-5 text-base font-bold disabled:opacity-60 cursor-pointer flex items-center justify-center gap-3"
+        {/* Primary CTA */}
+        <section className="flex flex-col gap-3 items-center">
+          <Link
+            href="/onboarding"
+            className="w-full max-w-md rounded-xl px-6 py-4 text-base font-semibold text-center"
             style={{ background: "#c8392b", color: "#f5f1eb" }}
           >
-            {loading && <Spinner />}
-            {loading ? "Redirecting to checkout…" : "Get My Demand Letter — $49"}
-          </button>
+            Start Free Assessment → Get Your Letter
+          </Link>
           <p className="text-xs text-center" style={{ color: "#6b6560" }}>
-            Secure checkout. Instant access. 100% money-back if not satisfied.
+            Free assessment first · $49 for your letter · No lawyer required
           </p>
-        </div>
+        </section>
 
-        {/* Also offer full pack */}
-        <div
-          className="rounded-xl px-6 py-5 flex flex-col sm:flex-row sm:items-center gap-4 justify-between"
-          style={{ background: "#1a1916", border: "1px solid #2a2825" }}
-        >
-          <div>
-            <p className="text-sm font-semibold">Want everything?</p>
-            <p className="text-sm mt-0.5" style={{ color: "#9a9590" }}>
-              The Full Case Pack includes your demand letter, court filing guide, hearing prep, and unlimited Q&A — all for $199.
-            </p>
+        {/* FAQ */}
+        <section className="flex flex-col gap-6">
+          <h2 className="text-lg font-semibold text-center">
+            Demand Letter FAQ
+          </h2>
+          <div className="flex flex-col gap-4">
+            {FAQ.map((item) => (
+              <div
+                key={item.question}
+                className="rounded-xl px-5 py-5 flex flex-col gap-2"
+                style={{ background: "#1a1916", border: "1px solid #2a2825" }}
+              >
+                <h3 className="text-sm font-semibold">{item.question}</h3>
+                <p className="text-sm leading-relaxed" style={{ color: "#9a9590" }}>
+                  {item.answer}
+                </p>
+              </div>
+            ))}
           </div>
-          <button
-            type="button"
-            onClick={async () => {
-              setLoading(true);
-              try { await startCheckout("full", caseId, email ?? undefined); }
-              catch { setLoading(false); }
-            }}
-            className="shrink-0 rounded-lg px-5 py-3 text-sm font-semibold cursor-pointer whitespace-nowrap"
-            style={{ border: "1px solid #c8392b", color: "#c8392b", background: "transparent" }}
-          >
-            Full Case Pack — $199
-          </button>
-        </div>
+        </section>
 
+        <p className="text-sm text-center">
+          <Link href="/" style={{ color: "#9a9590" }}>
+            &larr; Back to home
+          </Link>
+        </p>
       </div>
     </main>
   );

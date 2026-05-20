@@ -44,6 +44,9 @@ export default function Home() {
             >
               Start My Free Case Assessment
             </Link>
+            <p className="text-sm" style={{ color: "#9a9590" }}>
+              Join Canadians who fought back
+            </p>
             <p className="text-xs" style={{ color: "#6b6560" }}>
               Free to start · No credit card required · Results in 60 seconds
             </p>
@@ -77,6 +80,19 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Stats */}
+      <section className="px-6 py-14 md:py-16" style={{ background: "#c8392b" }}>
+        <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 text-center">
+          <Stat value="40%" label="of cases resolve after demand letter alone" />
+          <Stat value="$4,200" label="Average claim amount" />
+          <Stat
+            value="$35,000"
+            label="Small claims limit in most provinces"
+          />
+          <Stat value="All 10" label="provinces supported" />
+        </div>
+      </section>
+
       {/* Who This Is For */}
       <section className="px-6 py-16 md:py-20" style={{ background: "#1a1916" }}>
         <div className="max-w-5xl mx-auto w-full flex flex-col gap-12">
@@ -101,18 +117,6 @@ export default function Home() {
               description="Bad contractor. Faulty product. Service never delivered."
             />
           </div>
-        </div>
-      </section>
-
-      {/* Stats */}
-      <section className="px-6 py-14 md:py-16" style={{ background: "#c8392b" }}>
-        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10 text-center">
-          <Stat value="40%" label="of cases resolve after demand letter alone" />
-          <Stat value="$4,200" label="Average claim amount" />
-          <Stat
-            value="$35,000"
-            label="Small claims limit in most provinces"
-          />
         </div>
       </section>
 
@@ -143,6 +147,14 @@ export default function Home() {
             <FaqItem
               question="How long does it take?"
               answer="Your free case assessment takes about 60 seconds. Paid products are delivered within minutes of payment."
+            />
+            <FaqItem
+              question="What if the other person doesn't respond to the demand letter?"
+              answer="If they don't pay or respond within 14 days, your next step is filing in small claims court. Your free assessment already analyzed your case — the Full Case Pack ($199) gives you court documents, filing instructions, and hearing prep so you're ready."
+            />
+            <FaqItem
+              question="How long does the whole process take?"
+              answer="Many cases resolve within 2–6 weeks after sending a demand letter. If you need to go to court, hearings are often scheduled a few months after filing, depending on your province and courthouse backlog."
             />
             <FaqItem
               question="What if I lose?"

@@ -179,7 +179,7 @@ export function Nav() {
                 Dashboard
               </Link>
               <Link
-                href="/account"
+                href="/dashboard/account"
                 className="rounded-lg px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90"
                 style={{ background: "#c8392b", color: "#f5f1eb" }}
               >
@@ -272,7 +272,7 @@ export function Nav() {
                   Dashboard
                 </Link>
                 <Link
-                  href="/account"
+                  href="/dashboard/account"
                   className="block rounded-lg px-4 py-3 text-sm font-semibold text-center"
                   style={{ background: "#c8392b", color: "#f5f1eb" }}
                 >
