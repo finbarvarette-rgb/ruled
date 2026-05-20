@@ -7,6 +7,15 @@
   --muted: #9a9590;
   --border: #2a2825;
   --card: #1a1916;
+
+  /* Marketing rebrand — Phase 1 (landing / marketing pages) */
+  --color-navy: #0f172a;
+  --color-blue: #2563eb;
+  --color-amber: #f59e0b;
+  --color-green: #10b981;
+  --color-surface: #f1f5f9;
+  --color-bg: #fafafa;
+  --color-nav-border: #e2e8f0;
 }
 
 @theme inline {
@@ -16,6 +25,13 @@
   --color-muted: var(--muted);
   --color-border: var(--border);
   --color-card: var(--card);
+  --color-navy: var(--color-navy);
+  --color-blue: var(--color-blue);
+  --color-amber: var(--color-amber);
+  --color-green: var(--color-green);
+  --color-surface: var(--color-surface);
+  --color-bg: var(--color-bg);
+  --color-nav-border: var(--color-nav-border);
 }
 
 body {

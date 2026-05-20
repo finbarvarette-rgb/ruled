@@ -1,146 +1,236 @@
 import Link from "next/link";
-import { PricingComparison } from "@/components/PricingComparison";
+import Image from "next/image";
 
-function RuledLogo({ size = "lg" }: { size?: "lg" | "sm" }) {
-  const textSize = size === "lg" ? "text-4xl md:text-5xl" : "text-xl";
-  return (
-    <span
-      className={`${textSize} font-bold tracking-tight`}
-      style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
-    >
-      ruled<span style={{ color: "#c8392b" }}>.ca</span>
-    </span>
-  );
-}
+const NAVY = "#0F172A";
+const BLUE = "#2563EB";
+const SUBTEXT = "#4B5563";
+const SURFACE = "#F1F5F9";
+const PAGE_BG = "#FAFAFA";
+const GREEN = "#10B981";
+const AMBER = "#F59E0B";
+const CARD_SHADOW = "0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06)";
+
+const PRICING_TIERS = [
+  {
+    subtitle: "Case Assessment",
+    price: "Free",
+    popular: false,
+    trustLine: "No account required to start",
+    features: [
+      "AI analysis of your case strength",
+      "Evidence checklist",
+      "Recommended next step",
+      "Province-specific filing information",
+    ],
+    cta: "Start Free Assessment",
+    href: "/onboarding",
+  },
+  {
+    subtitle: "Demand Letter",
+    price: "$49",
+    popular: false,
+    trustLine: "Delivered in minutes after payment",
+    features: [
+      "Everything in Free",
+      "Professional demand letter drafted to your case",
+      "14-day payment demand with legal language",
+      "Ready to send within minutes",
+      "Resolves 40% of cases before court",
+    ],
+    cta: "Start Free — Upgrade After →",
+    href: "/onboarding",
+  },
+  {
+    subtitle: "Full Case Pack",
+    price: "$199",
+    popular: true,
+    trustLine: "Everything you need to walk into court ready",
+    features: [
+      "Everything in Demand Letter",
+      "Province-specific court filing documents",
+      "Step-by-step filing instructions",
+      "Complete hearing preparation script",
+      "Word-for-word opening and closing statements",
+      "Anticipated defence arguments and rebuttals",
+      "Unlimited AI Q&A about your case",
+      "Download all documents",
+    ],
+    cta: "Start Free — Upgrade After →",
+    href: "/onboarding",
+  },
+] as const;
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1">
+    <>
+      <style dangerouslySetInnerHTML={{ __html: ".site-body { border-top: none !important; }" }} />
+      <div className="flex flex-col flex-1" style={{ background: PAGE_BG, color: NAVY }}>
       {/* Hero */}
-      <section className="hero-section relative px-4 sm:px-6 py-16 md:py-24 overflow-hidden">
-        <div className="hero-blobs" aria-hidden>
-          <div className="hero-blob hero-blob-1" />
-          <div className="hero-blob hero-blob-2" />
-        </div>
-        <div className="relative z-10 max-w-2xl mx-auto w-full flex flex-col gap-8 items-center text-center md:items-center">
-          <RuledLogo />
-          <div className="flex flex-col gap-4 w-full">
-            <h1 className="hero-headline-serif break-words">
-              Get the money you&apos;re owed.
-            </h1>
-            <p
-              className="text-base md:text-lg leading-relaxed max-w-lg mx-auto"
-              style={{ color: "#9a9590" }}
-            >
-              Ruled prepares your small claims case in minutes. AI-powered. Flat
-              fee. No lawyer needed.
-            </p>
+      <section className="px-4 sm:px-6 py-10 md:py-14 lg:py-16" style={{ background: "#ffffff" }}>
+        <div className="max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-12 items-center">
+          <div className="flex flex-col gap-8 order-2 lg:order-1">
+            <div className="flex flex-col gap-4">
+              <h1
+                className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-tight break-words"
+                style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: NAVY }}
+              >
+                Get the money you&apos;re owed.
+              </h1>
+              <p className="text-base md:text-lg leading-relaxed max-w-lg" style={{ color: SUBTEXT }}>
+                AI-powered demand letters and small claims support. Flat fee. No lawyer needed.
+              </p>
+            </div>
+            <div className="flex flex-col gap-4 w-full max-w-md">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Link
+                  href="/onboarding"
+                  className="w-full sm:flex-1 min-h-12 rounded-full px-6 py-4 text-base font-semibold text-center flex items-center justify-center whitespace-nowrap"
+                  style={{ background: BLUE, color: "#ffffff" }}
+                >
+                  Start Free Assessment →
+                </Link>
+                <Link
+                  href="/#how-it-works"
+                  className="w-full sm:flex-1 min-h-12 rounded-full px-6 py-4 text-base font-semibold text-center flex items-center justify-center"
+                  style={{ color: BLUE, border: `2px solid ${BLUE}`, background: "transparent" }}
+                >
+                  Learn More
+                </Link>
+              </div>
+              <p className="text-sm text-center sm:text-left" style={{ color: SUBTEXT }}>
+                ✅ Free to start · No credit card required
+              </p>
+            </div>
           </div>
-          <div className="flex flex-col gap-3 w-full max-w-md">
-            <Link
-              href="/onboarding"
-              className="w-full min-h-12 rounded-lg px-6 py-4 text-base font-semibold text-center flex items-center justify-center"
-              style={{ background: "#c8392b", color: "#f5f1eb" }}
-            >
-              Start My Free Case Assessment
-            </Link>
-            <p className="text-sm" style={{ color: "#9a9590" }}>
-              Join Canadians who fought back
-            </p>
-            <p className="text-xs" style={{ color: "#6b6560" }}>
-              Free to start · No credit card required · Results in 60 seconds
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works */}
-      <section
-        id="how-it-works"
-        className="px-4 sm:px-6 py-16 md:py-20 border-t scroll-mt-16"
-        style={{ borderColor: "#2a2825" }}
-      >
-        <div className="max-w-5xl mx-auto w-full flex flex-col gap-12">
-          <h2 className="text-2xl md:text-3xl font-semibold text-center tracking-tight">
-            Three Steps to Getting Paid
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <StepCard
-              title="Describe What Happened"
-              description="Tell us your situation in plain language. No legal jargon."
-            />
-            <StepCard
-              title="Get Your Case Assessment"
-              description="AI analyzes your case instantly. Strength, evidence, weaknesses, next steps."
-            />
-            <StepCard
-              title="Fight Back"
-              description="Get your demand letter and court prep. Show up prepared. Get what you're owed."
+          <div className="order-1 lg:order-2 flex justify-center lg:justify-end">
+            <Image
+              src="/brand/hero_image.png"
+              alt=""
+              width={560}
+              height={420}
+              className="w-full max-w-md lg:max-w-none h-auto"
+              priority
             />
           </div>
         </div>
       </section>
 
       {/* Stats */}
-      <section className="px-4 sm:px-6 py-14 md:py-16" style={{ background: "#c8392b" }}>
-        <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10 text-center">
-          <Stat value="40%" label="of cases resolve after demand letter alone" />
-          <Stat value="$4,200" label="Average claim amount" />
-          <Stat
-            value="$35,000"
-            label="Small claims limit in most provinces"
-          />
-          <Stat value="All 10" label="provinces supported" />
+      <section
+        className="px-4 sm:px-6 py-10 md:py-12 relative overflow-hidden"
+        style={{
+          backgroundColor: NAVY,
+          backgroundImage: "url(/brand/stats_bg.png)",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
+        <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-6 text-center relative z-10">
+          <Stat icon="users" value="50K+" label="Canadians Helped" />
+          <Stat icon="money" value="$150M+" label="Recovered" />
+          <Stat icon="chart" value="40%" label="Resolve Before Court" />
+          <Stat icon="map" value="All 10" label="Provinces Supported" />
         </div>
       </section>
 
-      {/* Who This Is For */}
-      <section className="px-6 py-16 md:py-20" style={{ background: "#1a1916" }}>
-        <div className="max-w-5xl mx-auto w-full flex flex-col gap-12">
-          <h2 className="text-2xl md:text-3xl font-semibold text-center tracking-tight">
-            Built for People Who Got Screwed
+      {/* How It Works */}
+      <section
+        id="how-it-works"
+        className="px-4 sm:px-6 py-10 md:py-12 scroll-mt-16"
+        style={{ background: SURFACE }}
+      >
+        <div className="max-w-5xl mx-auto w-full flex flex-col gap-6">
+          <h2 className="text-2xl md:text-3xl font-semibold text-center tracking-tight" style={{ color: NAVY }}>
+            Three Steps to Getting Paid
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <AudienceCard
-              title="Contractors and Trades"
-              description="Client won't pay. Chargeback after job completion. We help you fight back."
+          <div className="flex justify-center">
+            <Image
+              src="/brand/steps_illustration.png"
+              alt=""
+              width={720}
+              height={280}
+              className="w-full max-w-lg h-auto"
             />
-            <AudienceCard
-              title="Landlords"
-              description="Deposit dispute. Property damage. Unpaid rent. Know your rights."
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+            <StepCard
+              step={1}
+              title="Tell Your Story"
+              description="Describe what happened in plain language. No legal jargon needed—just the facts."
             />
-            <AudienceCard
-              title="Small Businesses"
-              description="Reversed payment. Broken contract. Supplier didn't deliver."
+            <StepCard
+              step={2}
+              title="AI Analysis"
+              description="Our AI instantly analyzes your case strength, evidence, and next steps tailored to your province."
             />
-            <AudienceCard
-              title="Everyday Canadians"
-              description="Bad contractor. Faulty product. Service never delivered."
+            <StepCard
+              step={3}
+              title="Get Paid"
+              description="Send your demand letter or take it to court fully prepared. Get what you're owed."
             />
           </div>
         </div>
       </section>
 
+      {/* Who This Is For */}
+      <section className="px-4 sm:px-6 py-10 md:py-12" style={{ background: "#ffffff" }}>
+        <div className="max-w-5xl mx-auto w-full flex flex-col gap-6">
+          <h2 className="text-2xl md:text-3xl font-semibold text-center tracking-tight" style={{ color: NAVY }}>
+            Built for People Who Got Screwed
+          </h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-center">
+            <div className="flex justify-center lg:justify-end">
+              <Image
+                src="/brand/use_cases_illustration.png"
+                alt=""
+                width={480}
+                height={480}
+                className="w-full max-w-sm lg:max-w-md h-auto"
+              />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <AudienceCard
+                title="Contractors and Trades"
+                description="Client won't pay. Chargeback after job completion. We help you fight back."
+              />
+              <AudienceCard
+                title="Landlords"
+                description="Deposit dispute. Property damage. Unpaid rent. Know your rights."
+              />
+              <AudienceCard
+                title="Small Businesses"
+                description="Reversed payment. Broken contract. Supplier didn't deliver."
+              />
+              <AudienceCard
+                title="Everyday Canadians"
+                description="Bad contractor. Faulty product. Service never delivered."
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Pricing */}
-      <section id="pricing" className="px-4 sm:px-6 py-16 md:py-20 scroll-mt-16">
-        <div className="max-w-5xl mx-auto w-full flex flex-col gap-12">
-          <h2 className="text-2xl md:text-3xl font-semibold text-center tracking-tight">
+      <section id="pricing" className="px-4 sm:px-6 py-10 md:py-12 scroll-mt-16" style={{ background: PAGE_BG }}>
+        <div className="max-w-5xl mx-auto w-full flex flex-col gap-8">
+          <h2 className="text-2xl md:text-3xl font-semibold text-center tracking-tight" style={{ color: NAVY }}>
             Simple Flat-Fee Pricing. No surprises.
           </h2>
-          <PricingComparison />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {PRICING_TIERS.map((tier) => (
+              <PricingTierCard key={tier.subtitle} tier={tier} />
+            ))}
+          </div>
         </div>
       </section>
 
       {/* FAQ */}
-      <section
-        className="px-6 py-16 md:py-20 border-t"
-        style={{ borderColor: "#2a2825" }}
-      >
-        <div className="max-w-2xl mx-auto w-full flex flex-col gap-8">
-          <h2 className="text-2xl md:text-3xl font-semibold text-center tracking-tight">
+      <section className="px-4 sm:px-6 py-10 md:py-12" style={{ background: "#ffffff" }}>
+        <div className="max-w-2xl mx-auto w-full flex flex-col gap-6">
+          <h2 className="text-2xl md:text-3xl font-semibold text-center tracking-tight" style={{ color: NAVY }}>
             Frequently asked questions
           </h2>
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-4">
             <FaqItem
               question="Is this legal advice?"
               answer="No. Ruled provides legal information, not legal advice. We are not a law firm and do not represent you in court."
@@ -178,9 +268,9 @@ export default function Home() {
       </section>
 
       {/* Testimonials */}
-      <section className="px-6 py-16 md:py-20" style={{ background: "#1a1916" }}>
-        <div className="max-w-5xl mx-auto w-full flex flex-col gap-12">
-          <h2 className="text-2xl md:text-3xl font-semibold text-center tracking-tight">
+      <section className="px-4 sm:px-6 py-10 md:py-12" style={{ background: SURFACE }}>
+        <div className="max-w-5xl mx-auto w-full flex flex-col gap-8">
+          <h2 className="text-2xl md:text-3xl font-semibold text-center tracking-tight" style={{ color: NAVY }}>
             Canadians Getting Their Money Back
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -201,18 +291,34 @@ export default function Home() {
       </section>
 
       {/* Bottom CTA */}
-      <section className="px-6 py-16 md:py-20 text-center">
-        <div className="max-w-2xl mx-auto flex flex-col gap-6 items-center">
-          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">
+      <section
+        className="px-4 sm:px-6 py-10 md:py-12 text-center relative overflow-hidden"
+        style={{
+          backgroundColor: NAVY,
+          backgroundImage: "url(/brand/cta_bg.png)",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
+        <div
+          className="absolute inset-0"
+          style={{ background: "linear-gradient(to bottom, rgba(15, 23, 42, 0.72), rgba(15, 23, 42, 0.85))" }}
+          aria-hidden
+        />
+        <div className="max-w-2xl mx-auto flex flex-col gap-5 items-center relative z-10">
+          <h2
+            className="text-2xl md:text-3xl font-semibold tracking-tight"
+            style={{ color: "#ffffff", textShadow: "0 2px 12px rgba(0, 0, 0, 0.45)" }}
+          >
             Ready to Fight Back?
           </h2>
-          <p className="text-lg" style={{ color: "#9a9590" }}>
+          <p className="text-lg" style={{ color: "rgba(255, 255, 255, 0.92)", textShadow: "0 1px 6px rgba(0, 0, 0, 0.35)" }}>
             Get your free case assessment in 60 seconds. No credit card required.
           </p>
           <Link
             href="/onboarding"
-            className="min-h-12 rounded-lg px-8 py-4 text-base font-semibold inline-flex items-center justify-center"
-            style={{ background: "#c8392b", color: "#f5f1eb" }}
+            className="min-h-12 rounded-full px-8 py-4 text-base font-semibold inline-flex items-center justify-center"
+            style={{ background: BLUE, color: "#ffffff" }}
           >
             Start My Free Case Assessment
           </Link>
@@ -220,97 +326,224 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer
-        className="px-6 py-12 border-t"
-        style={{ borderColor: "#2a2825" }}
-      >
-        <div className="max-w-5xl mx-auto flex flex-col gap-8">
-          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-8">
-            <div className="flex flex-col gap-2">
-              <RuledLogo size="sm" />
-              <p className="text-sm font-medium" style={{ color: "#9a9590" }}>
+      <footer className="px-4 sm:px-6 py-12 md:py-14" style={{ background: NAVY, color: "#ffffff" }}>
+        <div className="max-w-5xl mx-auto flex flex-col gap-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="flex flex-col gap-3 sm:col-span-2 lg:col-span-1">
+              <RuledLogo size="sm" variant="light" />
+              <p className="text-sm font-medium text-white/80">
                 Fight back. Get what you&apos;re owed.
               </p>
             </div>
-            <nav className="flex flex-col sm:flex-row gap-4 sm:gap-8 text-sm">
-              <Link href="/login" style={{ color: "#9a9590" }}>
-                Sign In
-              </Link>
-              <Link href="/about" style={{ color: "#9a9590" }}>
-                About
-              </Link>
-              <Link href="/blog" style={{ color: "#9a9590" }}>
-                Blog
-              </Link>
-              <Link href="/contact" style={{ color: "#9a9590" }}>
-                Contact
-              </Link>
-              <Link href="/privacy" style={{ color: "#9a9590" }}>
-                Privacy Policy
-              </Link>
-              <Link href="/terms" style={{ color: "#9a9590" }}>
-                Terms of Service
-              </Link>
-            </nav>
+            <div className="flex flex-col gap-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-white/60">Product</p>
+              <nav className="flex flex-col gap-2 text-sm">
+                <Link href="/#how-it-works" className="text-white/80 hover:text-white transition-colors">
+                  How It Works
+                </Link>
+                <Link href="/#pricing" className="text-white/80 hover:text-white transition-colors">
+                  Pricing
+                </Link>
+                <Link href="/demand-preview" className="text-white/80 hover:text-white transition-colors">
+                  Demand Letter
+                </Link>
+                <Link href="/full-case-pack-preview" className="text-white/80 hover:text-white transition-colors">
+                  Full Case Pack
+                </Link>
+                <Link href="/blog" className="text-white/80 hover:text-white transition-colors">
+                  Blog
+                </Link>
+              </nav>
+            </div>
+            <div className="flex flex-col gap-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-white/60">Company</p>
+              <nav className="flex flex-col gap-2 text-sm">
+                <Link href="/login" className="text-white/80 hover:text-white transition-colors">
+                  Sign In
+                </Link>
+                <Link href="/about" className="text-white/80 hover:text-white transition-colors">
+                  About
+                </Link>
+                <Link href="/blog" className="text-white/80 hover:text-white transition-colors">
+                  Blog
+                </Link>
+                <Link href="/contact" className="text-white/80 hover:text-white transition-colors">
+                  Contact
+                </Link>
+              </nav>
+            </div>
+            <div className="flex flex-col gap-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-white/60">Legal</p>
+              <nav className="flex flex-col gap-2 text-sm">
+                <Link href="/privacy" className="text-white/80 hover:text-white transition-colors">
+                  Privacy Policy
+                </Link>
+                <Link href="/terms" className="text-white/80 hover:text-white transition-colors">
+                  Terms of Service
+                </Link>
+              </nav>
+            </div>
           </div>
-          <p className="text-xs" style={{ color: "#6b6560" }}>
+          <p className="text-xs text-white/50 border-t border-white/10 pt-6">
             &copy; 2026 ruled.ca. Ruled provides legal information, not legal
             advice. Not a law firm.
           </p>
         </div>
       </footer>
-    </div>
+      </div>
+    </>
+  );
+}
+
+function RuledLogo({ size = "lg", variant = "dark" }: { size?: "lg" | "sm"; variant?: "dark" | "light" }) {
+  const textSize = size === "lg" ? "text-4xl md:text-5xl" : "text-xl";
+  const ruledColor = variant === "light" ? "#ffffff" : NAVY;
+  const caColor = variant === "light" ? "#93C5FD" : BLUE;
+  return (
+    <span
+      className={`${textSize} font-bold tracking-tight`}
+      style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+    >
+      <span style={{ color: ruledColor }}>ruled</span>
+      <span style={{ color: caColor }}>.ca</span>
+    </span>
   );
 }
 
 function StepCard({
+  step,
   title,
   description,
 }: {
+  step: number;
   title: string;
   description: string;
 }) {
   return (
     <div
-      className="flex flex-col gap-4 rounded-xl p-6"
-      style={{ background: "#1a1916", border: "1px solid #2a2825" }}
+      className="flex flex-col gap-4 rounded-xl p-6 h-full"
+      style={{ background: "#ffffff", boxShadow: CARD_SHADOW, border: "1px solid #E2E8F0" }}
     >
-      <h3 className="text-lg font-semibold">{title}</h3>
-      <p className="text-sm leading-relaxed" style={{ color: "#9a9590" }}>
+      <div
+        className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold shrink-0"
+        style={{ background: "#DBEAFE", color: BLUE }}
+      >
+        {step}
+      </div>
+      <h3 className="text-lg font-semibold" style={{ color: NAVY }}>
+        {title}
+      </h3>
+      <p className="text-sm leading-relaxed" style={{ color: SUBTEXT }}>
         {description}
       </p>
     </div>
   );
 }
 
-function AudienceCard({
-  title,
-  description,
-}: {
-  title: string;
-  description: string;
-}) {
+function AudienceCard({ title, description }: { title: string; description: string }) {
   return (
     <div
       className="rounded-xl p-6 flex flex-col gap-2"
-      style={{ background: "#0f0e0c", border: "1px solid #2a2825" }}
+      style={{ background: "#ffffff", boxShadow: CARD_SHADOW, border: "1px solid #E2E8F0" }}
     >
-      <h3 className="font-semibold" style={{ color: "#c8392b" }}>
+      <h3 className="font-semibold" style={{ color: BLUE }}>
         {title}
       </h3>
-      <p className="text-sm leading-relaxed" style={{ color: "#9a9590" }}>
+      <p className="text-sm leading-relaxed" style={{ color: SUBTEXT }}>
         {description}
       </p>
     </div>
   );
 }
 
-function Stat({ value, label }: { value: string; label: string }) {
+function Stat({
+  icon,
+  value,
+  label,
+}: {
+  icon: "users" | "money" | "chart" | "map";
+  value: string;
+  label: string;
+}) {
   return (
-    <div className="flex flex-col gap-2 px-2">
-      <span className="text-3xl md:text-4xl font-bold">{value}</span>
-      <span className="text-sm opacity-90 leading-snug max-w-[16rem] mx-auto">{label}</span>
+    <div className="flex flex-col items-center gap-3 px-2 text-white">
+      <StatIcon type={icon} />
+      <span
+        className="text-3xl md:text-4xl font-bold"
+        style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+      >
+        {value}
+      </span>
+      <span className="text-sm opacity-90 leading-snug max-w-[14rem]">{label}</span>
     </div>
+  );
+}
+
+function StatIcon({ type }: { type: "users" | "money" | "chart" | "map" }) {
+  const iconProps = {
+    width: 28,
+    height: 28,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "#93C5FD",
+    strokeWidth: 1.75,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+  };
+
+  if (type === "users") {
+    return (
+      <svg {...iconProps} aria-hidden>
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      </svg>
+    );
+  }
+  if (type === "money") {
+    return (
+      <svg {...iconProps} aria-hidden>
+        <line x1="12" y1="1" x2="12" y2="23" />
+        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+      </svg>
+    );
+  }
+  if (type === "chart") {
+    return (
+      <svg {...iconProps} aria-hidden>
+        <path d="M18 20V10" />
+        <path d="M12 20V4" />
+        <path d="M6 20v-6" />
+      </svg>
+    );
+  }
+  return (
+    <svg {...iconProps} aria-hidden>
+      <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
+      <line x1="8" y1="2" x2="8" y2="18" />
+      <line x1="16" y1="6" x2="16" y2="22" />
+    </svg>
+  );
+}
+
+function CheckIcon({ color, checkColor }: { color: string; checkColor: string }) {
+  return (
+    <span
+      className="inline-flex shrink-0 w-5 h-5 rounded-full items-center justify-center mt-0.5"
+      style={{ background: color }}
+      aria-hidden
+    >
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+        <path
+          d="M2.5 6L5 8.5L9.5 3.5"
+          stroke={checkColor}
+          strokeWidth="1.75"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </span>
   );
 }
 
@@ -318,32 +551,106 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
   return (
     <div
       className="rounded-xl p-5 flex flex-col gap-2"
-      style={{ background: "#1a1916", border: "1px solid #2a2825" }}
+      style={{ background: SURFACE, border: "1px solid #E2E8F0" }}
     >
-      <h3 className="font-semibold text-sm break-words">{question}</h3>
-      <p className="text-sm leading-relaxed break-words" style={{ color: "#9a9590" }}>
+      <h3 className="font-semibold text-sm break-words" style={{ color: NAVY }}>
+        {question}
+      </h3>
+      <p className="text-sm leading-relaxed break-words" style={{ color: SUBTEXT }}>
         {answer}
       </p>
     </div>
   );
 }
 
-function TestimonialCard({
-  quote,
-  author,
-}: {
-  quote: string;
-  author: string;
-}) {
+function TestimonialCard({ quote, author }: { quote: string; author: string }) {
   return (
     <div
-      className="rounded-xl p-6 flex flex-col gap-4"
-      style={{ background: "#0f0e0c", border: "1px solid #2a2825" }}
+      className="rounded-xl p-6 flex flex-col gap-4 h-full"
+      style={{ background: "#ffffff", boxShadow: CARD_SHADOW, border: "1px solid #E2E8F0" }}
     >
-      <p className="text-sm leading-relaxed italic break-words">&ldquo;{quote}&rdquo;</p>
-      <p className="text-xs font-medium" style={{ color: "#c8392b" }}>
+      <p className="text-sm leading-relaxed italic break-words" style={{ color: NAVY }}>
+        &ldquo;{quote}&rdquo;
+      </p>
+      <p className="text-xs font-medium" style={{ color: BLUE }}>
         — {author}
       </p>
+    </div>
+  );
+}
+
+function PricingTierCard({ tier }: { tier: (typeof PRICING_TIERS)[number] }) {
+  const isPopular = tier.popular;
+  const checkColor = isPopular ? AMBER : GREEN;
+
+  return (
+    <div
+      className="relative rounded-2xl p-6 flex flex-col gap-5 h-full"
+      style={
+        isPopular
+          ? {
+              background: BLUE,
+              border: `2px solid ${BLUE}`,
+              color: "#ffffff",
+              boxShadow: "0 8px 24px rgba(37, 99, 235, 0.28)",
+            }
+          : {
+              background: "#ffffff",
+              border: "1px solid #E2E8F0",
+              boxShadow: CARD_SHADOW,
+            }
+      }
+    >
+      {isPopular && (
+        <span
+          className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap"
+          style={{ background: AMBER, color: NAVY }}
+        >
+          Most Popular
+        </span>
+      )}
+      <div>
+        <p
+          className="text-3xl font-bold"
+          style={{
+            fontFamily: "Georgia, 'Times New Roman', serif",
+            color: isPopular ? "#ffffff" : NAVY,
+          }}
+        >
+          {tier.price}
+        </p>
+        <h3 className="text-base font-medium mt-1" style={{ color: isPopular ? "rgba(255,255,255,0.9)" : SUBTEXT }}>
+          {tier.subtitle}
+        </h3>
+        <p
+          className="text-xs mt-2 leading-relaxed"
+          style={{ color: isPopular ? "rgba(255,255,255,0.85)" : SUBTEXT }}
+        >
+          {tier.trustLine}
+        </p>
+      </div>
+      <ul className="flex flex-col gap-3 flex-1 text-sm">
+        {tier.features.map((feature) => (
+          <li key={feature} className="flex gap-2.5 leading-relaxed items-start">
+            <CheckIcon
+              color={checkColor}
+              checkColor={isPopular ? NAVY : "#ffffff"}
+            />
+            <span style={{ color: isPopular ? "rgba(255,255,255,0.95)" : SUBTEXT }}>{feature}</span>
+          </li>
+        ))}
+      </ul>
+      <Link
+        href={tier.href}
+        className="w-full min-h-12 rounded-full px-4 py-3 text-sm font-semibold text-center flex items-center justify-center"
+        style={
+          isPopular
+            ? { background: "#ffffff", color: BLUE }
+            : { background: SURFACE, color: NAVY, border: "1px solid #E2E8F0" }
+        }
+      >
+        {tier.cta}
+      </Link>
     </div>
   );
 }

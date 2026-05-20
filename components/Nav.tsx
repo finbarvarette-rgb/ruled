@@ -5,6 +5,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
 
+const NAVY = "var(--color-navy)";
+const BLUE = "var(--color-blue)";
+const NAV_BORDER = "var(--color-nav-border)";
+const SURFACE = "var(--color-surface)";
+
 type DropdownItem = {
   label: string;
   href: string;
@@ -57,11 +62,11 @@ function Dropdown({
 }) {
   return (
     <div
-      className="absolute top-full left-1/2 mt-2 w-64 rounded-xl overflow-hidden shadow-2xl z-50"
+      className="absolute top-full left-1/2 mt-2 w-64 rounded-xl overflow-hidden shadow-lg z-50"
       style={{
         transform: "translateX(-50%)",
-        background: "#1a1916",
-        border: "1px solid #2a2825",
+        background: "#ffffff",
+        border: `1px solid ${NAV_BORDER}`,
       }}
     >
       {items.map((item) =>
@@ -74,15 +79,15 @@ function Dropdown({
               onScrollToHowItWorks();
             }}
             className="flex flex-col gap-0.5 px-4 py-3 transition-colors w-full text-left cursor-pointer"
-            style={{ borderBottom: "1px solid #2a2825" }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "#222018")}
+            style={{ borderBottom: `1px solid ${NAV_BORDER}` }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = SURFACE)}
             onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
           >
-            <span className="text-sm font-medium" style={{ color: "#f5f1eb" }}>
+            <span className="text-sm font-medium" style={{ color: NAVY }}>
               {item.label}
             </span>
             {item.desc && (
-              <span className="text-xs" style={{ color: "#9a9590" }}>
+              <span className="text-xs" style={{ color: "#64748b" }}>
                 {item.desc}
               </span>
             )}
@@ -93,15 +98,15 @@ function Dropdown({
             href={item.href}
             onClick={onClose}
             className="flex flex-col gap-0.5 px-4 py-3 transition-colors"
-            style={{ borderBottom: "1px solid #2a2825" }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "#222018")}
+            style={{ borderBottom: `1px solid ${NAV_BORDER}` }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = SURFACE)}
             onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
           >
-            <span className="text-sm font-medium" style={{ color: "#f5f1eb" }}>
+            <span className="text-sm font-medium" style={{ color: NAVY }}>
               {item.label}
             </span>
             {item.desc && (
-              <span className="text-xs" style={{ color: "#9a9590" }}>
+              <span className="text-xs" style={{ color: "#64748b" }}>
                 {item.desc}
               </span>
             )}
@@ -109,6 +114,32 @@ function Dropdown({
         )
       )}
     </div>
+  );
+}
+
+function Logo() {
+  return (
+    <Link href="/" className="flex items-center gap-2 shrink-0">
+      <div
+        className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 overflow-hidden"
+        style={{ background: "#0F172A" }}
+      >
+        <img
+          src="/brand/ruled_icon_shield.png"
+          alt=""
+          width={28}
+          height={28}
+          className="shrink-0 object-contain"
+        />
+      </div>
+      <span
+        className="text-lg sm:text-xl font-bold tracking-tight"
+        style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+      >
+        <span style={{ color: NAVY }}>ruled</span>
+        <span style={{ color: BLUE }}>.ca</span>
+      </span>
+    </Link>
   );
 }
 
@@ -147,9 +178,6 @@ export function Nav() {
   }
 
   useEffect(() => {
-    // Use getUser() (cookie-backed) so the nav reflects server-set auth cookies.
-    // Note: when auth happens via server routes/callbacks, onAuthStateChange may
-    // not fire in the existing tab. So we also refresh on route changes + focus.
     refreshAuthState();
 
     const { data: listener } = supabase.auth.onAuthStateChange((_e, session) => {
@@ -234,77 +262,77 @@ export function Nav() {
     return () => clearTimeout(id);
   }, [pathname]);
 
-  // Dashboard has its own app-like chrome.
   if (pathname.startsWith("/dashboard")) {
     return null;
+  }
+
+  function navLinkColor(active: boolean) {
+    return active ? BLUE : NAVY;
   }
 
   return (
     <header
       ref={navRef}
       className="sticky top-0 z-50 w-full border-b"
-      style={{ background: "#0f0e0c", borderColor: "#2a2825" }}
+      style={{ background: "#ffffff", borderColor: NAV_BORDER }}
     >
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-3 sm:gap-6 min-w-0">
-        <Link
-          href="/"
-          className="text-lg sm:text-xl font-bold tracking-tight shrink-0"
-          style={{ fontFamily: "Georgia, \'Times New Roman\', serif" }}
-        >
-          ruled<span style={{ color: "#c8392b" }}>.ca</span>
-        </Link>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center min-w-0 relative">
+        <div className="shrink-0">
+          <Logo />
+        </div>
 
         {showMarketingNav && (
-          <nav className="hidden md:flex items-center gap-1 flex-1">
-            {NAV_ITEMS.map((item) => (
-              <div key={item.label} className="relative">
-                {item.dropdown ? (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setOpenDropdown(openDropdown === item.label ? null : item.label)
-                    }
-                    className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer"
-                    style={{ color: openDropdown === item.label ? "#f5f1eb" : "#9a9590" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = "#f5f1eb")}
-                    onMouseLeave={(e) => {
-                      if (openDropdown !== item.label) e.currentTarget.style.color = "#9a9590";
-                    }}
-                  >
-                    {item.label}
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 12 12"
-                      fill="currentColor"
-                      style={{
-                        transform: openDropdown === item.label ? "rotate(180deg)" : "none",
-                        transition: "transform 0.15s",
+          <nav className="hidden md:flex items-center gap-1 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+            {NAV_ITEMS.map((item) => {
+              const isOpen = openDropdown === item.label;
+              return (
+                <div key={item.label} className="relative">
+                  {item.dropdown ? (
+                    <button
+                      type="button"
+                      onClick={() => setOpenDropdown(isOpen ? null : item.label)}
+                      className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer"
+                      style={{ color: navLinkColor(isOpen) }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = BLUE)}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.color = navLinkColor(isOpen);
                       }}
                     >
-                      <path d="M6 8L1 3h10L6 8z" />
-                    </svg>
-                  </button>
-                ) : (
-                  <Link
-                    href={item.href!}
-                    className="px-3 py-2 rounded-lg text-sm transition-colors"
-                    style={{ color: "#9a9590" }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = "#f5f1eb")}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = "#9a9590")}
-                  >
-                    {item.label}
-                  </Link>
-                )}
-                {item.dropdown && openDropdown === item.label && (
-                  <Dropdown
-                    items={item.dropdown}
-                    onClose={() => setOpenDropdown(null)}
-                    onScrollToHowItWorks={scrollToHowItWorks}
-                  />
-                )}
-              </div>
-            ))}
+                      {item.label}
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 12 12"
+                        fill="currentColor"
+                        style={{
+                          transform: isOpen ? "rotate(180deg)" : "none",
+                          transition: "transform 0.15s",
+                        }}
+                      >
+                        <path d="M6 8L1 3h10L6 8z" />
+                      </svg>
+                    </button>
+                  ) : (
+                    <Link
+                      href={item.href!}
+                      className="px-3 py-2 rounded-lg text-sm transition-colors"
+                      style={{ color: NAVY }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = BLUE)}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = NAVY)}
+                    >
+                      {item.label}
+                    </Link>
+                  )}
+                  {item.dropdown && isOpen && (
+                    <Dropdown
+                      items={item.dropdown}
+                      onClose={() => setOpenDropdown(null)}
+                      onScrollToHowItWorks={scrollToHowItWorks}
+                    />
+                  )}
+                </div>
+              );
+            })}
           </nav>
         )}
 
@@ -313,23 +341,27 @@ export function Nav() {
             <>
               <Link
                 href="/dashboard"
-                className="rounded-lg px-3 sm:px-4 py-2.5 min-h-11 text-sm font-semibold transition-opacity hover:opacity-90 inline-flex items-center justify-center"
-                style={{ background: "#c8392b", color: "#f5f1eb" }}
+                className="rounded-full px-4 sm:px-5 py-2.5 min-h-11 text-sm font-semibold transition-opacity hover:opacity-90 inline-flex items-center justify-center"
+                style={{ background: BLUE, color: "#ffffff" }}
               >
                 Dashboard
               </Link>
               <Link
                 href="/dashboard/account"
-                className="hidden sm:block text-sm transition-opacity hover:opacity-80"
-                style={{ color: "#9a9590" }}
+                className="hidden sm:block text-sm transition-colors"
+                style={{ color: NAVY }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = BLUE)}
+                onMouseLeave={(e) => (e.currentTarget.style.color = NAVY)}
               >
                 My Account
               </Link>
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="hidden sm:block text-sm transition-opacity hover:opacity-80 cursor-pointer"
-                style={{ color: "#9a9590" }}
+                className="hidden sm:block text-sm transition-colors cursor-pointer"
+                style={{ color: NAVY }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = BLUE)}
+                onMouseLeave={(e) => (e.currentTarget.style.color = NAVY)}
               >
                 Sign Out
               </button>
@@ -338,15 +370,17 @@ export function Nav() {
             <>
               <Link
                 href="/login"
-                className="hidden sm:block text-sm transition-opacity hover:opacity-80"
-                style={{ color: "#9a9590" }}
+                className="hidden sm:block text-sm transition-colors"
+                style={{ color: NAVY }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = BLUE)}
+                onMouseLeave={(e) => (e.currentTarget.style.color = NAVY)}
               >
                 Sign In
               </Link>
               <Link
                 href="/onboarding"
-                className="rounded-lg px-3 sm:px-4 py-2.5 min-h-11 text-sm font-semibold transition-opacity hover:opacity-90 inline-flex items-center justify-center whitespace-nowrap"
-                style={{ background: "#c8392b", color: "#f5f1eb" }}
+                className="rounded-full px-4 sm:px-5 py-2.5 min-h-11 text-sm font-semibold transition-opacity hover:opacity-90 inline-flex items-center justify-center whitespace-nowrap"
+                style={{ background: BLUE, color: "#ffffff" }}
               >
                 Get Started
               </Link>
@@ -365,7 +399,7 @@ export function Nav() {
                 <span
                   key={i}
                   className="block w-5 h-0.5"
-                  style={{ background: "#9a9590" }}
+                  style={{ background: NAVY }}
                 />
               ))}
             </button>
@@ -376,14 +410,14 @@ export function Nav() {
       {showMarketingNav && mobileOpen && (
         <div
           className="md:hidden border-t px-4 py-4 flex flex-col gap-1 max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain"
-          style={{ background: "#0f0e0c", borderColor: "#2a2825" }}
+          style={{ background: "#ffffff", borderColor: NAV_BORDER }}
         >
           {NAV_ITEMS.map((item) =>
             item.dropdown ? (
               <div key={item.label}>
                 <p
                   className="text-xs font-semibold tracking-widest uppercase px-2 py-2"
-                  style={{ color: "#c8392b" }}
+                  style={{ color: BLUE }}
                 >
                   {item.label}
                 </p>
@@ -393,7 +427,7 @@ export function Nav() {
                       key={sub.label}
                       type="button"
                       className="block w-full text-left px-4 py-3 min-h-11 text-sm rounded-lg cursor-pointer"
-                      style={{ color: "#9a9590" }}
+                      style={{ color: NAVY }}
                       onClick={() => {
                         setMobileOpen(false);
                         scrollToHowItWorks();
@@ -406,7 +440,7 @@ export function Nav() {
                       key={sub.href}
                       href={sub.href}
                       className="block px-4 py-3 min-h-11 text-sm rounded-lg flex items-center"
-                      style={{ color: "#9a9590" }}
+                      style={{ color: NAVY }}
                       onClick={() => setMobileOpen(false)}
                     >
                       {sub.label}
@@ -419,7 +453,7 @@ export function Nav() {
                 key={item.label}
                 href={item.href!}
                 className="block px-2 py-3 min-h-11 text-sm rounded-lg flex items-center"
-                style={{ color: "#9a9590" }}
+                style={{ color: NAVY }}
                 onClick={() => setMobileOpen(false)}
               >
                 {item.label}
@@ -428,21 +462,21 @@ export function Nav() {
           )}
           <div
             className="mt-2 pt-4 flex flex-col gap-2"
-            style={{ borderTop: "1px solid #2a2825" }}
+            style={{ borderTop: `1px solid ${NAV_BORDER}` }}
           >
             {signedIn ? (
               <>
                 <Link
                   href="/dashboard"
-                  className="block rounded-lg px-4 py-3 min-h-12 text-sm font-semibold text-center flex items-center justify-center"
-                  style={{ background: "#c8392b", color: "#f5f1eb" }}
+                  className="block rounded-full px-4 py-3 min-h-12 text-sm font-semibold text-center flex items-center justify-center"
+                  style={{ background: BLUE, color: "#ffffff" }}
                 >
                   Dashboard
                 </Link>
                 <Link
                   href="/dashboard/account"
                   className="block px-2 py-2 text-sm"
-                  style={{ color: "#9a9590" }}
+                  style={{ color: NAVY }}
                 >
                   My Account
                 </Link>
@@ -450,20 +484,20 @@ export function Nav() {
                   type="button"
                   onClick={handleSignOut}
                   className="block px-2 py-2 text-sm text-left cursor-pointer"
-                  style={{ color: "#9a9590" }}
+                  style={{ color: NAVY }}
                 >
                   Sign Out
                 </button>
               </>
             ) : (
               <>
-                <Link href="/login" className="block px-2 py-2 text-sm" style={{ color: "#9a9590" }}>
+                <Link href="/login" className="block px-2 py-3 min-h-11 text-sm" style={{ color: NAVY }}>
                   Sign In
                 </Link>
                 <Link
                   href="/onboarding"
-                  className="block rounded-lg px-4 py-3 min-h-12 text-sm font-semibold text-center flex items-center justify-center"
-                  style={{ background: "#c8392b", color: "#f5f1eb" }}
+                  className="block rounded-full px-4 py-3 min-h-12 text-sm font-semibold text-center flex items-center justify-center"
+                  style={{ background: BLUE, color: "#ffffff" }}
                 >
                   Get Started
                 </Link>

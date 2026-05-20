@@ -15,6 +15,10 @@ export const metadata: Metadata = {
       "AI-powered small claims court preparation for Canadians. No lawyer required.",
     images: ["/og-image.png"],
   },
+  icons: {
+    icon: "/brand/ruled_icon_shield.png",
+    apple: "/brand/ruled_icon_shield.png",
+  },
 };
 
 export default function RootLayout({
