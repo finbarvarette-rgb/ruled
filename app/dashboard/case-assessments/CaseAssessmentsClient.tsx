@@ -7,6 +7,7 @@ import { Spinner } from "@/components/Spinner";
 import { extractClaimAmount, generateCaseTitle, getCaseMeta, getNextStep } from "../case-utils";
 import { saveCaseToSession } from "../components/dashboard-session";
 import { dash } from "../theme";
+import { downloadAssessmentPdf } from "@/lib/pdf-generator";
 
 export function CaseAssessmentsClient({ cases }: { cases: Case[] }) {
   const [openCase, setOpenCase] = useState<Case | null>(null);
@@ -191,18 +192,35 @@ export function CaseAssessmentsClient({ cases }: { cases: Case[] }) {
             aria-label="Full assessment"
           >
             <div
-              className="px-4 sm:px-6 py-4 flex items-center justify-between border-b shrink-0"
+              className="px-4 sm:px-6 py-4 flex items-center justify-between gap-3 border-b shrink-0"
               style={{ borderColor: dash.rowDivider }}
             >
               <p className="text-sm font-semibold">Full assessment</p>
-              <button
-                type="button"
-                onClick={() => setOpenCase(null)}
-                className="text-sm cursor-pointer min-h-11 min-w-11 flex items-center justify-center -mr-2"
-                style={{ color: dash.mainMuted }}
-              >
-                Close
-              </button>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() =>
+                    downloadAssessmentPdf({
+                      assessment: openCase.case_assessment,
+                      intake: openCase.intake_text,
+                      province: openCase.province,
+                      filename: `ruled-assessment-${openCase.id.slice(0, 8)}.pdf`,
+                    })
+                  }
+                  className="text-xs font-semibold rounded-md px-3 py-2 cursor-pointer"
+                  style={{ background: "#c8392b", color: "#f5f1eb" }}
+                >
+                  Download PDF
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setOpenCase(null)}
+                  className="text-sm cursor-pointer min-h-11 min-w-11 flex items-center justify-center"
+                  style={{ color: dash.mainMuted }}
+                >
+                  Close
+                </button>
+              </div>
             </div>
             <div className="p-4 sm:p-6 overflow-y-auto flex-1 min-h-0">
               <pre

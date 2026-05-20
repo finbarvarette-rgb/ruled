@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { restoreSessionFromPayment, updateRuledSession } from "@/lib/session";
 import { Spinner } from "@/components/Spinner";
 import { supabase } from "@/lib/supabase";
+import { downloadBrandedPdf, downloadPdfZip } from "@/lib/pdf-generator";
 
 type PaymentData = {
   tier: string;
@@ -439,62 +440,77 @@ AFTER THE HEARING
 ☐ Save all documents from the hearing`;
 }
 
-function downloadPdf(title: string, content: string) {
-  const escaped = content
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-
-  const win = window.open("", "_blank");
-  if (!win) return;
-
-  win.document.write(`<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>Ruled — ${title.replace(/</g, "")}</title>
-  <style>
-    @page { margin: 1in; }
-    body {
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: 12pt;
-      line-height: 1.55;
-      color: #111;
-      max-width: 6.5in;
-      margin: 0 auto;
-      padding: 0.5in 0;
-    }
-    h1 { font-size: 14pt; margin-bottom: 1em; }
-    pre {
-      white-space: pre-wrap;
-      word-wrap: break-word;
-      font-family: inherit;
-      font-size: inherit;
-      margin: 0;
-    }
-  </style>
-</head>
-<body>
-  <h1>${title.replace(/</g, "")}</h1>
-  <pre>${escaped}</pre>
-  <script>window.onload = function() { window.print(); };</script>
-</body>
-</html>`);
-  win.document.close();
+function buildHowToFileText(
+  province: string,
+  filing: ProvinceFiling,
+  courtDocs: string
+): string {
+  const parts = [
+    `How to File in ${province}`,
+    "",
+    `Court: ${filing.courtName}`,
+    `Where to go: ${filing.location}`,
+    filing.onlinePortal ? `Online portal: ${filing.onlinePortal}` : "",
+    `Filing fee: ${filing.filingFee}`,
+    `Claim limit: ${filing.claimLimit}`,
+    `Deadline to file: ${filing.filingDeadline}`,
+    "",
+    "What Forms to Bring",
+    ...filing.formsToBring.map((item) => `• ${item}`),
+    "",
+    "Step-by-Step Filing",
+    ...filing.instructions.map((step, i) => `${i + 1}. ${step}`),
+  ];
+  if (courtDocs.trim()) {
+    parts.push("", "Your Personalized Filing Guide", courtDocs.trim());
+  }
+  return parts.join("\n");
 }
 
-function downloadAllPdf(documents: PackDocument[], hearingPrep: string, checklist: string) {
-  const combined = [
-    "RULED — FULL CASE PACK",
-    "=".repeat(50),
-    ...documents.map(
-      (d) => `\n\n${d.title.toUpperCase()}\n${"—".repeat(40)}\n\n${d.content}`
-    ),
-    `\n\nHEARING PREPARATION\n${"—".repeat(40)}\n\n${hearingPrep}`,
-    `\n\nDAY OF COURT CHECKLIST\n${"—".repeat(40)}\n\n${checklist}`,
-  ].join("");
+function downloadPdf(title: string, content: string) {
+  const slug = title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+  downloadBrandedPdf(`ruled-${slug || "document"}.pdf`, {
+    documentTitle: title,
+    body: content,
+  });
+}
 
-  downloadPdf("Full Case Pack", combined);
+async function downloadAllPdf(
+  province: string,
+  filing: ProvinceFiling,
+  courtDocs: string,
+  documents: PackDocument[],
+  hearingPrep: string,
+  checklist: string
+) {
+  await downloadPdfZip([
+    {
+      filename: "How-to-File.pdf",
+      documentTitle: `How to File in ${province}`,
+      body: buildHowToFileText(province, filing, courtDocs),
+    },
+    {
+      filename: "Your-Documents.pdf",
+      documentTitle: "Your Documents",
+      sections: documents.map((d) => ({
+        title: d.title,
+        content: d.content,
+      })),
+    },
+    {
+      filename: "Hearing-Prep.pdf",
+      documentTitle: "Hearing Preparation",
+      body: hearingPrep,
+    },
+    {
+      filename: "Day-of-Court-Checklist.pdf",
+      documentTitle: "Day of Court Checklist",
+      body: checklist,
+    },
+  ]);
 }
 
 function parseHearingSections(text: string): { title: string; body: string }[] {
@@ -919,7 +935,14 @@ function FullCasePackDeliveryContent() {
                 <button
                   type="button"
                   onClick={() =>
-                    downloadAllPdf(documents, hearingPrep, checklist)
+                    void downloadAllPdf(
+                      province,
+                      filing,
+                      courtDocs,
+                      documents,
+                      hearingPrep,
+                      checklist
+                    )
                   }
                   className="flex-1 rounded-xl px-5 py-3.5 text-sm font-semibold cursor-pointer"
                   style={{ background: "#c8392b", color: "#f5f1eb" }}

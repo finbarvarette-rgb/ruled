@@ -17,6 +17,7 @@ import {
   marketingPageMain,
   marketingStrengthBadgeStyle,
 } from "@/lib/marketing-theme";
+import { downloadAssessmentPdf } from "@/lib/pdf-generator";
 
 const OLD_SECTION_HEADERS = [
   "CASE STRENGTH",
@@ -517,7 +518,7 @@ export default function ResultsPage() {
           >
             Your Case Assessment
           </h1>
-          <div className="flex flex-col gap-2 w-full">
+          <div className="flex flex-col sm:flex-row flex-wrap gap-2 w-full">
             <button
               type="button"
               disabled={saveLoading}
@@ -527,6 +528,20 @@ export default function ResultsPage() {
             >
               {saveLoading && <Spinner />}
               {saveLoading ? "Saving…" : "Save My Assessment"}
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                downloadAssessmentPdf({
+                  assessment: rawText,
+                  intake,
+                  province,
+                })
+              }
+              className="w-full sm:w-fit min-h-12 rounded-full px-5 py-3 text-sm font-semibold cursor-pointer"
+              style={marketingBtnSecondary}
+            >
+              Download PDF
             </button>
             {saveMessage && (
               <p

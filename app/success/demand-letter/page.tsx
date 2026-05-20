@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { restoreSessionFromPayment, updateRuledSession } from "@/lib/session";
 import { startCheckout } from "@/lib/checkout";
 import { Spinner } from "@/components/Spinner";
+import { downloadDemandLetterPdf } from "@/lib/pdf-generator";
 
 type PaymentData = {
   tier: string;
@@ -78,52 +79,6 @@ async function generateDemandLetter(data: PaymentData): Promise<string> {
   const json = (await res.json()) as { letter?: string };
   if (!json.letter) throw new Error("No letter returned");
   return json.letter;
-}
-
-function downloadLetterPdf(letter: string) {
-  const escaped = letter
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-
-  const win = window.open("", "_blank");
-  if (!win) return;
-
-  win.document.write(`<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>Ruled — Demand Letter</title>
-  <style>
-    @page { margin: 1in; }
-    body {
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: 12pt;
-      line-height: 1.55;
-      color: #111;
-      max-width: 6.5in;
-      margin: 0 auto;
-      padding: 0.5in 0;
-    }
-    pre {
-      white-space: pre-wrap;
-      word-wrap: break-word;
-      font-family: inherit;
-      font-size: inherit;
-      margin: 0;
-    }
-  </style>
-</head>
-<body>
-  <pre>${escaped}</pre>
-  <script>
-    window.onload = function() {
-      window.print();
-    };
-  </script>
-</body>
-</html>`);
-  win.document.close();
 }
 
 const PREVIEW_PLACEHOLDER_LETTER = `Jane Smith
@@ -392,7 +347,7 @@ function DemandLetterDeliveryContent() {
           <div className="flex flex-col sm:flex-row gap-3">
             <button
               type="button"
-              onClick={() => letter && downloadLetterPdf(letter)}
+              onClick={() => letter && downloadDemandLetterPdf(letter)}
               className="flex-1 rounded-xl px-5 py-3.5 text-sm font-semibold cursor-pointer"
               style={{ background: "#c8392b", color: "#f5f1eb" }}
             >
