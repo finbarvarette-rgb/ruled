@@ -239,6 +239,9 @@ export default function Home() {
               <Link href="/about" style={{ color: "#9a9590" }}>
                 About
               </Link>
+              <Link href="/blog" style={{ color: "#9a9590" }}>
+                Blog
+              </Link>
               <Link href="/contact" style={{ color: "#9a9590" }}>
                 Contact
               </Link>

@@ -1,0 +1,120 @@
+{
+  "slug": "small-claims-court-canada-guide",
+  "title": "Small Claims Court in Canada: What You Need to Know Before You File",
+  "date": "2026-02-18",
+  "category": "Small Claims",
+  "excerpt": "Small claims court exists so ordinary Canadians can recover money without hiring a lawyer. Here is how it works, what it costs, and what to expect before you file.",
+  "content": [
+    {
+      "type": "p",
+      "text": "Small claims court is the branch of the civil court system designed for everyday money disputes — unpaid invoices, botched renovations, security deposits, faulty goods, and similar claims. The procedures are simpler than in higher courts, dollar limits cap how much you can sue for, and most people represent themselves."
+    },
+    {
+      "type": "p",
+      "text": "That does not mean it is effortless. Rules still matter, deadlines are real, and showing up unprepared is one of the fastest ways to lose a case you should have won. Understanding the process before you file saves time, money, and frustration."
+    },
+    {
+      "type": "h2",
+      "text": "What kinds of cases belong in small claims"
+    },
+    {
+      "type": "p",
+      "text": "Typical small claims matters include breach of contract, unpaid services, property damage, security deposit disputes, and consumer issues where someone owes you money or failed to deliver what they promised. You are asking the court to order payment or specific relief within the monetary limit."
+    },
+    {
+      "type": "p",
+      "text": "Small claims is generally not the right forum for divorce, criminal matters, most tenant board disputes (which often go to provincial tribunals), or claims above your province's limit. If your claim exceeds the cap, you may need a different court level — which usually means more complexity and often legal representation."
+    },
+    {
+      "type": "h2",
+      "text": "Claim limits vary by province"
+    },
+    {
+      "type": "p",
+      "text": "Every province and territory sets its own small claims limit. As of 2026, most common limits fall in a range roughly between $25,000 and $50,000, with some provinces lower and others higher. Ontario's limit is $35,000; British Columbia's is $35,000; Alberta uses a tiered Provincial Court civil limit; Quebec has the Court of Quebec small claims division with its own rules."
+    },
+    {
+      "type": "p",
+      "text": "Always confirm the current limit and court name for your province before you file. Limits and court names change. Filing in the wrong court or for the wrong amount can delay your case or force you to amend or refile."
+    },
+    {
+      "type": "h2",
+      "text": "What it costs to file"
+    },
+    {
+      "type": "p",
+      "text": "Filing fees are set provincially and often scale with the amount you claim. Expect to pay somewhere in the range of roughly $100 to $250 to start a claim in many provinces, plus possible fees for serving documents, copies, and enforcement if you win and still need to collect."
+    },
+    {
+      "type": "p",
+      "text": "Budget for more than the filing fee alone. Service of documents (getting the claim to the defendant properly) may require a process server. If you win, collecting the judgment — garnishment, registration against property, etc. — may involve additional steps and fees."
+    },
+    {
+      "type": "h2",
+      "text": "How long the process takes"
+    },
+    {
+      "type": "p",
+      "text": "Timelines vary widely by courthouse backlog, whether the defendant responds, and whether either side requests adjournments. Filing itself can often be done in a day or a week once your documents are ready. Getting a hearing date may take weeks or many months depending on where you live."
+    },
+    {
+      "type": "p",
+      "text": "Many disputes settle after a demand letter or after the defendant receives the claim — before a hearing ever happens. If you do go to a hearing, preparation matters more than speed. Organized evidence and a clear story beat a rushed filing every time."
+    },
+    {
+      "type": "h2",
+      "text": "The basic steps from dispute to judgment"
+    },
+    {
+      "type": "ol",
+      "items": [
+        "Try to resolve the dispute directly — document every attempt",
+        "Send a formal demand letter with a clear deadline",
+        "Prepare your claim form and supporting narrative for your province",
+        "File the claim at the correct courthouse and pay the filing fee",
+        "Serve the defendant according to provincial rules and keep proof",
+        "Wait for the defendant's response or note of default if they do not reply",
+        "Attend settlement conference or pre-trial steps if your province requires them",
+        "Attend the hearing, present evidence, and receive a judgment",
+        "If you win, enforce the judgment if the defendant still does not pay"
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "What judges care about at a hearing"
+    },
+    {
+      "type": "p",
+      "text": "Small claims judges see self-represented parties every day. They want clarity: who did what, when, for how much, and what proof you have. Contracts, receipts, photos, timestamps on messages, and a simple chronology go further than legal jargon."
+    },
+    {
+      "type": "p",
+      "text": "The defendant will tell their side. Anticipate their arguments and bring evidence that answers them. If they say the work was fine, photos and third-party messages matter. If they say you never paid, bank records matter."
+    },
+    {
+      "type": "h2",
+      "text": "What you do not need"
+    },
+    {
+      "type": "ul",
+      "items": [
+        "A lawyer — though you may hire one if you choose",
+        "Perfect legal citations — plain facts and proof carry the day in most small claims",
+        "A guarantee of winning — the court decides based on evidence and law",
+        "A demand letter from a law firm — your own formal letter, sent properly, is often enough"
+      ]
+    },
+    {
+      "type": "h2",
+      "text": "How Ruled fits in"
+    },
+    {
+      "type": "p",
+      "text": "Ruled is built for Canadians navigating this path without a lawyer. Start with a free AI case assessment to understand strength, gaps, and next steps. If a demand letter is the right move, Ruled drafts one to your facts for a flat fee. If you need to file, the Full Case Pack includes province-specific guidance, document prep, and hearing scripts."
+    },
+    {
+      "type": "p",
+      "text": "Ruled provides legal information, not legal advice. We are not a law firm and do not represent you in court. For complex matters — multiple defendants, fraud allegations, or claims near higher court thresholds — consider consulting a licensed lawyer in your province."
+    }
+  ]
+}
