@@ -91,13 +91,13 @@ export function CaseAssessmentsClient({ cases }: { cases: Case[] }) {
 
                 {next && (
                   <div
-                    className="rounded-xl px-4 py-3 flex items-center justify-between gap-3"
+                    className="rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
                     style={{
                       background: dash.nested.background,
                       border: "1px solid rgba(200, 57, 43, 0.30)",
                     }}
                   >
-                    <p className="text-sm font-medium leading-snug" style={{ color: dash.mainText }}>
+                    <p className="text-sm font-medium leading-snug min-w-0" style={{ color: dash.mainText }}>
                       {next.label}
                     </p>
                     {next.kind === "checkout" && (
@@ -105,7 +105,7 @@ export function CaseAssessmentsClient({ cases }: { cases: Case[] }) {
                         type="button"
                         onClick={() => handleCheckout(next.tier, c)}
                         disabled={!!checkoutLoading}
-                        className="rounded-lg px-3 py-2 text-xs font-semibold disabled:opacity-60 cursor-pointer shrink-0 inline-flex items-center gap-2"
+                        className="rounded-lg px-4 py-2.5 min-h-11 text-xs font-semibold disabled:opacity-60 cursor-pointer shrink-0 inline-flex items-center justify-center gap-2 w-full sm:w-auto"
                         style={{ background: "#c8392b", color: "#f5f1eb" }}
                       >
                         {checkoutLoading === next.tier && <Spinner />}
@@ -119,7 +119,7 @@ export function CaseAssessmentsClient({ cases }: { cases: Case[] }) {
                           saveCaseToSession(c);
                           window.location.href = next.href;
                         }}
-                        className="rounded-lg px-3 py-2 text-xs font-semibold cursor-pointer shrink-0"
+                        className="rounded-lg px-4 py-2.5 min-h-11 text-xs font-semibold cursor-pointer shrink-0 w-full sm:w-auto inline-flex items-center justify-center"
                         style={{ background: "#c8392b", color: "#f5f1eb" }}
                       >
                         Open
@@ -132,7 +132,7 @@ export function CaseAssessmentsClient({ cases }: { cases: Case[] }) {
                   <button
                     type="button"
                     onClick={() => setOpenCase(c)}
-                    className="rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer"
+                    className="rounded-lg px-4 py-3 min-h-11 text-sm font-semibold cursor-pointer w-full sm:w-auto"
                     style={{ background: "#c8392b", color: "#f5f1eb" }}
                   >
                     View Full Assessment
@@ -142,7 +142,7 @@ export function CaseAssessmentsClient({ cases }: { cases: Case[] }) {
                       type="button"
                       onClick={() => handleCheckout("demand", c)}
                       disabled={checkoutLoading === "demand"}
-                      className="rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer disabled:opacity-60 inline-flex items-center gap-2"
+                      className="rounded-lg px-4 py-3 min-h-11 text-sm font-semibold cursor-pointer disabled:opacity-60 inline-flex items-center justify-center gap-2 w-full sm:w-auto"
                       style={{
                         background: "transparent",
                         color: dash.mainText,
@@ -158,7 +158,7 @@ export function CaseAssessmentsClient({ cases }: { cases: Case[] }) {
                       type="button"
                       onClick={() => handleCheckout("full", c)}
                       disabled={checkoutLoading === "full"}
-                      className="rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer disabled:opacity-60 inline-flex items-center gap-2"
+                      className="rounded-lg px-4 py-3 min-h-11 text-sm font-semibold cursor-pointer disabled:opacity-60 inline-flex items-center justify-center gap-2 w-full sm:w-auto"
                       style={{
                         background: "transparent",
                         color: dash.mainText,
@@ -178,35 +178,35 @@ export function CaseAssessmentsClient({ cases }: { cases: Case[] }) {
 
       {openCase && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center px-4"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:px-4 sm:py-4"
           style={{ background: "rgba(5, 5, 5, 0.85)" }}
           onClick={() => setOpenCase(null)}
           role="presentation"
         >
           <div
-            className="w-full max-w-3xl rounded-2xl overflow-hidden"
+            className="w-full sm:max-w-3xl rounded-t-2xl sm:rounded-2xl overflow-hidden max-h-[90dvh] flex flex-col"
             style={{ ...dash.panel }}
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-label="Full assessment"
           >
             <div
-              className="px-6 py-4 flex items-center justify-between border-b"
+              className="px-4 sm:px-6 py-4 flex items-center justify-between border-b shrink-0"
               style={{ borderColor: dash.rowDivider }}
             >
               <p className="text-sm font-semibold">Full assessment</p>
               <button
                 type="button"
                 onClick={() => setOpenCase(null)}
-                className="text-sm cursor-pointer"
+                className="text-sm cursor-pointer min-h-11 min-w-11 flex items-center justify-center -mr-2"
                 style={{ color: dash.mainMuted }}
               >
                 Close
               </button>
             </div>
-            <div className="p-6 max-h-[70vh] overflow-y-auto">
+            <div className="p-4 sm:p-6 overflow-y-auto flex-1 min-h-0">
               <pre
-                className="whitespace-pre-wrap text-sm leading-relaxed"
+                className="whitespace-pre-wrap text-sm leading-relaxed break-words"
                 style={{ color: dash.mainText }}
               >
                 {openCase.case_assessment}

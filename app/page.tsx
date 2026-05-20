@@ -25,7 +25,7 @@ export default function Home() {
         <div className="relative z-10 max-w-2xl mx-auto w-full flex flex-col gap-8 items-center text-center md:items-center">
           <RuledLogo />
           <div className="flex flex-col gap-4 w-full">
-            <h1 className="hero-headline-serif">
+            <h1 className="hero-headline-serif break-words">
               Get the money you&apos;re owed.
             </h1>
             <p
@@ -39,7 +39,7 @@ export default function Home() {
           <div className="flex flex-col gap-3 w-full max-w-md">
             <Link
               href="/onboarding"
-              className="w-full rounded-lg px-6 py-4 text-base font-semibold text-center"
+              className="w-full min-h-12 rounded-lg px-6 py-4 text-base font-semibold text-center flex items-center justify-center"
               style={{ background: "#c8392b", color: "#f5f1eb" }}
             >
               Start My Free Case Assessment
@@ -57,7 +57,7 @@ export default function Home() {
       {/* How It Works */}
       <section
         id="how-it-works"
-        className="px-6 py-16 md:py-20 border-t"
+        className="px-4 sm:px-6 py-16 md:py-20 border-t scroll-mt-16"
         style={{ borderColor: "#2a2825" }}
       >
         <div className="max-w-5xl mx-auto w-full flex flex-col gap-12">
@@ -82,8 +82,8 @@ export default function Home() {
       </section>
 
       {/* Stats */}
-      <section className="px-6 py-14 md:py-16" style={{ background: "#c8392b" }}>
-        <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 text-center">
+      <section className="px-4 sm:px-6 py-14 md:py-16" style={{ background: "#c8392b" }}>
+        <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10 text-center">
           <Stat value="40%" label="of cases resolve after demand letter alone" />
           <Stat value="$4,200" label="Average claim amount" />
           <Stat
@@ -122,7 +122,7 @@ export default function Home() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="px-6 py-16 md:py-20">
+      <section id="pricing" className="px-4 sm:px-6 py-16 md:py-20 scroll-mt-16">
         <div className="max-w-5xl mx-auto w-full flex flex-col gap-12">
           <h2 className="text-2xl md:text-3xl font-semibold text-center tracking-tight">
             Simple Flat-Fee Pricing. No surprises.
@@ -211,7 +211,7 @@ export default function Home() {
           </p>
           <Link
             href="/onboarding"
-            className="rounded-lg px-8 py-4 text-base font-semibold"
+            className="min-h-12 rounded-lg px-8 py-4 text-base font-semibold inline-flex items-center justify-center"
             style={{ background: "#c8392b", color: "#f5f1eb" }}
           >
             Start My Free Case Assessment
@@ -304,9 +304,9 @@ function AudienceCard({
 
 function Stat({ value, label }: { value: string; label: string }) {
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2 px-2">
       <span className="text-3xl md:text-4xl font-bold">{value}</span>
-      <span className="text-sm opacity-90">{label}</span>
+      <span className="text-sm opacity-90 leading-snug max-w-[16rem] mx-auto">{label}</span>
     </div>
   );
 }
@@ -317,8 +317,8 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
       className="rounded-xl p-5 flex flex-col gap-2"
       style={{ background: "#1a1916", border: "1px solid #2a2825" }}
     >
-      <h3 className="font-semibold text-sm">{question}</h3>
-      <p className="text-sm leading-relaxed" style={{ color: "#9a9590" }}>
+      <h3 className="font-semibold text-sm break-words">{question}</h3>
+      <p className="text-sm leading-relaxed break-words" style={{ color: "#9a9590" }}>
         {answer}
       </p>
     </div>
@@ -337,7 +337,7 @@ function TestimonialCard({
       className="rounded-xl p-6 flex flex-col gap-4"
       style={{ background: "#0f0e0c", border: "1px solid #2a2825" }}
     >
-      <p className="text-sm leading-relaxed italic">&ldquo;{quote}&rdquo;</p>
+      <p className="text-sm leading-relaxed italic break-words">&ldquo;{quote}&rdquo;</p>
       <p className="text-xs font-medium" style={{ color: "#c8392b" }}>
         — {author}
       </p>

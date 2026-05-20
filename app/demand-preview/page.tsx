@@ -64,7 +64,7 @@ function SampleLetterPreview() {
         }}
       >
         <div
-          className="px-6 sm:px-8 py-6 text-left"
+          className="px-4 sm:px-6 py-6 text-left break-words"
           style={{
             fontFamily: "Georgia, 'Times New Roman', serif",
             color: "#0f0e0c",
@@ -188,7 +188,7 @@ export default function DemandPreviewPage() {
         <section className="flex flex-col gap-3 items-center">
           <Link
             href="/onboarding"
-            className="w-full max-w-md rounded-xl px-6 py-4 text-base font-semibold text-center"
+            className="w-full max-w-md min-h-12 rounded-xl px-6 py-4 text-base font-semibold text-center flex items-center justify-center"
             style={{ background: "#c8392b", color: "#f5f1eb" }}
           >
             Start Free Assessment → Get Your Letter

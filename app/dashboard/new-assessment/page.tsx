@@ -104,14 +104,14 @@ export default function NewAssessmentPage() {
             onChange={(e) => setIntake(e.target.value)}
             rows={10}
             placeholder="Example: My contractor took a $5,000 deposit, did half the work, and stopped responding…"
-            className="w-full rounded-xl px-4 py-4 text-sm leading-relaxed resize-none outline-none placeholder:text-[#534f4a]"
+            className="w-full rounded-xl px-4 py-4 text-base sm:text-sm leading-relaxed resize-none outline-none placeholder:text-[#534f4a] min-h-[10rem]"
             style={inputStyle}
           />
 
           <select
             value={province}
             onChange={(e) => setProvince(e.target.value)}
-            className="w-full rounded-xl px-4 py-3 text-sm outline-none appearance-none cursor-pointer"
+            className="w-full rounded-xl px-4 py-3.5 text-base sm:text-sm outline-none appearance-none cursor-pointer min-h-12"
             style={{ ...inputStyle, color: province ? dash.mainText : dash.mainMuted }}
           >
             <option value="">Select your province</option>
@@ -132,7 +132,7 @@ export default function NewAssessmentPage() {
             type="button"
             onClick={generate}
             disabled={loading}
-            className="w-full rounded-xl px-6 py-4 text-sm font-semibold disabled:opacity-60 cursor-pointer inline-flex items-center justify-center gap-2"
+            className="w-full min-h-12 rounded-xl px-6 py-4 text-base sm:text-sm font-semibold disabled:opacity-60 cursor-pointer inline-flex items-center justify-center gap-2"
             style={{ background: "#c8392b", color: "#f5f1eb" }}
           >
             {loading && <Spinner />}
@@ -151,7 +151,7 @@ export default function NewAssessmentPage() {
               )}
             </div>
             <pre
-              className="whitespace-pre-wrap text-sm leading-relaxed"
+              className="whitespace-pre-wrap text-sm leading-relaxed break-words"
               style={{ color: dash.mainText }}
             >
               {assessment}

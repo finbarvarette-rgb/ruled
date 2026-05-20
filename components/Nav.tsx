@@ -190,6 +190,15 @@ export function Nav() {
     };
   }, [supabase]);
 
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [mobileOpen]);
+
   const showMarketingNav = !pathname.startsWith("/dashboard");
 
   const scrollToHowItWorks = useCallback(() => {
@@ -236,10 +245,10 @@ export function Nav() {
       className="sticky top-0 z-50 w-full border-b"
       style={{ background: "#0f0e0c", borderColor: "#2a2825" }}
     >
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center gap-6">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-3 sm:gap-6 min-w-0">
         <Link
           href="/"
-          className="text-xl font-bold tracking-tight shrink-0"
+          className="text-lg sm:text-xl font-bold tracking-tight shrink-0"
           style={{ fontFamily: "Georgia, \'Times New Roman\', serif" }}
         >
           ruled<span style={{ color: "#c8392b" }}>.ca</span>
@@ -299,12 +308,12 @@ export function Nav() {
           </nav>
         )}
 
-        <div className="flex items-center gap-3 ml-auto">
+        <div className="flex items-center gap-2 sm:gap-3 ml-auto shrink-0">
           {signedIn ? (
             <>
               <Link
                 href="/dashboard"
-                className="rounded-lg px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90"
+                className="rounded-lg px-3 sm:px-4 py-2.5 min-h-11 text-sm font-semibold transition-opacity hover:opacity-90 inline-flex items-center justify-center"
                 style={{ background: "#c8392b", color: "#f5f1eb" }}
               >
                 Dashboard
@@ -336,7 +345,7 @@ export function Nav() {
               </Link>
               <Link
                 href="/onboarding"
-                className="rounded-lg px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90"
+                className="rounded-lg px-3 sm:px-4 py-2.5 min-h-11 text-sm font-semibold transition-opacity hover:opacity-90 inline-flex items-center justify-center whitespace-nowrap"
                 style={{ background: "#c8392b", color: "#f5f1eb" }}
               >
                 Get Started
@@ -348,8 +357,9 @@ export function Nav() {
             <button
               type="button"
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden flex flex-col gap-1.5 p-2 cursor-pointer"
-              aria-label="Menu"
+              className="md:hidden flex flex-col gap-1.5 items-center justify-center min-w-11 min-h-11 p-2 cursor-pointer -mr-1"
+              aria-label={mobileOpen ? "Close menu" : "Open menu"}
+              aria-expanded={mobileOpen}
             >
               {[0, 1, 2].map((i) => (
                 <span
@@ -365,7 +375,7 @@ export function Nav() {
 
       {showMarketingNav && mobileOpen && (
         <div
-          className="md:hidden border-t px-4 py-4 flex flex-col gap-1"
+          className="md:hidden border-t px-4 py-4 flex flex-col gap-1 max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain"
           style={{ background: "#0f0e0c", borderColor: "#2a2825" }}
         >
           {NAV_ITEMS.map((item) =>
@@ -382,7 +392,7 @@ export function Nav() {
                     <button
                       key={sub.label}
                       type="button"
-                      className="block w-full text-left px-4 py-2 text-sm rounded-lg cursor-pointer"
+                      className="block w-full text-left px-4 py-3 min-h-11 text-sm rounded-lg cursor-pointer"
                       style={{ color: "#9a9590" }}
                       onClick={() => {
                         setMobileOpen(false);
@@ -395,7 +405,7 @@ export function Nav() {
                     <Link
                       key={sub.href}
                       href={sub.href}
-                      className="block px-4 py-2 text-sm rounded-lg"
+                      className="block px-4 py-3 min-h-11 text-sm rounded-lg flex items-center"
                       style={{ color: "#9a9590" }}
                       onClick={() => setMobileOpen(false)}
                     >
@@ -408,7 +418,7 @@ export function Nav() {
               <Link
                 key={item.label}
                 href={item.href!}
-                className="block px-2 py-2 text-sm rounded-lg"
+                className="block px-2 py-3 min-h-11 text-sm rounded-lg flex items-center"
                 style={{ color: "#9a9590" }}
                 onClick={() => setMobileOpen(false)}
               >
@@ -424,7 +434,7 @@ export function Nav() {
               <>
                 <Link
                   href="/dashboard"
-                  className="block rounded-lg px-4 py-3 text-sm font-semibold text-center"
+                  className="block rounded-lg px-4 py-3 min-h-12 text-sm font-semibold text-center flex items-center justify-center"
                   style={{ background: "#c8392b", color: "#f5f1eb" }}
                 >
                   Dashboard
@@ -452,7 +462,7 @@ export function Nav() {
                 </Link>
                 <Link
                   href="/onboarding"
-                  className="block rounded-lg px-4 py-3 text-sm font-semibold text-center"
+                  className="block rounded-lg px-4 py-3 min-h-12 text-sm font-semibold text-center flex items-center justify-center"
                   style={{ background: "#c8392b", color: "#f5f1eb" }}
                 >
                   Get Started

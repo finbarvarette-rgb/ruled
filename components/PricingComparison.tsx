@@ -109,7 +109,7 @@ function TierCard({
       </ul>
       <Link
         href={tier.href}
-        className="w-full rounded-lg px-4 py-3 text-sm font-semibold text-center"
+        className="w-full min-h-12 rounded-lg px-4 py-3 text-sm font-semibold text-center flex items-center justify-center"
         style={{
           background: "#f5f1eb",
           color: "#0f0e0c",

@@ -344,7 +344,7 @@ function DemandLetterPreview() {
       }}
     >
       <div
-        className="px-6 py-5 text-left"
+        className="px-4 sm:px-6 py-5 text-left break-words"
         style={{
           fontFamily: "Georgia, 'Times New Roman', serif",
           color: "#0f0e0c",
@@ -502,7 +502,7 @@ export default function ResultsPage() {
             Step 3 of 3 — Your results
           </p>
           <h1
-            className="text-2xl md:text-3xl font-semibold tracking-tight"
+            className="text-2xl md:text-3xl font-semibold tracking-tight break-words"
             style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
           >
             Your Case Assessment
@@ -512,7 +512,7 @@ export default function ResultsPage() {
               type="button"
               disabled={saveLoading}
               onClick={handleSaveAssessment}
-              className="w-full sm:w-fit rounded-lg px-5 py-3 text-sm font-semibold disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2"
+              className="w-full sm:w-fit min-h-12 rounded-lg px-5 py-3 text-sm font-semibold disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2"
               style={{
                 background: "#1a1916",
                 color: "#f5f1eb",
@@ -544,7 +544,7 @@ export default function ResultsPage() {
           </div>
           {strength && strengthStyle && (
             <span
-              className="inline-flex self-start items-center text-sm font-bold px-4 py-2 rounded-full"
+              className="inline-flex self-start items-center text-sm font-bold px-4 py-2.5 rounded-full max-w-full break-words"
               style={strengthStyle}
             >
               {verdictLabel(strength)}
@@ -561,7 +561,7 @@ export default function ResultsPage() {
               style={{ background: "#1a1916", border: "1px solid #2a2825" }}
             >
               <h2
-                className="text-sm font-semibold tracking-tight"
+                className="text-sm font-semibold tracking-tight break-words"
                 style={{ color: "#f5f1eb" }}
               >
                 {section.title}
@@ -627,7 +627,7 @@ export default function ResultsPage() {
             type="button"
             disabled={checkoutLoading !== null}
             onClick={() => handleCheckout("demand")}
-            className="w-full rounded-xl px-6 py-4 text-base font-semibold cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2"
+            className="w-full min-h-12 rounded-xl px-6 py-4 text-base font-semibold cursor-pointer disabled:opacity-60 flex items-center justify-center gap-2"
             style={{ background: "#c8392b", color: "#f5f1eb" }}
           >
             {checkoutLoading === "demand" && <Spinner />}
@@ -640,7 +640,7 @@ export default function ResultsPage() {
             type="button"
             disabled={checkoutLoading !== null}
             onClick={() => handleCheckout("full")}
-            className="text-sm text-center cursor-pointer disabled:opacity-60 w-full py-1"
+            className="text-sm text-center cursor-pointer disabled:opacity-60 w-full min-h-11 py-2"
             style={{ color: "#9a9590" }}
           >
             {checkoutLoading === "full"

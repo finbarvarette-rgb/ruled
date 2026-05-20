@@ -286,7 +286,7 @@ function OnboardingContent() {
                 onChange={(e) => setIntake(e.target.value)}
                 rows={10}
                 placeholder="Example: My contractor took a $5,000 deposit, did half the work, and stopped responding..."
-                className="w-full rounded-xl px-4 py-4 text-sm leading-relaxed resize-none outline-none"
+                className="w-full rounded-xl px-4 py-4 text-base sm:text-sm leading-relaxed resize-none outline-none min-h-[10rem]"
                 style={inputStyle}
                 onFocus={(e) => (e.currentTarget.style.borderColor = "#c8392b")}
                 onBlur={(e) => (e.currentTarget.style.borderColor = "#2a2825")}
@@ -295,7 +295,7 @@ function OnboardingContent() {
                 required
                 value={province}
                 onChange={(e) => setProvince(e.target.value)}
-                className="w-full rounded-lg px-4 py-3 text-sm outline-none appearance-none cursor-pointer"
+                className="w-full rounded-lg px-4 py-3.5 text-base sm:text-sm outline-none appearance-none cursor-pointer min-h-12"
                 style={{ ...inputStyle, color: province ? "#f5f1eb" : "#9a9590" }}
               >
                 <option value="" disabled>
@@ -315,7 +315,7 @@ function OnboardingContent() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-lg px-6 py-4 text-sm font-semibold disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2"
+                className="w-full min-h-12 rounded-lg px-6 py-4 text-base sm:text-sm font-semibold disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2"
                 style={{ background: "#c8392b", color: "#f5f1eb" }}
               >
                 {loading && <Spinner />}
@@ -339,7 +339,7 @@ function OnboardingContent() {
               type="button"
               disabled={loading}
               onClick={handleGoogleSignIn}
-              className="w-full rounded-lg px-6 py-3.5 text-sm font-semibold disabled:opacity-60 cursor-pointer flex items-center justify-center gap-3"
+              className="w-full min-h-12 rounded-lg px-6 py-3.5 text-sm font-semibold disabled:opacity-60 cursor-pointer flex items-center justify-center gap-3"
               style={{
                 background: "#1a1916",
                 color: "#f5f1eb",
@@ -368,7 +368,7 @@ function OnboardingContent() {
                   setAuthMode("signup");
                   setError("");
                 }}
-                className="flex-1 rounded-md px-3 py-2 text-xs font-semibold cursor-pointer"
+                className="flex-1 rounded-md px-3 py-2.5 min-h-10 text-xs font-semibold cursor-pointer"
                 style={{
                   background: authMode === "signup" ? "#c8392b" : "transparent",
                   color: authMode === "signup" ? "#f5f1eb" : "#9a9590",
@@ -382,7 +382,7 @@ function OnboardingContent() {
                   setAuthMode("signin");
                   setError("");
                 }}
-                className="flex-1 rounded-md px-3 py-2 text-xs font-semibold cursor-pointer"
+                className="flex-1 rounded-md px-3 py-2.5 min-h-10 text-xs font-semibold cursor-pointer"
                 style={{
                   background: authMode === "signin" ? "#c8392b" : "transparent",
                   color: authMode === "signin" ? "#f5f1eb" : "#9a9590",
@@ -403,7 +403,7 @@ function OnboardingContent() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Email address"
                 autoComplete="email"
-                className="w-full rounded-lg px-4 py-3 text-sm outline-none"
+                className="w-full rounded-lg px-4 py-3.5 text-base sm:text-sm outline-none min-h-12"
                 style={inputStyle}
                 onFocus={(e) => (e.currentTarget.style.borderColor = "#c8392b")}
                 onBlur={(e) => (e.currentTarget.style.borderColor = "#2a2825")}
@@ -421,7 +421,7 @@ function OnboardingContent() {
                 autoComplete={
                   authMode === "signup" ? "new-password" : "current-password"
                 }
-                className="w-full rounded-lg px-4 py-3 text-sm outline-none"
+                className="w-full rounded-lg px-4 py-3.5 text-base sm:text-sm outline-none min-h-12"
                 style={inputStyle}
                 onFocus={(e) => (e.currentTarget.style.borderColor = "#c8392b")}
                 onBlur={(e) => (e.currentTarget.style.borderColor = "#2a2825")}
@@ -434,7 +434,7 @@ function OnboardingContent() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirm password"
                   autoComplete="new-password"
-                  className="w-full rounded-lg px-4 py-3 text-sm outline-none"
+                  className="w-full rounded-lg px-4 py-3.5 text-base sm:text-sm outline-none min-h-12"
                   style={inputStyle}
                   onFocus={(e) =>
                     (e.currentTarget.style.borderColor = "#c8392b")
@@ -452,7 +452,7 @@ function OnboardingContent() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-lg px-6 py-4 text-sm font-semibold disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2"
+                className="w-full min-h-12 rounded-lg px-6 py-4 text-base sm:text-sm font-semibold disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2"
                 style={{ background: "#c8392b", color: "#f5f1eb" }}
               >
                 {loading && <Spinner />}

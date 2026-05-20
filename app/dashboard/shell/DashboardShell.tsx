@@ -60,6 +60,35 @@ const NAV: NavItem[] = [
   },
 ];
 
+/** Mobile bottom tab bar — desktop sidebar keeps full NAV including Settings */
+const MOBILE_TAB_NAV: { key: NavItem["key"]; label: string; href: string; icon: NavItem["icon"] }[] = [
+  { key: "home", label: "Home", href: "/dashboard", icon: (a) => <IconHome active={a} /> },
+  {
+    key: "case-assessments",
+    label: "Cases",
+    href: "/dashboard/case-assessments",
+    icon: (a) => <IconFileText active={a} />,
+  },
+  {
+    key: "documents",
+    label: "Documents",
+    href: "/dashboard/documents",
+    icon: (a) => <IconFolder active={a} />,
+  },
+  {
+    key: "billing",
+    label: "Billing",
+    href: "/dashboard/billing",
+    icon: (a) => <IconCreditCard active={a} />,
+  },
+  {
+    key: "profile",
+    label: "Profile",
+    href: "/dashboard/profile",
+    icon: (a) => <IconUser active={a} />,
+  },
+];
+
 export function DashboardShell({
   children,
   user,
@@ -207,23 +236,22 @@ export function DashboardShell({
         >
           {/* Top bar */}
           <header className="sticky top-0 z-40" style={dash.topBar}>
-            <div className="h-16 px-4 sm:px-6 flex items-center gap-4">
-              {/* Mobile logo */}
-              <Link href="/dashboard" className="md:hidden">
+            <div className="h-14 md:h-16 px-4 sm:px-6 flex items-center justify-between md:justify-start gap-4">
+              <Link href="/dashboard" className="md:hidden shrink-0">
                 <span
-                  className="font-bold"
+                  className="text-lg font-bold"
                   style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: dash.mainText }}
                 >
                   ruled<span style={{ color: "#c8392b" }}>.ca</span>
                 </span>
               </Link>
 
-              <div className="flex-1 flex items-center justify-center">
+              <div className="hidden md:flex flex-1 items-center justify-center">
                 <div className="w-full max-w-xl">
                   <button
                     type="button"
                     onClick={openSearch}
-                    className="flex items-center gap-3 rounded-xl px-4 py-2.5"
+                    className="flex items-center gap-3 rounded-xl px-4 py-2.5 w-full"
                     style={{ background: dash.input.background, border: dash.input.border }}
                   >
                     <IconSearch active={false} mutedStroke="#534f4a" />
@@ -239,8 +267,8 @@ export function DashboardShell({
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                <div className="relative">
+              <div className="flex items-center gap-3 md:ml-0 ml-auto">
+                <div className="relative hidden md:block">
                   <IconButton
                     label="Notifications"
                     onClick={() => {
@@ -248,7 +276,7 @@ export function DashboardShell({
                       setSearchOpen(false);
                     }}
                   >
-                  <IconBell active={false} mutedStroke="#534f4a" />
+                    <IconBell active={false} mutedStroke="#534f4a" />
                   </IconButton>
                   {notifOpen && (
                     <div
@@ -263,7 +291,7 @@ export function DashboardShell({
                 </div>
                 <Link
                   href="/dashboard/settings"
-                  className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors"
+                  className="hidden md:flex w-9 h-9 rounded-lg items-center justify-center transition-colors"
                   style={{ background: "transparent", border: dash.chromeBorder }}
                   aria-label="Settings"
                   title="Settings"
@@ -271,7 +299,7 @@ export function DashboardShell({
                   <IconSettings active={false} mutedStroke="#534f4a" />
                 </Link>
                 <div
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold"
+                  className="w-10 h-10 md:w-9 md:h-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
                   style={{
                     background: "#eeecea",
                     border: dash.chromeBorder,
@@ -285,7 +313,9 @@ export function DashboardShell({
             </div>
           </header>
 
-          <div className="flex-1 min-w-0">{children}</div>
+          <div className="flex-1 min-w-0 pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:pb-0">
+            {children}
+          </div>
         </div>
       </div>
 
@@ -418,7 +448,7 @@ export function DashboardShell({
       )}
 
       {/* Floating + button */}
-      <div className="fixed bottom-6 right-6 z-50 group">
+      <div className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:bottom-6 right-4 md:right-6 z-50 group">
         <div
           className="pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity absolute right-0 -top-10 text-xs font-semibold px-3 py-2 rounded-lg"
           style={{ ...dash.panel, color: dash.mainText }}
@@ -435,6 +465,36 @@ export function DashboardShell({
           +
         </button>
       </div>
+
+      {/* Mobile bottom tab bar */}
+      <nav
+        className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t"
+        style={{ background: "#0f0e0c", borderColor: "#1f1d19", paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+        aria-label="Dashboard"
+      >
+        <div className="flex items-stretch justify-around">
+          {MOBILE_TAB_NAV.map((item) => {
+            const active = item.key === activeKey;
+            return (
+              <Link
+                key={item.key}
+                href={item.href}
+                className="flex flex-1 flex-col items-center justify-center gap-1 py-2.5 min-h-[3.25rem] min-w-0 px-1"
+                style={{ color: active ? "#f5f1eb" : "#9a9590" }}
+                aria-current={active ? "page" : undefined}
+              >
+                {item.icon(active)}
+                <span
+                  className="text-[10px] font-medium leading-none truncate max-w-full"
+                  style={{ color: active ? "#c8392b" : "#9a9590" }}
+                >
+                  {item.label}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
     </div>
   );
 }

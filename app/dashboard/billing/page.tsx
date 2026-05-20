@@ -76,12 +76,9 @@ export default async function BillingPage() {
             No purchases yet.
           </div>
         ) : (
-          <div
-            className="rounded-2xl overflow-hidden"
-            style={{ ...dash.panel }}
-          >
+          <div className="rounded-2xl overflow-hidden" style={{ ...dash.panel }}>
             <div
-              className="grid grid-cols-12 px-5 py-3 text-xs font-semibold"
+              className="hidden md:grid grid-cols-12 px-5 py-3 text-xs font-semibold"
               style={{ color: dash.mainMuted, borderBottom: `1px solid ${dash.rowDivider}` }}
             >
               <div className="col-span-4">Date</div>
@@ -95,37 +92,80 @@ export default async function BillingPage() {
                 month: "short",
                 day: "numeric",
               });
+              const amount = displayAmount(p.amount_paid_cents ?? null, p.tier_purchased ?? null);
+              const product = productName(p.tier_purchased);
               return (
-                <div
-                  key={p.id}
-                  className="grid grid-cols-12 px-5 py-4 text-sm items-center"
-                  style={{ borderBottom: `1px solid ${dash.rowDivider}` }}
-                >
-                  <div className="col-span-4" style={{ color: dash.mainText }}>
-                    {date}
-                  </div>
-                  <div className="col-span-4" style={{ color: dash.mainText }}>
-                    {productName(p.tier_purchased)}
-                  </div>
-                  <div className="col-span-2" style={{ color: dash.mainText }}>
-                    {displayAmount(p.amount_paid_cents ?? null, p.tier_purchased ?? null)}
-                  </div>
-                  <div className="col-span-2 text-right">
-                    {p.receipt_url ? (
-                      <a
-                        href={p.receipt_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-xs font-semibold"
-                        style={{ color: "#c8392b" }}
-                      >
-                        Download
-                      </a>
-                    ) : (
-                      <span className="text-xs" style={{ color: dash.mainMuted }}>
-                        —
+                <div key={p.id} style={{ borderBottom: `1px solid ${dash.rowDivider}` }}>
+                  <div
+                    className="md:hidden px-4 py-4 flex flex-col gap-3 text-sm"
+                    style={{ color: dash.mainText }}
+                  >
+                    <div className="flex justify-between gap-3">
+                      <span className="text-xs font-semibold shrink-0" style={{ color: dash.mainMuted }}>
+                        Date
                       </span>
-                    )}
+                      <span className="text-right">{date}</span>
+                    </div>
+                    <div className="flex justify-between gap-3">
+                      <span className="text-xs font-semibold shrink-0" style={{ color: dash.mainMuted }}>
+                        Product
+                      </span>
+                      <span className="text-right">{product}</span>
+                    </div>
+                    <div className="flex justify-between gap-3">
+                      <span className="text-xs font-semibold shrink-0" style={{ color: dash.mainMuted }}>
+                        Amount
+                      </span>
+                      <span className="text-right">{amount}</span>
+                    </div>
+                    <div className="flex justify-between gap-3 items-center">
+                      <span className="text-xs font-semibold shrink-0" style={{ color: dash.mainMuted }}>
+                        Receipt
+                      </span>
+                      {p.receipt_url ? (
+                        <a
+                          href={p.receipt_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-xs font-semibold min-h-11 inline-flex items-center px-2"
+                          style={{ color: "#c8392b" }}
+                        >
+                          Download
+                        </a>
+                      ) : (
+                        <span className="text-xs" style={{ color: dash.mainMuted }}>
+                          —
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="hidden md:grid grid-cols-12 px-5 py-4 text-sm items-center">
+                    <div className="col-span-4" style={{ color: dash.mainText }}>
+                      {date}
+                    </div>
+                    <div className="col-span-4" style={{ color: dash.mainText }}>
+                      {product}
+                    </div>
+                    <div className="col-span-2" style={{ color: dash.mainText }}>
+                      {amount}
+                    </div>
+                    <div className="col-span-2 text-right">
+                      {p.receipt_url ? (
+                        <a
+                          href={p.receipt_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-xs font-semibold"
+                          style={{ color: "#c8392b" }}
+                        >
+                          Download
+                        </a>
+                      ) : (
+                        <span className="text-xs" style={{ color: dash.mainMuted }}>
+                          —
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
