@@ -250,10 +250,20 @@ AFTER THE HEARING
 ☐ Save all documents from the hearing`;
 }
 
-export function deliveryHref(caseId: string, tier: "demand" | "full"): string {
+export type PackDeliverySection = "court" | "hearing";
+
+export function deliveryHref(
+  caseId: string,
+  tier: "demand" | "full",
+  section?: PackDeliverySection
+): string {
   const base =
     tier === "full" ? "/success/full-case-pack" : "/success/demand-letter";
-  return `${base}?caseId=${caseId}`;
+  const params = new URLSearchParams({ caseId });
+  if (section && tier === "full") {
+    params.set("section", section);
+  }
+  return `${base}?${params.toString()}`;
 }
 
 export function getPackDocumentsForCase(

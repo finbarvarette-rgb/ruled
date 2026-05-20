@@ -44,8 +44,41 @@ function normalizeNewlines(text: string): string {
   return text.replace(/\r\n/g, "\n");
 }
 
+/** Decode HTML entities and normalize text before PDF layout. */
+export function sanitizePdfText(text: string): string {
+  if (!text) return "";
+
+  let decoded = text
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#0?39;/g, "'")
+    .replace(/&#x27;/gi, "'")
+    .replace(/&#(\d+);/g, (_, code) => {
+      const n = Number.parseInt(code, 10);
+      return Number.isFinite(n) ? String.fromCodePoint(n) : "";
+    })
+    .replace(/&#x([0-9a-f]+);/gi, (_, hex) => {
+      const n = Number.parseInt(hex, 16);
+      return Number.isFinite(n) ? String.fromCodePoint(n) : "";
+    });
+
+  for (let i = 0; i < 3; i++) {
+    const next = decoded.replace(/&amp;/g, "&");
+    if (next === decoded) break;
+    decoded = next;
+  }
+
+  return normalizeNewlines(decoded)
+    .replace(/\u00A0/g, " ")
+    .replace(/[\u200B-\u200D\uFEFF]/g, "")
+    .replace(/[ \t]+\n/g, "\n")
+    .trim();
+}
+
 function stripHashAndRuleLines(text: string): string {
-  return normalizeNewlines(text)
+  return sanitizePdfText(text)
     .split("\n")
     .filter((line) => {
       const trimmed = line.trim();
@@ -416,7 +449,7 @@ export function downloadDemandLetterPdf(
   const builder = new BrandedPdfBuilder();
   builder.addDocumentTitle("Demand Letter");
 
-  const lines = normalizeNewlines(letter).split("\n");
+  const lines = sanitizePdfText(letter).split("\n");
   let buffer: string[] = [];
   let blockIndex = 0;
 

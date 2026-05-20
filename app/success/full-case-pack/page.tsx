@@ -29,6 +29,20 @@ const PACK_STATUS_MESSAGES = [
   "Almost ready...",
 ];
 
+const COURT_STATUS_MESSAGES = [
+  "Preparing your court filing documents...",
+  "Drafting claim forms and service templates...",
+  "Almost ready...",
+];
+
+const HEARING_STATUS_MESSAGES = [
+  "Writing your hearing preparation script...",
+  "Preparing your opening and closing statements...",
+  "Almost ready...",
+];
+
+type GenerateSection = "court" | "hearing";
+
 function useGenerationLoading(active: boolean, messages: string[]) {
   const [progress, setProgress] = useState(0);
   const [messageIndex, setMessageIndex] = useState(0);
@@ -355,6 +369,9 @@ function FullCasePackDeliveryContent() {
   const sessionId = searchParams.get("session_id");
   const caseIdParam = searchParams.get("caseId");
   const isPreview = searchParams.get("preview") === "true";
+  const sectionParam = searchParams.get("section");
+  const generateTarget: GenerateSection | null =
+    sectionParam === "court" || sectionParam === "hearing" ? sectionParam : null;
 
   const [phase, setPhase] = useState<"loading" | "generating" | "ready" | "error">(
     "loading"
@@ -372,10 +389,13 @@ function FullCasePackDeliveryContent() {
   const [chatLoading, setChatLoading] = useState(false);
 
   const isBusy = phase === "loading" || phase === "generating";
-  const { progress, statusMessage } = useGenerationLoading(
-    isBusy,
-    PACK_STATUS_MESSAGES
-  );
+  const loadingMessages =
+    generateTarget === "court"
+      ? COURT_STATUS_MESSAGES
+      : generateTarget === "hearing"
+        ? HEARING_STATUS_MESSAGES
+        : PACK_STATUS_MESSAGES;
+  const { progress, statusMessage } = useGenerationLoading(isBusy, loadingMessages);
 
   const claimantName = useMemo(
     () => inferClaimantName(intake, null) || "Claimant",
@@ -409,25 +429,26 @@ function FullCasePackDeliveryContent() {
       return;
     }
 
-    async function savePack(
+    async function savePackPartial(
       caseId: string,
-      letter: string,
-      court: string,
-      hearing: string
+      partial: {
+        demandLetter?: string;
+        courtDocs?: string;
+        hearingPrep?: string;
+      }
     ) {
       await fetch("/api/cases/documents", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          caseId,
-          demandLetter: letter,
-          courtDocs: court,
-          hearingPrep: hearing,
-        }),
+        body: JSON.stringify({ caseId, ...partial }),
       }).catch(() => {});
     }
 
-    async function finishPack(data: PaymentData, notifyDelivery: boolean) {
+    async function finishPack(
+      data: PaymentData,
+      notifyDelivery: boolean,
+      section: GenerateSection | null
+    ) {
       if (data.tier !== "full") {
         throw new Error(
           "This delivery page is for Full Case Pack purchases. Check your email for the correct link."
@@ -455,33 +476,59 @@ function FullCasePackDeliveryContent() {
       let court = data.courtDocs ?? "";
       let hearing = data.hearingPrep ?? "";
 
-      const needsGeneration = !letter || !court.trim() || !hearing.trim();
-      if (needsGeneration) {
-        setPhase("generating");
-        const [letterResult, courtResult, hearingResult] = await Promise.all([
-          letter ? Promise.resolve(letter) : generateDemandLetter(data),
-          court.trim()
-            ? Promise.resolve(court)
-            : fetchCourtDocs(data.assessment, data.province),
-          hearing.trim()
-            ? Promise.resolve(hearing)
-            : fetchHearingPrep(data.assessment, data.province),
-        ]);
-        letter = letterResult;
-        court = courtResult;
-        hearing = hearingResult;
-        if (!letter) {
-          throw new Error("Failed to generate demand letter");
+      if (section === "court") {
+        if (!court.trim()) {
+          setPhase("generating");
+          court = await fetchCourtDocs(data.assessment, data.province);
+          await savePackPartial(data.caseId, { courtDocs: court });
         }
-        await savePack(data.caseId, letter, court, hearing);
+      } else if (section === "hearing") {
+        if (!hearing.trim()) {
+          setPhase("generating");
+          hearing = await fetchHearingPrep(data.assessment, data.province);
+          await savePackPartial(data.caseId, { hearingPrep: hearing });
+        }
+      } else {
+        const needLetter = !letter;
+        const needCourt = !court.trim();
+        const needHearing = !hearing.trim();
+        if (needLetter || needCourt || needHearing) {
+          setPhase("generating");
+          const [letterResult, courtResult, hearingResult] = await Promise.all([
+            needLetter ? generateDemandLetter(data) : Promise.resolve(letter!),
+            needCourt
+              ? fetchCourtDocs(data.assessment, data.province)
+              : Promise.resolve(court),
+            needHearing
+              ? fetchHearingPrep(data.assessment, data.province)
+              : Promise.resolve(hearing),
+          ]);
+          letter = letterResult;
+          court = courtResult;
+          hearing = hearingResult;
+          if (!letter) {
+            throw new Error("Failed to generate demand letter");
+          }
+          const partial: {
+            demandLetter?: string;
+            courtDocs?: string;
+            hearingPrep?: string;
+          } = {};
+          if (needLetter) partial.demandLetter = letter;
+          if (needCourt) partial.courtDocs = court;
+          if (needHearing) partial.hearingPrep = hearing;
+          await savePackPartial(data.caseId, partial);
+        }
       }
 
-      if (!letter) {
+      if (!letter && !section) {
         throw new Error("Demand letter is missing");
       }
 
-      updateRuledSession({ demandLetter: letter });
-      setDemandLetter(letter);
+      if (letter) {
+        updateRuledSession({ demandLetter: letter });
+      }
+      setDemandLetter(letter ?? "");
       setCourtDocs(court);
       setHearingPrep(hearing);
       setPhase("ready");
@@ -510,7 +557,7 @@ function FullCasePackDeliveryContent() {
           if (!res.ok) {
             throw new Error(data.error ?? "Could not load your case");
           }
-          await finishPack(data, false);
+          await finishPack(data, false, generateTarget);
           return;
         }
 
@@ -529,7 +576,7 @@ function FullCasePackDeliveryContent() {
         if (!res.ok) {
           throw new Error(data.error ?? "Payment verification failed");
         }
-        await finishPack(data, true);
+        await finishPack(data, true, generateTarget);
       } catch (err) {
         setError(
           err instanceof Error
@@ -541,7 +588,7 @@ function FullCasePackDeliveryContent() {
     }
 
     load();
-  }, [sessionId, caseIdParam, isPreview]);
+  }, [sessionId, caseIdParam, isPreview, generateTarget]);
 
   const handleChatSubmit = useCallback(
     async (e: React.FormEvent) => {

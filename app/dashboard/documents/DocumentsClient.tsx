@@ -67,13 +67,11 @@ function openHref(caseRecord: Case, docId: string): string | null {
   if (docId === "demand") {
     return deliveryHref(caseRecord.id, "demand");
   }
-  if (
-    docId === "how-to-file" ||
-    docId === "court" ||
-    docId === "hearing" ||
-    docId === "checklist"
-  ) {
-    return deliveryHref(caseRecord.id, "full");
+  if (docId === "court") {
+    return deliveryHref(caseRecord.id, "full", "court");
+  }
+  if (docId === "hearing") {
+    return deliveryHref(caseRecord.id, "full", "hearing");
   }
   return null;
 }
