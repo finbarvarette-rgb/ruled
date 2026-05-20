@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { useState } from "react";
 
 const NAVY = "#0F172A";
 const BLUE = "#2563EB";
@@ -60,13 +63,59 @@ const PRICING_TIERS = [
   },
 ] as const;
 
+const FAQ_ITEMS = [
+  {
+    question: "Is this legal advice?",
+    answer:
+      "No. Ruled provides legal information, not legal advice. We are not a law firm and do not represent you in court.",
+  },
+  {
+    question: "How long does it take?",
+    answer:
+      "Your free case assessment takes about 60 seconds. Paid products are delivered within minutes of payment.",
+  },
+  {
+    question: "What if the other person doesn't respond to the demand letter?",
+    answer:
+      "If they don't pay or respond within 14 days, your next step is filing in small claims court. Your free assessment already analyzed your case — the Full Case Pack ($199) gives you court documents, filing instructions, and hearing prep so you're ready.",
+  },
+  {
+    question: "How long does the whole process take?",
+    answer:
+      "Many cases resolve within 2–6 weeks after sending a demand letter. If you need to go to court, hearings are often scheduled a few months after filing, depending on your province and courthouse backlog.",
+  },
+  {
+    question: "What if I lose?",
+    answer:
+      "We cannot guarantee outcomes. Small claims court decisions depend on your facts, evidence, and how the judge applies the law.",
+  },
+  {
+    question: "Which provinces are supported?",
+    answer:
+      "All Canadian provinces. Guidance is tailored to your province's small claims rules and procedures.",
+  },
+  {
+    question: "Can businesses use Ruled?",
+    answer:
+      "Yes. Contractors, landlords, and small businesses use Ruled for unpaid invoices, deposits, and contract disputes.",
+  },
+  {
+    question: "Is my information private?",
+    answer:
+      "Yes. Your case details are stored securely. See our privacy policy for full details.",
+  },
+] as const;
+
 export default function Home() {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: ".site-body { border-top: none !important; }" }} />
       <div className="flex flex-col flex-1" style={{ background: PAGE_BG, color: NAVY }}>
       {/* Hero */}
-      <section className="px-4 sm:px-6 py-10 md:py-14 lg:py-16" style={{ background: "#ffffff" }}>
+      <section
+        className="min-h-screen flex flex-col justify-center px-4 sm:px-6 py-10 md:py-14 lg:py-16"
+        style={{ background: "#ffffff" }}
+      >
         <div className="max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-12 items-center">
           <div className="flex flex-col gap-8 order-2 lg:order-1">
             <div className="flex flex-col gap-4">
@@ -143,28 +192,22 @@ export default function Home() {
           <h2 className="text-2xl md:text-3xl font-semibold text-center tracking-tight" style={{ color: NAVY }}>
             Three Steps to Getting Paid
           </h2>
-          <div className="flex justify-center">
-            <Image
-              src="/brand/steps_illustration.png"
-              alt=""
-              width={720}
-              height={280}
-              className="w-full max-w-lg h-auto"
-            />
-          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
             <StepCard
               step={1}
+              iconIndex={0}
               title="Tell Your Story"
               description="Describe what happened in plain language. No legal jargon needed—just the facts."
             />
             <StepCard
               step={2}
+              iconIndex={1}
               title="AI Analysis"
               description="Our AI instantly analyzes your case strength, evidence, and next steps tailored to your province."
             />
             <StepCard
               step={3}
+              iconIndex={2}
               title="Get Paid"
               description="Send your demand letter or take it to court fully prepared. Get what you're owed."
             />
@@ -178,17 +221,17 @@ export default function Home() {
           <h2 className="text-2xl md:text-3xl font-semibold text-center tracking-tight" style={{ color: NAVY }}>
             Built for People Who Got Screwed
           </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-center">
-            <div className="flex justify-center lg:justify-end">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 items-center w-full">
+            <div className="w-full flex items-center justify-center lg:min-h-[320px]">
               <Image
                 src="/brand/use_cases_illustration.png"
                 alt=""
                 width={480}
                 height={480}
-                className="w-full max-w-sm lg:max-w-md h-auto"
+                className="w-full h-auto object-contain"
               />
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-4">
               <AudienceCard
                 title="Contractors and Trades"
                 description="Client won't pay. Chargeback after job completion. We help you fight back."
@@ -226,43 +269,21 @@ export default function Home() {
 
       {/* FAQ */}
       <section className="px-4 sm:px-6 py-10 md:py-12" style={{ background: "#ffffff" }}>
-        <div className="max-w-2xl mx-auto w-full flex flex-col gap-6">
+        <div className="max-w-5xl mx-auto w-full flex flex-col gap-6">
           <h2 className="text-2xl md:text-3xl font-semibold text-center tracking-tight" style={{ color: NAVY }}>
             Frequently asked questions
           </h2>
-          <div className="flex flex-col gap-4">
-            <FaqItem
-              question="Is this legal advice?"
-              answer="No. Ruled provides legal information, not legal advice. We are not a law firm and do not represent you in court."
-            />
-            <FaqItem
-              question="How long does it take?"
-              answer="Your free case assessment takes about 60 seconds. Paid products are delivered within minutes of payment."
-            />
-            <FaqItem
-              question="What if the other person doesn't respond to the demand letter?"
-              answer="If they don't pay or respond within 14 days, your next step is filing in small claims court. Your free assessment already analyzed your case — the Full Case Pack ($199) gives you court documents, filing instructions, and hearing prep so you're ready."
-            />
-            <FaqItem
-              question="How long does the whole process take?"
-              answer="Many cases resolve within 2–6 weeks after sending a demand letter. If you need to go to court, hearings are often scheduled a few months after filing, depending on your province and courthouse backlog."
-            />
-            <FaqItem
-              question="What if I lose?"
-              answer="We cannot guarantee outcomes. Small claims court decisions depend on your facts, evidence, and how the judge applies the law."
-            />
-            <FaqItem
-              question="Which provinces are supported?"
-              answer="All Canadian provinces. Guidance is tailored to your province's small claims rules and procedures."
-            />
-            <FaqItem
-              question="Can businesses use Ruled?"
-              answer="Yes. Contractors, landlords, and small businesses use Ruled for unpaid invoices, deposits, and contract disputes."
-            />
-            <FaqItem
-              question="Is my information private?"
-              answer="Yes. Your case details are stored securely. See our privacy policy for full details."
-            />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+            <div className="flex flex-col gap-4">
+              {FAQ_ITEMS.slice(0, 4).map((item) => (
+                <FaqItem key={item.question} question={item.question} answer={item.answer} />
+              ))}
+            </div>
+            <div className="flex flex-col gap-4">
+              {FAQ_ITEMS.slice(4, 8).map((item) => (
+                <FaqItem key={item.question} question={item.question} answer={item.answer} />
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -412,10 +433,12 @@ function RuledLogo({ size = "lg", variant = "dark" }: { size?: "lg" | "sm"; vari
 
 function StepCard({
   step,
+  iconIndex,
   title,
   description,
 }: {
   step: number;
+  iconIndex: 0 | 1 | 2;
   title: string;
   description: string;
 }) {
@@ -424,6 +447,16 @@ function StepCard({
       className="flex flex-col gap-4 rounded-xl p-6 h-full"
       style={{ background: "#ffffff", boxShadow: CARD_SHADOW, border: "1px solid #E2E8F0" }}
     >
+      <div className="relative w-16 h-16 overflow-hidden rounded-lg shrink-0 border border-[#E2E8F0] bg-white">
+        <Image
+          src="/brand/steps_illustration.png"
+          alt=""
+          width={720}
+          height={280}
+          className="absolute top-0 h-full max-w-none object-cover"
+          style={{ width: "300%", left: `-${iconIndex * 100}%` }}
+        />
+      </div>
       <div
         className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold shrink-0"
         style={{ background: "#DBEAFE", color: BLUE }}
@@ -443,10 +476,10 @@ function StepCard({
 function AudienceCard({ title, description }: { title: string; description: string }) {
   return (
     <div
-      className="rounded-xl p-6 flex flex-col gap-2"
-      style={{ background: "#ffffff", boxShadow: CARD_SHADOW, border: "1px solid #E2E8F0" }}
+      className="rounded-xl p-5 flex flex-col gap-2 h-full"
+      style={{ background: "#ffffff", border: "1px solid #E2E8F0", boxShadow: CARD_SHADOW }}
     >
-      <h3 className="font-semibold" style={{ color: BLUE }}>
+      <h3 className="font-semibold text-sm" style={{ color: BLUE }}>
         {title}
       </h3>
       <p className="text-sm leading-relaxed" style={{ color: SUBTEXT }}>
@@ -548,17 +581,50 @@ function CheckIcon({ color, checkColor }: { color: string; checkColor: string })
 }
 
 function FaqItem({ question, answer }: { question: string; answer: string }) {
+  const [open, setOpen] = useState(false);
+
   return (
     <div
-      className="rounded-xl p-5 flex flex-col gap-2"
-      style={{ background: SURFACE, border: "1px solid #E2E8F0" }}
+      className="rounded-xl overflow-hidden"
+      style={{ background: "#ffffff", border: "1px solid #E2E8F0" }}
     >
-      <h3 className="font-semibold text-sm break-words" style={{ color: NAVY }}>
-        {question}
-      </h3>
-      <p className="text-sm leading-relaxed break-words" style={{ color: SUBTEXT }}>
-        {answer}
-      </p>
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        className="w-full flex items-center justify-between gap-3 px-5 py-4 text-left cursor-pointer"
+        aria-expanded={open}
+      >
+        <span className="font-semibold text-sm break-words" style={{ color: NAVY }}>
+          {question}
+        </span>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          className="shrink-0"
+          style={{
+            transform: open ? "rotate(180deg)" : "none",
+            transition: "transform 0.2s ease",
+          }}
+          aria-hidden
+        >
+          <path
+            d="M4 6L8 10L12 6"
+            stroke={BLUE}
+            strokeWidth="1.75"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
+      {open && (
+        <div className="px-5 pb-4 border-t" style={{ borderColor: "#E2E8F0" }}>
+          <p className="text-sm leading-relaxed break-words pt-3" style={{ color: SUBTEXT }}>
+            {answer}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

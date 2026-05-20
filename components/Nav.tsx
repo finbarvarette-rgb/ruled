@@ -51,6 +51,8 @@ const NAV_ITEMS: { label: string; href?: string; dropdown?: DropdownItem[] }[] =
   { label: "About", href: "/about" },
 ];
 
+const BLOG_NAV = { label: "Blog", href: "/blog" } as const;
+
 function Dropdown({
   items,
   onClose,
@@ -337,6 +339,17 @@ export function Nav() {
         )}
 
         <div className="flex items-center gap-2 sm:gap-3 ml-auto shrink-0">
+          {showMarketingNav && (
+            <Link
+              href={BLOG_NAV.href}
+              className="hidden md:block px-3 py-2 rounded-lg text-sm transition-colors"
+              style={{ color: NAVY }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = BLUE)}
+              onMouseLeave={(e) => (e.currentTarget.style.color = NAVY)}
+            >
+              {BLOG_NAV.label}
+            </Link>
+          )}
           {signedIn ? (
             <>
               <Link
@@ -460,6 +473,14 @@ export function Nav() {
               </Link>
             )
           )}
+          <Link
+            href={BLOG_NAV.href}
+            className="block px-2 py-3 min-h-11 text-sm rounded-lg md:hidden"
+            style={{ color: NAVY }}
+            onClick={() => setMobileOpen(false)}
+          >
+            {BLOG_NAV.label}
+          </Link>
           <div
             className="mt-2 pt-4 flex flex-col gap-2"
             style={{ borderTop: `1px solid ${NAV_BORDER}` }}
