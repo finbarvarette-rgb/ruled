@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
-import { usePathname } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
 
 type DropdownItem = { label: string; href: string; desc?: string };
@@ -63,22 +63,49 @@ function Dropdown({ items, onClose }: { items: DropdownItem[]; onClose: () => vo
 
 export function Nav() {
   const pathname = usePathname();
+  const router = useRouter();
   const [signedIn, setSignedIn] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const navRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const supabase = createBrowserClient(
+  const supabase = useMemo(() => {
+    return createBrowserClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
-    supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session));
+  }, []);
+
+  async function refreshAuthState() {
+    try {
+      const { data } = await supabase.auth.getUser();
+      setSignedIn(!!data.user);
+    } catch {
+      setSignedIn(false);
+    }
+  }
+
+  async function handleSignOut() {
+    try {
+      await supabase.auth.signOut();
+    } finally {
+      setSignedIn(false);
+      setMobileOpen(false);
+      router.push("/");
+    }
+  }
+
+  useEffect(() => {
+    // Use getUser() (cookie-backed) so the nav reflects server-set auth cookies.
+    // Note: when auth happens via server routes/callbacks, onAuthStateChange may
+    // not fire in the existing tab. So we also refresh on route changes + focus.
+    refreshAuthState();
+
     const { data: listener } = supabase.auth.onAuthStateChange((_e, session) => {
       setSignedIn(!!session);
     });
     return () => listener.subscription.unsubscribe();
-  }, []);
+  }, [supabase]);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -94,7 +121,23 @@ export function Nav() {
   useEffect(() => {
     setOpenDropdown(null);
     setMobileOpen(false);
+    refreshAuthState();
   }, [pathname]);
+
+  useEffect(() => {
+    function onFocus() {
+      refreshAuthState();
+    }
+    function onVisibilityChange() {
+      if (document.visibilityState === "visible") refreshAuthState();
+    }
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [supabase]);
 
   const isLanding = pathname === "/";
 
@@ -173,18 +216,26 @@ export function Nav() {
             <>
               <Link
                 href="/dashboard"
-                className="hidden sm:block text-sm transition-opacity hover:opacity-80"
-                style={{ color: "#9a9590" }}
+                className="rounded-lg px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90"
+                style={{ background: "#c8392b", color: "#f5f1eb" }}
               >
                 Dashboard
               </Link>
               <Link
                 href="/dashboard/account"
-                className="rounded-lg px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90"
-                style={{ background: "#c8392b", color: "#f5f1eb" }}
+                className="hidden sm:block text-sm transition-opacity hover:opacity-80"
+                style={{ color: "#9a9590" }}
               >
                 My Account
               </Link>
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="hidden sm:block text-sm transition-opacity hover:opacity-80 cursor-pointer"
+                style={{ color: "#9a9590" }}
+              >
+                Sign Out
+              </button>
             </>
           ) : (
             <>
@@ -268,16 +319,28 @@ export function Nav() {
           >
             {signedIn ? (
               <>
-                <Link href="/dashboard" className="block px-2 py-2 text-sm" style={{ color: "#9a9590" }}>
+                <Link
+                  href="/dashboard"
+                  className="block rounded-lg px-4 py-3 text-sm font-semibold text-center"
+                  style={{ background: "#c8392b", color: "#f5f1eb" }}
+                >
                   Dashboard
                 </Link>
                 <Link
                   href="/dashboard/account"
-                  className="block rounded-lg px-4 py-3 text-sm font-semibold text-center"
-                  style={{ background: "#c8392b", color: "#f5f1eb" }}
+                  className="block px-2 py-2 text-sm"
+                  style={{ color: "#9a9590" }}
                 >
                   My Account
                 </Link>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className="block px-2 py-2 text-sm text-left cursor-pointer"
+                  style={{ color: "#9a9590" }}
+                >
+                  Sign Out
+                </button>
               </>
             ) : (
               <>
