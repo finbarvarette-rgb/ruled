@@ -1,11 +1,12 @@
 import { PIPELINE_STEPS } from "../case-utils";
+import { dash } from "../theme";
 
 export function CasePipeline({ currentIndex }: { currentIndex: number }) {
   return (
     <div className="flex flex-col gap-3">
       <p
         className="text-xs font-semibold uppercase tracking-wide"
-        style={{ color: "#9a9590" }}
+        style={{ color: dash.mainMuted }}
       >
         Case progress
       </p>
@@ -28,7 +29,7 @@ export function CasePipeline({ currentIndex }: { currentIndex: number }) {
                       className="w-3 h-3 rounded-full shrink-0 z-10"
                       style={{
                         background:
-                          isComplete || isCurrent ? "#c8392b" : "#2a2825",
+                          isComplete || isCurrent ? "#c8392b" : dash.trackMuted,
                         boxShadow: isCurrent
                           ? "0 0 0 4px rgba(200, 57, 43, 0.25)"
                           : undefined,
@@ -39,7 +40,7 @@ export function CasePipeline({ currentIndex }: { currentIndex: number }) {
                     <div
                       className="h-0.5 flex-1 -mt-1.5 min-w-[0.5rem]"
                       style={{
-                        background: isComplete ? "#c8392b" : "#2a2825",
+                        background: isComplete ? "#c8392b" : dash.trackMuted,
                       }}
                       aria-hidden
                     />
@@ -49,10 +50,10 @@ export function CasePipeline({ currentIndex }: { currentIndex: number }) {
                   className="text-[10px] sm:text-xs leading-snug text-center mt-2 px-1 w-full"
                   style={{
                     color: isCurrent
-                      ? "#f5f1eb"
+                      ? dash.mainText
                       : isComplete
-                        ? "#d4cfc9"
-                        : "#6b6560",
+                        ? dash.mainMuted
+                        : dash.mainMuted,
                     fontWeight: isCurrent ? 600 : 400,
                   }}
                 >

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
+import { dash } from "../theme";
 
 async function syncUserCases(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -62,7 +63,7 @@ export default async function BillingPage() {
       <div className="max-w-6xl mx-auto w-full flex flex-col gap-8">
         <header className="flex flex-col gap-2">
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Billing</h1>
-          <p className="text-sm" style={{ color: "#9a9590" }}>
+          <p className="text-sm" style={{ color: dash.mainMuted }}>
             Past purchases and receipts.
           </p>
         </header>
@@ -70,16 +71,19 @@ export default async function BillingPage() {
         {purchases.length === 0 ? (
           <div
             className="rounded-2xl p-6 text-sm"
-            style={{ background: "#0f0e0c", border: "1px solid #1f1d19", color: "#9a9590" }}
+            style={{ ...dash.panel, color: dash.mainMuted }}
           >
             No purchases yet.
           </div>
         ) : (
           <div
             className="rounded-2xl overflow-hidden"
-            style={{ background: "#0f0e0c", border: "1px solid #1f1d19" }}
+            style={{ ...dash.panel }}
           >
-            <div className="grid grid-cols-12 px-5 py-3 text-xs font-semibold" style={{ color: "#9a9590", borderBottom: "1px solid #1f1d19" }}>
+            <div
+              className="grid grid-cols-12 px-5 py-3 text-xs font-semibold"
+              style={{ color: dash.mainMuted, borderBottom: `1px solid ${dash.rowDivider}` }}
+            >
               <div className="col-span-4">Date</div>
               <div className="col-span-4">Product</div>
               <div className="col-span-2">Amount</div>
@@ -95,15 +99,15 @@ export default async function BillingPage() {
                 <div
                   key={p.id}
                   className="grid grid-cols-12 px-5 py-4 text-sm items-center"
-                  style={{ borderBottom: "1px solid #1f1d19" }}
+                  style={{ borderBottom: `1px solid ${dash.rowDivider}` }}
                 >
-                  <div className="col-span-4" style={{ color: "#d4cfc9" }}>
+                  <div className="col-span-4" style={{ color: dash.mainText }}>
                     {date}
                   </div>
-                  <div className="col-span-4" style={{ color: "#d4cfc9" }}>
+                  <div className="col-span-4" style={{ color: dash.mainText }}>
                     {productName(p.tier_purchased)}
                   </div>
-                  <div className="col-span-2" style={{ color: "#d4cfc9" }}>
+                  <div className="col-span-2" style={{ color: dash.mainText }}>
                     {displayAmount(p.amount_paid_cents ?? null, p.tier_purchased ?? null)}
                   </div>
                   <div className="col-span-2 text-right">
@@ -118,7 +122,7 @@ export default async function BillingPage() {
                         Download
                       </a>
                     ) : (
-                      <span className="text-xs" style={{ color: "#6b6560" }}>
+                      <span className="text-xs" style={{ color: dash.mainMuted }}>
                         —
                       </span>
                     )}
@@ -129,7 +133,7 @@ export default async function BillingPage() {
           </div>
         )}
 
-        <p className="text-sm" style={{ color: "#9a9590" }}>
+        <p className="text-sm" style={{ color: dash.mainMuted }}>
           Need help? Email{" "}
           <Link href="/contact" style={{ color: "#c8392b" }}>
             support

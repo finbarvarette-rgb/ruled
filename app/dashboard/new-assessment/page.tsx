@@ -4,12 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import { Spinner } from "@/components/Spinner";
 import { PROVINCES, ONBOARDING_INTAKE_KEY, ONBOARDING_PROVINCE_KEY } from "@/lib/constants";
+import { dash } from "../theme";
 
-const inputStyle = {
-  background: "#0b0a08",
-  color: "#f5f1eb",
-  border: "1px solid #1f1d19",
-};
+const inputStyle = { ...dash.input };
 
 export default function NewAssessmentPage() {
   const [intake, setIntake] = useState("");
@@ -96,21 +93,18 @@ export default function NewAssessmentPage() {
       <div className="max-w-3xl mx-auto w-full flex flex-col gap-6">
         <header className="flex flex-col gap-2">
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">New case assessment</h1>
-          <p className="text-sm" style={{ color: "#9a9590" }}>
+          <p className="text-sm" style={{ color: dash.mainMuted }}>
             Describe what happened and we&apos;ll generate your assessment in minutes.
           </p>
         </header>
 
-        <section
-          className="rounded-2xl p-6 flex flex-col gap-4"
-          style={{ background: "#0f0e0c", border: "1px solid #1f1d19" }}
-        >
+        <section className="rounded-2xl p-6 flex flex-col gap-4" style={{ ...dash.panel }}>
           <textarea
             value={intake}
             onChange={(e) => setIntake(e.target.value)}
             rows={10}
             placeholder="Example: My contractor took a $5,000 deposit, did half the work, and stopped responding…"
-            className="w-full rounded-xl px-4 py-4 text-sm leading-relaxed resize-none outline-none"
+            className="w-full rounded-xl px-4 py-4 text-sm leading-relaxed resize-none outline-none placeholder:text-[#534f4a]"
             style={inputStyle}
           />
 
@@ -118,7 +112,7 @@ export default function NewAssessmentPage() {
             value={province}
             onChange={(e) => setProvince(e.target.value)}
             className="w-full rounded-xl px-4 py-3 text-sm outline-none appearance-none cursor-pointer"
-            style={{ ...inputStyle, color: province ? "#f5f1eb" : "#9a9590" }}
+            style={{ ...inputStyle, color: province ? dash.mainText : dash.mainMuted }}
           >
             <option value="">Select your province</option>
             {PROVINCES.map((p) => (
@@ -147,19 +141,19 @@ export default function NewAssessmentPage() {
         </section>
 
         {assessment && (
-          <section
-            className="rounded-2xl p-6 md:p-8 flex flex-col gap-4"
-            style={{ background: "#0f0e0c", border: "1px solid #1f1d19" }}
-          >
+          <section className="rounded-2xl p-6 md:p-8 flex flex-col gap-4" style={{ ...dash.panel }}>
             <div className="flex items-center justify-between gap-4">
               <h2 className="text-lg font-semibold">Your assessment</h2>
               {caseId && (
-                <span className="text-xs" style={{ color: "#6b6560" }}>
+                <span className="text-xs" style={{ color: dash.mainMuted }}>
                   Saved to your cases
                 </span>
               )}
             </div>
-            <pre className="whitespace-pre-wrap text-sm leading-relaxed" style={{ color: "#d4cfc9" }}>
+            <pre
+              className="whitespace-pre-wrap text-sm leading-relaxed"
+              style={{ color: dash.mainText }}
+            >
               {assessment}
             </pre>
           </section>

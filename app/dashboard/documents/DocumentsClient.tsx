@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import type { Case } from "@/lib/supabase";
 import { generateCaseTitle, getCaseMeta } from "../case-utils";
+import { dash } from "../theme";
 
 function downloadTextFile(filename: string, content: string) {
   const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
@@ -30,7 +31,7 @@ export function DocumentsClient({ cases }: { cases: Case[] }) {
       <div className="max-w-6xl mx-auto w-full flex flex-col gap-8">
         <header className="flex flex-col gap-2">
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Documents</h1>
-          <p className="text-sm" style={{ color: "#9a9590" }}>
+          <p className="text-sm" style={{ color: dash.mainMuted }}>
             Download your purchased documents across all cases.
           </p>
         </header>
@@ -38,7 +39,7 @@ export function DocumentsClient({ cases }: { cases: Case[] }) {
         {grouped.length === 0 ? (
           <div
             className="rounded-2xl p-6 text-sm"
-            style={{ background: "#0f0e0c", border: "1px solid #1f1d19", color: "#9a9590" }}
+            style={{ ...dash.panel, color: dash.mainMuted }}
           >
             No documents yet. Complete an assessment and upgrade to generate your documents.
           </div>
@@ -48,11 +49,11 @@ export function DocumentsClient({ cases }: { cases: Case[] }) {
               <section
                 key={g.caseRecord.id}
                 className="rounded-2xl p-6 md:p-8 flex flex-col gap-4"
-                style={{ background: "#0f0e0c", border: "1px solid #1f1d19" }}
+                style={{ ...dash.panel }}
               >
                 <div className="flex flex-col gap-1">
                   <h2 className="text-base font-semibold">{g.title}</h2>
-                  <p className="text-xs" style={{ color: "#9a9590" }}>
+                  <p className="text-xs" style={{ color: dash.mainMuted }}>
                     Created{" "}
                     {new Date(g.caseRecord.created_at).toLocaleDateString("en-CA", {
                       year: "numeric",
@@ -67,11 +68,11 @@ export function DocumentsClient({ cases }: { cases: Case[] }) {
                     <li
                       key={doc.id}
                       className="rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
-                      style={{ background: "#0b0a08", border: "1px solid #1f1d19" }}
+                      style={{ ...dash.nested }}
                     >
                       <div className="min-w-0">
                         <p className="text-sm font-semibold">{doc.title}</p>
-                        <p className="text-xs truncate" style={{ color: "#9a9590" }}>
+                        <p className="text-xs truncate" style={{ color: dash.mainMuted }}>
                           {g.title}
                         </p>
                       </div>

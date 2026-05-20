@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
 import { Spinner } from "@/components/Spinner";
 import { PROVINCES } from "@/lib/constants";
+import { dash } from "../theme";
 
 type UserProfile = {
   first_name: string | null;
@@ -16,15 +17,11 @@ type UserProfile = {
   postal_code: string | null;
 };
 
-const inputStyle = {
-  background: "#0b0a08",
-  color: "#f5f1eb",
-  border: "1px solid #1f1d19",
-};
+const inputStyle = { ...dash.input };
 
 function FieldLabel({ children }: { children: string }) {
   return (
-    <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "#9a9590" }}>
+    <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: dash.mainMuted }}>
       {children}
     </p>
   );
@@ -233,19 +230,16 @@ export function AccountSettings({
     <>
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Account</h1>
-        <p className="text-sm mt-1" style={{ color: "#9a9590" }}>
+        <p className="text-sm mt-1" style={{ color: dash.mainMuted }}>
           Manage your Ruled account
         </p>
       </div>
 
       {/* Profile information */}
-      <section
-        className="rounded-2xl p-6 flex flex-col gap-5"
-        style={{ background: "#0f0e0c", border: "1px solid #1f1d19" }}
-      >
+      <section className="rounded-2xl p-6 flex flex-col gap-5" style={{ ...dash.panel }}>
         <div className="flex flex-col gap-1">
           <h2 className="font-semibold text-sm">Profile information</h2>
-          <p className="text-sm" style={{ color: "#9a9590" }}>
+          <p className="text-sm" style={{ color: dash.mainMuted }}>
             This helps us personalize your documents and case pack.
           </p>
         </div>
@@ -314,7 +308,7 @@ export function AccountSettings({
                 className="rounded-lg px-4 py-3 text-sm outline-none appearance-none cursor-pointer"
                 style={{
                   ...inputStyle,
-                  color: province ? "#f5f1eb" : "#9a9590",
+                  color: province ? dash.mainText : dash.mainMuted,
                 }}
               >
                 <option value="">Select</option>
@@ -351,7 +345,7 @@ export function AccountSettings({
               <p
                 className="text-sm"
                 style={{
-                  color: profileMessage === "Saved." ? "#9a9590" : "#c8392b",
+                  color: profileMessage === "Saved." ? dash.mainMuted : "#c8392b",
                 }}
               >
                 {profileMessage}
@@ -361,13 +355,10 @@ export function AccountSettings({
         </form>
       </section>
 
-      <section
-        className="rounded-2xl p-6 flex flex-col gap-4"
-        style={{ background: "#0f0e0c", border: "1px solid #1f1d19" }}
-      >
+      <section className="rounded-2xl p-6 flex flex-col gap-4" style={{ ...dash.panel }}>
         <h2 className="font-semibold text-sm">Email</h2>
-        <p className="text-sm" style={{ color: "#9a9590" }}>
-          Current: <span style={{ color: "#f5f1eb" }}>{email}</span>
+        <p className="text-sm" style={{ color: dash.mainMuted }}>
+          Current: <span style={{ color: dash.mainText }}>{email}</span>
         </p>
         <form
           onSubmit={handleEmailUpdate}
@@ -380,11 +371,7 @@ export function AccountSettings({
             placeholder="New email address"
             required
             className="flex-1 rounded-lg px-4 py-3 text-sm outline-none"
-            style={{
-              background: "#0f0e0c",
-              color: "#f5f1eb",
-              border: "1px solid #2a2825",
-            }}
+            style={inputStyle}
           />
           <button
             type="submit"
@@ -396,17 +383,14 @@ export function AccountSettings({
           </button>
         </form>
         {emailMessage && (
-          <p className="text-sm" style={{ color: "#9a9590" }}>
+          <p className="text-sm" style={{ color: dash.mainMuted }}>
             {emailMessage}
           </p>
         )}
       </section>
 
       {/* Password */}
-      <section
-        className="rounded-2xl p-6 flex flex-col gap-4"
-        style={{ background: "#0f0e0c", border: "1px solid #1f1d19" }}
-      >
+      <section className="rounded-2xl p-6 flex flex-col gap-4" style={{ ...dash.panel }}>
         <h2 className="font-semibold text-sm">Password</h2>
         <form onSubmit={handlePasswordChange} className="flex flex-col gap-3">
           <input
@@ -442,7 +426,7 @@ export function AccountSettings({
               style={{
                 color:
                   passwordMessage === "Password updated."
-                    ? "#9a9590"
+                    ? dash.mainMuted
                     : "#c8392b",
               }}
             >
@@ -462,15 +446,12 @@ export function AccountSettings({
       </section>
 
       {/* Notification preferences */}
-      <section
-        className="rounded-2xl p-6 flex flex-col gap-4"
-        style={{ background: "#0f0e0c", border: "1px solid #1f1d19" }}
-      >
+      <section className="rounded-2xl p-6 flex flex-col gap-4" style={{ ...dash.panel }}>
         <h2 className="font-semibold text-sm">Notification preferences</h2>
         <div className="flex items-start justify-between gap-4">
           <div className="flex flex-col gap-1">
             <p className="text-sm font-medium">Email notifications</p>
-            <p className="text-sm" style={{ color: "#9a9590" }}>
+            <p className="text-sm" style={{ color: dash.mainMuted }}>
               Case updates, product delivery, and tips.
             </p>
           </div>
@@ -480,9 +461,9 @@ export function AccountSettings({
             onClick={() => handleToggleNotifications(!emailNotifications)}
             className="shrink-0 rounded-full px-3 py-2 text-xs font-semibold disabled:opacity-60 cursor-pointer"
             style={{
-              background: emailNotifications ? "#c8392b" : "#0f0e0c",
-              color: "#f5f1eb",
-              border: emailNotifications ? "1px solid #c8392b" : "1px solid #1f1d19",
+              background: emailNotifications ? "#c8392b" : dash.input.background,
+              color: emailNotifications ? "#f5f1eb" : dash.mainText,
+              border: emailNotifications ? "1px solid #c8392b" : dash.chromeBorder,
             }}
           >
             {emailNotifications ? "On" : "Off"}
@@ -491,7 +472,7 @@ export function AccountSettings({
         {notifMessage && (
           <p
             className="text-sm"
-            style={{ color: notifMessage === "Saved." ? "#9a9590" : "#c8392b" }}
+            style={{ color: notifMessage === "Saved." ? dash.mainMuted : "#c8392b" }}
           >
             {notifMessage}
           </p>
@@ -500,12 +481,12 @@ export function AccountSettings({
 
       <section
         className="rounded-2xl p-6 flex flex-col gap-4"
-        style={{ background: "#0f0e0c", border: "1px solid #c8392b" }}
+        style={{ ...dash.panel, border: "1px solid #c8392b" }}
       >
         <h2 className="font-semibold text-sm" style={{ color: "#c8392b" }}>
           Danger zone
         </h2>
-        <p className="text-sm" style={{ color: "#9a9590" }}>
+        <p className="text-sm" style={{ color: dash.mainMuted }}>
           Permanently delete your account and all associated cases. This cannot
           be undone.
         </p>
@@ -528,12 +509,9 @@ export function AccountSettings({
           className="fixed inset-0 z-50 flex items-center justify-center px-4"
           style={{ background: "rgba(15, 14, 12, 0.85)" }}
         >
-          <div
-            className="max-w-md w-full rounded-2xl p-6 flex flex-col gap-4"
-            style={{ background: "#0f0e0c", border: "1px solid #1f1d19" }}
-          >
+          <div className="max-w-md w-full rounded-2xl p-6 flex flex-col gap-4" style={{ ...dash.panel }}>
             <h3 className="font-semibold">Are you sure?</h3>
-            <p className="text-sm" style={{ color: "#9a9590" }}>
+            <p className="text-sm" style={{ color: dash.mainMuted }}>
               This will permanently delete all your cases and data. Type DELETE
               to confirm.
             </p>
@@ -543,11 +521,7 @@ export function AccountSettings({
               onChange={(e) => setDeleteConfirm(e.target.value)}
               placeholder="DELETE"
               className="rounded-lg px-4 py-3 text-sm outline-none"
-              style={{
-                background: "#0b0a08",
-                color: "#f5f1eb",
-                border: "1px solid #1f1d19",
-              }}
+              style={inputStyle}
             />
             {deleteError && (
               <p className="text-sm" style={{ color: "#c8392b" }}>
@@ -563,7 +537,7 @@ export function AccountSettings({
                   setDeleteError("");
                 }}
                 className="flex-1 rounded-xl px-4 py-3 text-sm font-semibold cursor-pointer"
-                style={{ border: "1px solid #1f1d19", color: "#9a9590" }}
+                style={{ border: dash.chromeBorder, color: dash.mainMuted }}
               >
                 Cancel
               </button>

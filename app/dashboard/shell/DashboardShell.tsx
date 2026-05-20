@@ -2,8 +2,11 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createBrowserClient } from "@supabase/ssr";
+import type { Case } from "@/lib/supabase";
+import { generateCaseTitle, getCaseMeta } from "../case-utils";
+import { dash } from "../theme";
 
 type NavItem = {
   key:
@@ -67,6 +70,10 @@ export function DashboardShell({
   const pathname = usePathname();
   const router = useRouter();
   const [query, setQuery] = useState("");
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchCases, setSearchCases] = useState<Case[]>([]);
 
   const supabase = useMemo(() => {
     return createBrowserClient(
@@ -87,8 +94,58 @@ export function DashboardShell({
     }
   }
 
+  useEffect(() => {
+    setNotifOpen(false);
+  }, [pathname]);
+
+  async function openSearch() {
+    setSearchOpen(true);
+    setNotifOpen(false);
+    if (searchCases.length > 0 || searchLoading) return;
+    setSearchLoading(true);
+    try {
+      const { data } = await supabase
+        .from("cases")
+        .select(
+          "id,created_at,intake_text,province,case_assessment,email,outcome,paid,tier_purchased,user_id,demand_letter,court_docs,hearing_prep"
+        )
+        .order("created_at", { ascending: false });
+      setSearchCases((data as Case[] | null) ?? []);
+    } finally {
+      setSearchLoading(false);
+    }
+  }
+
+  const searchResults = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return { cases: [] as Case[], docs: [] as { key: string; label: string; content: string; caseId: string }[] };
+
+    const cases = searchCases.filter((c) => {
+      const title = generateCaseTitle(c).toLowerCase();
+      return (
+        title.includes(q) ||
+        c.province.toLowerCase().includes(q) ||
+        c.intake_text.toLowerCase().includes(q)
+      );
+    });
+
+    const docs: { key: string; label: string; content: string; caseId: string }[] = [];
+    for (const c of searchCases) {
+      const meta = getCaseMeta(c);
+      for (const d of meta.documents) {
+        if (!d.available || !d.content?.trim()) continue;
+        const label = `${d.title} — ${generateCaseTitle(c)}`;
+        const hay = `${label}\n${d.content}`.toLowerCase();
+        if (hay.includes(q)) {
+          docs.push({ key: `${c.id}-${d.id}`, label, content: d.content, caseId: c.id });
+        }
+      }
+    }
+    return { cases: cases.slice(0, 8), docs: docs.slice(0, 10) };
+  }, [query, searchCases]);
+
   return (
-    <div className="min-h-screen w-full" style={{ background: "#0b0a08", color: "#f5f1eb" }}>
+    <div className="min-h-screen w-full" style={{ background: "#0b0a08" }}>
       <div className="flex min-h-screen">
         {/* Sidebar */}
         <aside
@@ -144,48 +201,82 @@ export function DashboardShell({
         </aside>
 
         {/* Main */}
-        <div className="flex-1 flex flex-col min-w-0">
+        <div
+          className="flex-1 flex flex-col min-w-0 min-h-screen"
+          style={{ background: dash.mainBg, color: dash.mainText }}
+        >
           {/* Top bar */}
-          <header
-            className="sticky top-0 z-40 border-b"
-            style={{ borderColor: "#1f1d19", background: "rgba(15, 14, 12, 0.9)", backdropFilter: "blur(10px)" }}
-          >
+          <header className="sticky top-0 z-40" style={dash.topBar}>
             <div className="h-16 px-4 sm:px-6 flex items-center gap-4">
               {/* Mobile logo */}
               <Link href="/dashboard" className="md:hidden">
-                <span className="font-bold" style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}>
+                <span
+                  className="font-bold"
+                  style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: dash.mainText }}
+                >
                   ruled<span style={{ color: "#c8392b" }}>.ca</span>
                 </span>
               </Link>
 
               <div className="flex-1 flex items-center justify-center">
                 <div className="w-full max-w-xl">
-                  <div
+                  <button
+                    type="button"
+                    onClick={openSearch}
                     className="flex items-center gap-3 rounded-xl px-4 py-2.5"
-                    style={{ background: "#0b0a08", border: "1px solid #1f1d19" }}
+                    style={{ background: dash.input.background, border: dash.input.border }}
                   >
-                    <IconSearch active={false} />
+                    <IconSearch active={false} mutedStroke="#534f4a" />
                     <input
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
+                      onFocus={openSearch}
                       placeholder="Search cases, documents…"
-                      className="w-full bg-transparent outline-none text-sm"
-                      style={{ color: "#f5f1eb" }}
+                      className="w-full bg-transparent outline-none text-sm placeholder:text-[#534f4a]"
+                      style={{ color: dash.mainText }}
                     />
-                  </div>
+                  </button>
                 </div>
               </div>
 
               <div className="flex items-center gap-3">
-                <IconButton label="Notifications">
-                  <IconBell active={false} />
-                </IconButton>
-                <IconButton label="Settings" onClick={() => router.push("/dashboard/settings")}>
-                  <IconSettings active={false} />
-                </IconButton>
+                <div className="relative">
+                  <IconButton
+                    label="Notifications"
+                    onClick={() => {
+                      setNotifOpen((v) => !v);
+                      setSearchOpen(false);
+                    }}
+                  >
+                  <IconBell active={false} mutedStroke="#534f4a" />
+                  </IconButton>
+                  {notifOpen && (
+                    <div
+                      className="absolute right-0 mt-2 w-64 rounded-xl overflow-hidden"
+                      style={{ ...dash.panel }}
+                    >
+                      <div className="px-4 py-3 text-sm" style={{ color: dash.mainMuted }}>
+                        No notifications yet
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <Link
+                  href="/dashboard/settings"
+                  className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors"
+                  style={{ background: "transparent", border: dash.chromeBorder }}
+                  aria-label="Settings"
+                  title="Settings"
+                >
+                  <IconSettings active={false} mutedStroke="#534f4a" />
+                </Link>
                 <div
                   className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold"
-                  style={{ background: "#1a1916", border: "1px solid #1f1d19", color: "#f5f1eb" }}
+                  style={{
+                    background: "#eeecea",
+                    border: dash.chromeBorder,
+                    color: dash.mainText,
+                  }}
                   title={user.email ?? undefined}
                 >
                   {user.initials}
@@ -198,11 +289,139 @@ export function DashboardShell({
         </div>
       </div>
 
+      {/* Search modal */}
+      {searchOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center px-4 pt-20"
+          style={{ background: "rgba(5, 5, 5, 0.75)" }}
+          onClick={() => setSearchOpen(false)}
+          role="presentation"
+        >
+          <div
+            className="w-full max-w-2xl rounded-2xl overflow-hidden"
+            style={{ ...dash.panel }}
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-label="Search"
+          >
+            <div
+              className="px-5 py-4 border-b flex items-center justify-between gap-4"
+              style={{ borderColor: dash.rowDivider }}
+            >
+              <p className="text-sm font-semibold">Search</p>
+              <button
+                type="button"
+                onClick={() => setSearchOpen(false)}
+                className="text-sm cursor-pointer"
+                style={{ color: dash.mainMuted }}
+              >
+                Close
+              </button>
+            </div>
+            <div className="p-5 flex flex-col gap-4">
+              <div
+                className="flex items-center gap-3 rounded-xl px-4 py-3"
+                style={{ background: dash.input.background, border: dash.input.border }}
+              >
+                <IconSearch active={false} mutedStroke="#534f4a" />
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Type to search your cases and documents…"
+                  className="w-full bg-transparent outline-none text-sm placeholder:text-[#534f4a]"
+                  style={{ color: dash.mainText }}
+                  autoFocus
+                />
+              </div>
+
+              {searchLoading ? (
+                <p className="text-sm" style={{ color: dash.mainMuted }}>
+                  Loading…
+                </p>
+              ) : (
+                <div className="flex flex-col gap-5">
+                  <div className="flex flex-col gap-2">
+                    <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: dash.mainMuted }}>
+                      Cases
+                    </p>
+                    {searchResults.cases.length === 0 ? (
+                      <p className="text-sm" style={{ color: dash.mainMuted }}>
+                        No matching cases.
+                      </p>
+                    ) : (
+                      <div className="flex flex-col gap-2">
+                        {searchResults.cases.map((c) => (
+                          <button
+                            key={c.id}
+                            type="button"
+                            onClick={() => {
+                              sessionStorage.setItem("dashboard_open_case_id", c.id);
+                              router.push("/dashboard/case-assessments");
+                              setSearchOpen(false);
+                            }}
+                            className="text-left rounded-xl px-4 py-3 cursor-pointer"
+                            style={{ background: dash.nested.background, border: dash.nested.border }}
+                          >
+                            <p className="text-sm font-semibold">{generateCaseTitle(c)}</p>
+                            <p className="text-xs" style={{ color: dash.mainMuted }}>
+                              {c.province}
+                            </p>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: dash.mainMuted }}>
+                      Documents
+                    </p>
+                    {searchResults.docs.length === 0 ? (
+                      <p className="text-sm" style={{ color: dash.mainMuted }}>
+                        No matching documents.
+                      </p>
+                    ) : (
+                      <div className="flex flex-col gap-2">
+                        {searchResults.docs.map((d) => (
+                          <div
+                            key={d.key}
+                            className="rounded-xl px-4 py-3 flex items-center justify-between gap-3"
+                            style={{ background: dash.nested.background, border: dash.nested.border }}
+                          >
+                            <p className="text-sm font-semibold min-w-0 truncate">{d.label}</p>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const blob = new Blob([d.content], { type: "text/plain;charset=utf-8" });
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement("a");
+                                a.href = url;
+                                a.download = "ruled-document.txt";
+                                a.click();
+                                URL.revokeObjectURL(url);
+                              }}
+                              className="rounded-lg px-3 py-2 text-xs font-semibold cursor-pointer shrink-0"
+                              style={{ background: "#c8392b", color: "#f5f1eb" }}
+                            >
+                              Download
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Floating + button */}
       <div className="fixed bottom-6 right-6 z-50 group">
         <div
           className="pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity absolute right-0 -top-10 text-xs font-semibold px-3 py-2 rounded-lg"
-          style={{ background: "#1a1916", border: "1px solid #1f1d19", color: "#f5f1eb" }}
+          style={{ ...dash.panel, color: dash.mainText }}
         >
           Start New Case Assessment
         </div>
@@ -234,7 +453,7 @@ function IconButton({
       type="button"
       onClick={onClick}
       className="w-9 h-9 rounded-lg flex items-center justify-center cursor-pointer transition-colors"
-      style={{ background: "transparent", border: "1px solid #1f1d19" }}
+      style={{ background: "transparent", border: dash.chromeBorder }}
       aria-label={label}
       title={label}
     >
@@ -243,8 +462,8 @@ function IconButton({
   );
 }
 
-function iconStyle(active: boolean) {
-  return { stroke: active ? "#c8392b" : "#9a9590" };
+function iconStyle(active: boolean, mutedStroke = "#9a9590") {
+  return { stroke: active ? "#c8392b" : mutedStroke };
 }
 
 function IconHome({ active }: { active: boolean }) {
@@ -289,9 +508,9 @@ function IconUser({ active }: { active: boolean }) {
     </svg>
   );
 }
-function IconSettings({ active }: { active: boolean }) {
+function IconSettings({ active, mutedStroke }: { active: boolean; mutedStroke?: string }) {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={iconStyle(active)}>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={iconStyle(active, mutedStroke)}>
       <path
         d="M12 15.5a3.5 3.5 0 1 0-3.5-3.5 3.5 3.5 0 0 0 3.5 3.5z"
         strokeWidth="1.8"
@@ -306,17 +525,17 @@ function IconSettings({ active }: { active: boolean }) {
     </svg>
   );
 }
-function IconSearch({ active }: { active: boolean }) {
+function IconSearch({ active, mutedStroke }: { active: boolean; mutedStroke?: string }) {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={iconStyle(active)}>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={iconStyle(active, mutedStroke)}>
       <path d="M10.5 18a7.5 7.5 0 1 1 7.5-7.5A7.5 7.5 0 0 1 10.5 18z" strokeWidth="1.8" />
       <path d="M16.5 16.5 21 21" strokeWidth="1.8" strokeLinecap="round" />
     </svg>
   );
 }
-function IconBell({ active }: { active: boolean }) {
+function IconBell({ active, mutedStroke }: { active: boolean; mutedStroke?: string }) {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={iconStyle(active)}>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={iconStyle(active, mutedStroke)}>
       <path
         d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 7h18s-3 0-3-7z"
         strokeWidth="1.8"

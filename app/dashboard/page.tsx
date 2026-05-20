@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { generateCaseTitle, getCaseMeta } from "./case-utils";
+import { dash } from "./theme";
 
 async function syncUserCases(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -78,7 +79,7 @@ export default async function DashboardPage() {
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
             Welcome back{firstName ? `, ${firstName}` : ""}
           </h1>
-          <p className="text-sm" style={{ color: "#9a9590" }}>
+          <p className="text-sm" style={{ color: dash.mainMuted }}>
             Here&apos;s what&apos;s happening with your cases.
           </p>
         </header>
@@ -91,14 +92,11 @@ export default async function DashboardPage() {
         </div>
 
         {/* Recent activity */}
-        <section
-          className="rounded-2xl p-6 md:p-8 flex flex-col gap-5"
-          style={{ background: "#0f0e0c", border: "1px solid #1f1d19" }}
-        >
+        <section className="rounded-2xl p-6 md:p-8 flex flex-col gap-5" style={{ ...dash.panel }}>
           <div className="flex items-center justify-between gap-4">
             <div className="flex flex-col gap-1">
               <h2 className="text-lg font-semibold">Recent activity</h2>
-              <p className="text-sm" style={{ color: "#9a9590" }}>
+              <p className="text-sm" style={{ color: dash.mainMuted }}>
                 Your latest case updates
               </p>
             </div>
@@ -114,7 +112,7 @@ export default async function DashboardPage() {
           {recent.length === 0 ? (
             <div
               className="rounded-xl p-6 text-sm"
-              style={{ background: "#0b0a08", border: "1px solid #1f1d19", color: "#9a9590" }}
+              style={{ ...dash.nested, color: dash.mainMuted }}
             >
               No cases yet. Click the + button to start a new assessment.
             </div>
@@ -124,11 +122,11 @@ export default async function DashboardPage() {
                 <div
                   key={item.id}
                   className="rounded-xl px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
-                  style={{ background: "#0b0a08", border: "1px solid #1f1d19" }}
+                  style={{ ...dash.nested }}
                 >
                   <div className="flex flex-col gap-1 min-w-0">
                     <p className="text-sm font-semibold truncate">{item.title}</p>
-                    <p className="text-xs" style={{ color: "#9a9590" }}>
+                    <p className="text-xs" style={{ color: dash.mainMuted }}>
                       Created{" "}
                       {new Date(item.createdAt).toLocaleDateString("en-CA", {
                         year: "numeric",
@@ -159,11 +157,8 @@ export default async function DashboardPage() {
 
 function SummaryCard({ label, value }: { label: string; value: string }) {
   return (
-    <div
-      className="rounded-2xl p-5 flex flex-col gap-2"
-      style={{ background: "#0f0e0c", border: "1px solid #1f1d19" }}
-    >
-      <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "#9a9590" }}>
+    <div className="rounded-2xl p-5 flex flex-col gap-2" style={{ ...dash.panel }}>
+      <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: dash.mainMuted }}>
         {label}
       </p>
       <p className="text-2xl font-semibold">{value}</p>

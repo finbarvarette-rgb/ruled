@@ -1,17 +1,28 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Case } from "@/lib/supabase";
 import { startCheckout } from "@/lib/checkout";
 import { Spinner } from "@/components/Spinner";
 import { extractClaimAmount, generateCaseTitle, getCaseMeta, getNextStep } from "../case-utils";
 import { saveCaseToSession } from "../components/dashboard-session";
+import { dash } from "../theme";
 
 export function CaseAssessmentsClient({ cases }: { cases: Case[] }) {
   const [openCase, setOpenCase] = useState<Case | null>(null);
   const [checkoutLoading, setCheckoutLoading] = useState<"demand" | "full" | null>(null);
 
   const sorted = useMemo(() => cases, [cases]);
+
+  useEffect(() => {
+    const target = sessionStorage.getItem("dashboard_open_case_id");
+    if (!target) return;
+    sessionStorage.removeItem("dashboard_open_case_id");
+    const match = cases.find((c) => c.id === target);
+    if (match) {
+      setOpenCase(match);
+    }
+  }, [cases]);
 
   async function handleCheckout(tier: "demand" | "full", c: Case) {
     setCheckoutLoading(tier);
@@ -28,7 +39,7 @@ export function CaseAssessmentsClient({ cases }: { cases: Case[] }) {
       <div className="max-w-6xl mx-auto w-full flex flex-col gap-8">
         <header className="flex flex-col gap-2">
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Case Assessments</h1>
-          <p className="text-sm" style={{ color: "#9a9590" }}>
+          <p className="text-sm" style={{ color: dash.mainMuted }}>
             Your assessments, progress, and next steps.
           </p>
         </header>
@@ -43,18 +54,18 @@ export function CaseAssessmentsClient({ cases }: { cases: Case[] }) {
               <article
                 key={c.id}
                 className="rounded-2xl p-6 flex flex-col gap-5"
-                style={{ background: "#0f0e0c", border: "1px solid #1f1d19" }}
+                style={{ ...dash.panel }}
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0 flex flex-col gap-2">
                     <h2 className="text-base font-semibold leading-snug truncate">
                       {title}
                     </h2>
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs" style={{ color: "#9a9590" }}>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs" style={{ color: dash.mainMuted }}>
                       <span>{c.province}</span>
-                      <span style={{ color: "#1f1d19" }}>•</span>
+                      <span style={{ color: dash.rowDivider }}>•</span>
                       <span>{amount ? `$${Number(amount).toLocaleString("en-CA")}` : "—"}</span>
-                      <span style={{ color: "#1f1d19" }}>•</span>
+                      <span style={{ color: dash.rowDivider }}>•</span>
                       <span>
                         {new Date(c.created_at).toLocaleDateString("en-CA", {
                           year: "numeric",
@@ -81,9 +92,12 @@ export function CaseAssessmentsClient({ cases }: { cases: Case[] }) {
                 {next && (
                   <div
                     className="rounded-xl px-4 py-3 flex items-center justify-between gap-3"
-                    style={{ background: "#0b0a08", border: "1px solid rgba(200, 57, 43, 0.30)" }}
+                    style={{
+                      background: dash.nested.background,
+                      border: "1px solid rgba(200, 57, 43, 0.30)",
+                    }}
                   >
-                    <p className="text-sm font-medium leading-snug" style={{ color: "#f5f1eb" }}>
+                    <p className="text-sm font-medium leading-snug" style={{ color: dash.mainText }}>
                       {next.label}
                     </p>
                     {next.kind === "checkout" && (
@@ -129,7 +143,11 @@ export function CaseAssessmentsClient({ cases }: { cases: Case[] }) {
                       onClick={() => handleCheckout("demand", c)}
                       disabled={checkoutLoading === "demand"}
                       className="rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer disabled:opacity-60 inline-flex items-center gap-2"
-                      style={{ background: "transparent", color: "#f5f1eb", border: "1px solid #1f1d19" }}
+                      style={{
+                        background: "transparent",
+                        color: dash.mainText,
+                        border: dash.chromeBorder,
+                      }}
                     >
                       {checkoutLoading === "demand" && <Spinner />}
                       Get Demand Letter
@@ -141,7 +159,11 @@ export function CaseAssessmentsClient({ cases }: { cases: Case[] }) {
                       onClick={() => handleCheckout("full", c)}
                       disabled={checkoutLoading === "full"}
                       className="rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer disabled:opacity-60 inline-flex items-center gap-2"
-                      style={{ background: "transparent", color: "#f5f1eb", border: "1px solid #1f1d19" }}
+                      style={{
+                        background: "transparent",
+                        color: dash.mainText,
+                        border: dash.chromeBorder,
+                      }}
                     >
                       {checkoutLoading === "full" && <Spinner />}
                       Get Full Case Pack
@@ -163,24 +185,30 @@ export function CaseAssessmentsClient({ cases }: { cases: Case[] }) {
         >
           <div
             className="w-full max-w-3xl rounded-2xl overflow-hidden"
-            style={{ background: "#0f0e0c", border: "1px solid #1f1d19" }}
+            style={{ ...dash.panel }}
             onClick={(e) => e.stopPropagation()}
             role="dialog"
             aria-label="Full assessment"
           >
-            <div className="px-6 py-4 flex items-center justify-between border-b" style={{ borderColor: "#1f1d19" }}>
+            <div
+              className="px-6 py-4 flex items-center justify-between border-b"
+              style={{ borderColor: dash.rowDivider }}
+            >
               <p className="text-sm font-semibold">Full assessment</p>
               <button
                 type="button"
                 onClick={() => setOpenCase(null)}
                 className="text-sm cursor-pointer"
-                style={{ color: "#9a9590" }}
+                style={{ color: dash.mainMuted }}
               >
                 Close
               </button>
             </div>
             <div className="p-6 max-h-[70vh] overflow-y-auto">
-              <pre className="whitespace-pre-wrap text-sm leading-relaxed" style={{ color: "#d4cfc9" }}>
+              <pre
+                className="whitespace-pre-wrap text-sm leading-relaxed"
+                style={{ color: dash.mainText }}
+              >
                 {openCase.case_assessment}
               </pre>
             </div>
@@ -208,20 +236,22 @@ function Pipeline({ currentIndex }: { currentIndex: number }) {
             <div key={s} className="flex items-center flex-1 min-w-0">
               <div
                 className="w-2.5 h-2.5 rounded-full shrink-0"
-                style={{ background: active ? "#c8392b" : "#1f1d19" }}
+                style={{ background: active ? "#c8392b" : dash.trackMuted }}
                 title={s}
               />
               {i < steps.length - 1 && (
                 <div
                   className="h-0.5 flex-1 mx-2"
-                  style={{ background: active ? "rgba(200, 57, 43, 0.6)" : "#1f1d19" }}
+                  style={{
+                    background: active ? "rgba(200, 57, 43, 0.6)" : dash.trackMuted,
+                  }}
                 />
               )}
             </div>
           );
         })}
       </div>
-      <p className="text-xs" style={{ color: "#9a9590" }}>
+      <p className="text-xs" style={{ color: dash.mainMuted }}>
         {steps[Math.min(currentIndex, steps.length - 1)]}
       </p>
     </div>

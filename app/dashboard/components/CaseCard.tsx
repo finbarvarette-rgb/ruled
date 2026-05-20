@@ -5,6 +5,7 @@ import type { Case } from "@/lib/supabase";
 import { startCheckout } from "@/lib/checkout";
 import { Spinner } from "@/components/Spinner";
 import { getCaseMeta, getNextStep, type CaseMeta } from "../case-utils";
+import { dash } from "../theme";
 import { CasePipeline } from "./CasePipeline";
 import { saveCaseToSession, downloadTextFile } from "./dashboard-session";
 
@@ -44,9 +45,9 @@ function ActionButton({
         primary
           ? { background: "#c8392b", color: "#f5f1eb" }
           : {
-              background: "#0f0e0c",
-              color: "#f5f1eb",
-              border: "1px solid #2a2825",
+              background: dash.input.background,
+              color: dash.mainText,
+              border: dash.input.border,
             }
       }
     >
@@ -88,14 +89,11 @@ export function CaseCard({ caseRecord }: { caseRecord: Case }) {
   }
 
   return (
-    <article
-      className="rounded-xl flex flex-col gap-6 p-6 md:p-8"
-      style={{ background: "#1a1916", border: "1px solid #2a2825" }}
-    >
+    <article className="rounded-xl flex flex-col gap-6 p-6 md:p-8" style={{ ...dash.panel }}>
       <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex flex-col gap-2 min-w-0">
           <h2 className="text-lg font-semibold leading-snug">{meta.title}</h2>
-          <p className="text-sm" style={{ color: "#9a9590" }}>
+          <p className="text-sm" style={{ color: dash.mainMuted }}>
             Created {createdLabel}
           </p>
         </div>
@@ -116,7 +114,7 @@ export function CaseCard({ caseRecord }: { caseRecord: Case }) {
       <div className="flex flex-col gap-3">
         <p
           className="text-xs font-semibold uppercase tracking-wide"
-          style={{ color: "#9a9590" }}
+          style={{ color: dash.mainMuted }}
         >
           Quick actions
         </p>
@@ -183,8 +181,8 @@ function NextStepsBlock({
     <section
       className="rounded-lg px-5 py-4 flex flex-col gap-2"
       style={{
-        background: "#0f0e0c",
-        border: "1px solid #c8392b",
+        ...dash.panel,
+        border: "1px solid rgba(200, 57, 43, 0.35)",
       }}
     >
       <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "#c8392b" }}>
@@ -195,8 +193,8 @@ function NextStepsBlock({
           type="button"
           disabled={!!checkoutLoading}
           onClick={() => onCheckout(nextStep.tier)}
-          className="text-sm font-medium text-left disabled:opacity-60 cursor-pointer flex items-center gap-2"
-          style={{ color: "#f5f1eb" }}
+          className="text-sm font-semibold text-left disabled:opacity-60 cursor-pointer flex items-center gap-2 rounded-lg px-4 py-2.5"
+          style={{ background: "#c8392b", color: "#f5f1eb" }}
         >
           {checkoutLoading === nextStep.tier && <Spinner />}
           {nextStep.label}
@@ -207,12 +205,12 @@ function NextStepsBlock({
             type="button"
             onClick={() => onNavigate(nextStep.href)}
             className="text-sm font-medium text-left cursor-pointer"
-            style={{ color: "#f5f1eb" }}
+            style={{ color: dash.mainText }}
           >
             {nextStep.label}
           </button>
           {nextStep.sublabel && (
-            <p className="text-xs" style={{ color: "#9a9590" }}>
+            <p className="text-xs" style={{ color: dash.mainMuted }}>
               {nextStep.sublabel}
             </p>
           )}
@@ -234,8 +232,8 @@ function CaseDocuments({
   if (purchased.length === 0) return null;
 
   return (
-    <div className="flex flex-col gap-3 border-t pt-6" style={{ borderColor: "#2a2825" }}>
-      <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "#9a9590" }}>
+    <div className="flex flex-col gap-3 border-t pt-6" style={{ borderColor: dash.rowDivider }}>
+      <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: dash.mainMuted }}>
         My documents
       </p>
       <ul className="flex flex-col gap-2">
@@ -243,7 +241,7 @@ function CaseDocuments({
           <li
             key={doc.id}
             className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-lg px-4 py-3"
-            style={{ background: "#0f0e0c", border: "1px solid #2a2825" }}
+            style={{ ...dash.nested }}
           >
             <span className="text-sm font-medium">{doc.title}</span>
             <button
@@ -259,8 +257,8 @@ function CaseDocuments({
               }}
               className="text-xs font-semibold rounded-md px-3 py-1.5 disabled:opacity-40 cursor-pointer shrink-0"
               style={{
-                background: doc.content?.trim() ? "#c8392b" : "#2a2825",
-                color: "#f5f1eb",
+                background: doc.content?.trim() ? "#c8392b" : "#e8e6e1",
+                color: doc.content?.trim() ? "#f5f1eb" : dash.mainMuted,
               }}
             >
               {doc.content?.trim() ? "Download" : "Generating…"}

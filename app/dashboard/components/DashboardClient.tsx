@@ -7,6 +7,7 @@ import { CaseCard } from "./CaseCard";
 import { EmptyState } from "./EmptyState";
 import { getCaseMeta, generateCaseTitle } from "../case-utils";
 import { downloadTextFile } from "./dashboard-session";
+import { dash } from "../theme";
 
 export function DashboardClient({
   cases,
@@ -40,7 +41,7 @@ export function DashboardClient({
           <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
             Your cases
           </h1>
-          <p className="text-sm" style={{ color: "#9a9590" }}>
+          <p className="text-sm" style={{ color: dash.mainMuted }}>
             Welcome back, {userEmail}
           </p>
         </header>
@@ -56,13 +57,10 @@ export function DashboardClient({
             </div>
 
             {allDocuments.length > 0 && (
-              <section
-                className="rounded-xl p-6 md:p-8 flex flex-col gap-5"
-                style={{ background: "#1a1916", border: "1px solid #2a2825" }}
-              >
+              <section className="rounded-xl p-6 md:p-8 flex flex-col gap-5" style={{ ...dash.panel }}>
                 <div className="flex flex-col gap-1">
                   <h2 className="text-lg font-semibold">My documents</h2>
-                  <p className="text-sm" style={{ color: "#9a9590" }}>
+                  <p className="text-sm" style={{ color: dash.mainMuted }}>
                     All documents from your cases — download anytime.
                   </p>
                 </div>
@@ -71,16 +69,13 @@ export function DashboardClient({
                     <li
                       key={doc.key}
                       className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-lg px-4 py-3"
-                      style={{
-                        background: "#0f0e0c",
-                        border: "1px solid #2a2825",
-                      }}
+                      style={{ ...dash.nested }}
                     >
                       <div className="min-w-0">
                         <p className="text-sm font-medium">{doc.docTitle}</p>
                         <p
                           className="text-xs truncate"
-                          style={{ color: "#9a9590" }}
+                          style={{ color: dash.mainMuted }}
                         >
                           {doc.caseTitle}
                         </p>
