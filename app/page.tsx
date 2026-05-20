@@ -56,6 +56,7 @@ export default function Home() {
 
       {/* How It Works */}
       <section
+        id="how-it-works"
         className="px-6 py-16 md:py-20 border-t"
         style={{ borderColor: "#2a2825" }}
       >

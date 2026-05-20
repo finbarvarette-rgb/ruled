@@ -1,19 +1,38 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
 
-type DropdownItem = { label: string; href: string; desc?: string };
+type DropdownItem = {
+  label: string;
+  href: string;
+  desc?: string;
+  /** In-page scroll on home; navigate home then scroll from elsewhere */
+  scrollToId?: "how-it-works";
+};
 
 const NAV_ITEMS: { label: string; href?: string; dropdown?: DropdownItem[] }[] = [
   {
     label: "How It Works",
     dropdown: [
-      { label: "The Process", href: "/#how-it-works", desc: "Three steps to getting paid" },
-      { label: "Case Assessment", href: "/onboarding", desc: "Free AI-powered analysis" },
-      { label: "Demand Letter", href: "/demand-preview", desc: "Put them on formal notice" },
+      {
+        label: "The Process",
+        href: "/",
+        desc: "Three steps to getting paid",
+        scrollToId: "how-it-works",
+      },
+      {
+        label: "Case Assessment",
+        href: "/how-it-works/case-assessment",
+        desc: "What the free assessment is and what you get",
+      },
+      {
+        label: "Small Claims Guide",
+        href: "/small-claims-guide",
+        desc: "How small claims works in Canada",
+      },
     ],
   },
   {
@@ -27,7 +46,15 @@ const NAV_ITEMS: { label: string; href?: string; dropdown?: DropdownItem[] }[] =
   { label: "About", href: "/about" },
 ];
 
-function Dropdown({ items, onClose }: { items: DropdownItem[]; onClose: () => void }) {
+function Dropdown({
+  items,
+  onClose,
+  onScrollToHowItWorks,
+}: {
+  items: DropdownItem[];
+  onClose: () => void;
+  onScrollToHowItWorks: () => void;
+}) {
   return (
     <div
       className="absolute top-full left-1/2 mt-2 w-64 rounded-xl overflow-hidden shadow-2xl z-50"
@@ -37,26 +64,50 @@ function Dropdown({ items, onClose }: { items: DropdownItem[]; onClose: () => vo
         border: "1px solid #2a2825",
       }}
     >
-      {items.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          onClick={onClose}
-          className="flex flex-col gap-0.5 px-4 py-3 transition-colors"
-          style={{ borderBottom: "1px solid #2a2825" }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = "#222018")}
-          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-        >
-          <span className="text-sm font-medium" style={{ color: "#f5f1eb" }}>
-            {item.label}
-          </span>
-          {item.desc && (
-            <span className="text-xs" style={{ color: "#9a9590" }}>
-              {item.desc}
+      {items.map((item) =>
+        item.scrollToId === "how-it-works" ? (
+          <button
+            key={item.label}
+            type="button"
+            onClick={() => {
+              onClose();
+              onScrollToHowItWorks();
+            }}
+            className="flex flex-col gap-0.5 px-4 py-3 transition-colors w-full text-left cursor-pointer"
+            style={{ borderBottom: "1px solid #2a2825" }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "#222018")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+          >
+            <span className="text-sm font-medium" style={{ color: "#f5f1eb" }}>
+              {item.label}
             </span>
-          )}
-        </Link>
-      ))}
+            {item.desc && (
+              <span className="text-xs" style={{ color: "#9a9590" }}>
+                {item.desc}
+              </span>
+            )}
+          </button>
+        ) : (
+          <Link
+            key={item.label}
+            href={item.href}
+            onClick={onClose}
+            className="flex flex-col gap-0.5 px-4 py-3 transition-colors"
+            style={{ borderBottom: "1px solid #2a2825" }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "#222018")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+          >
+            <span className="text-sm font-medium" style={{ color: "#f5f1eb" }}>
+              {item.label}
+            </span>
+            {item.desc && (
+              <span className="text-xs" style={{ color: "#9a9590" }}>
+                {item.desc}
+              </span>
+            )}
+          </Link>
+        )
+      )}
     </div>
   );
 }
@@ -139,7 +190,40 @@ export function Nav() {
     };
   }, [supabase]);
 
-  const isLanding = pathname === "/";
+  const showMarketingNav = !pathname.startsWith("/dashboard");
+
+  const scrollToHowItWorks = useCallback(() => {
+    if (pathname === "/") {
+      document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      try {
+        sessionStorage.setItem("ruled_pending_scroll", "how-it-works");
+      } catch {
+        /* ignore */
+      }
+      router.push("/");
+    }
+  }, [pathname, router]);
+
+  useEffect(() => {
+    if (pathname !== "/") return;
+    let pending: string | null = null;
+    try {
+      pending = sessionStorage.getItem("ruled_pending_scroll");
+    } catch {
+      return;
+    }
+    if (pending !== "how-it-works") return;
+    try {
+      sessionStorage.removeItem("ruled_pending_scroll");
+    } catch {
+      /* ignore */
+    }
+    const id = window.setTimeout(() => {
+      document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+    return () => clearTimeout(id);
+  }, [pathname]);
 
   // Dashboard has its own app-like chrome.
   if (pathname.startsWith("/dashboard")) {
@@ -161,7 +245,7 @@ export function Nav() {
           ruled<span style={{ color: "#c8392b" }}>.ca</span>
         </Link>
 
-        {isLanding && (
+        {showMarketingNav && (
           <nav className="hidden md:flex items-center gap-1 flex-1">
             {NAV_ITEMS.map((item) => (
               <div key={item.label} className="relative">
@@ -207,14 +291,13 @@ export function Nav() {
                   <Dropdown
                     items={item.dropdown}
                     onClose={() => setOpenDropdown(null)}
+                    onScrollToHowItWorks={scrollToHowItWorks}
                   />
                 )}
               </div>
             ))}
           </nav>
         )}
-
-        {!isLanding && <div className="flex-1" />}
 
         <div className="flex items-center gap-3 ml-auto">
           {signedIn ? (
@@ -261,7 +344,7 @@ export function Nav() {
             </>
           )}
 
-          {isLanding && (
+          {showMarketingNav && (
             <button
               type="button"
               onClick={() => setMobileOpen(!mobileOpen)}
@@ -280,7 +363,7 @@ export function Nav() {
         </div>
       </div>
 
-      {isLanding && mobileOpen && (
+      {showMarketingNav && mobileOpen && (
         <div
           className="md:hidden border-t px-4 py-4 flex flex-col gap-1"
           style={{ background: "#0f0e0c", borderColor: "#2a2825" }}
@@ -294,17 +377,32 @@ export function Nav() {
                 >
                   {item.label}
                 </p>
-                {item.dropdown.map((sub) => (
-                  <Link
-                    key={sub.href}
-                    href={sub.href}
-                    className="block px-4 py-2 text-sm rounded-lg"
-                    style={{ color: "#9a9590" }}
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    {sub.label}
-                  </Link>
-                ))}
+                {item.dropdown.map((sub) =>
+                  sub.scrollToId === "how-it-works" ? (
+                    <button
+                      key={sub.label}
+                      type="button"
+                      className="block w-full text-left px-4 py-2 text-sm rounded-lg cursor-pointer"
+                      style={{ color: "#9a9590" }}
+                      onClick={() => {
+                        setMobileOpen(false);
+                        scrollToHowItWorks();
+                      }}
+                    >
+                      {sub.label}
+                    </button>
+                  ) : (
+                    <Link
+                      key={sub.href}
+                      href={sub.href}
+                      className="block px-4 py-2 text-sm rounded-lg"
+                      style={{ color: "#9a9590" }}
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      {sub.label}
+                    </Link>
+                  )
+                )}
               </div>
             ) : (
               <Link
