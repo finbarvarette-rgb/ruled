@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Nav } from "@/components/Nav";
+import { RuledAIChat } from "@/components/RuledAIChat";
 
 export const metadata: Metadata = {
   metadataBase: new URL(
@@ -31,6 +32,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col antialiased site-body">
         <Nav />
         {children}
+        <RuledAIChat />
       </body>
     </html>
   );
