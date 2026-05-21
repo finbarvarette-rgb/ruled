@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo } from "react";
 import type { Case } from "@/lib/supabase";
-import { deliveryHref } from "@/lib/case-pack";
+import { deliveryHref, hasDocumentContent } from "@/lib/case-pack";
 import {
   downloadAssessmentPdf,
   downloadBrandedPdf,
@@ -126,7 +126,7 @@ export function DocumentsClient({ cases }: { cases: Case[] }) {
 
                 <ul className="flex flex-col gap-2">
                   {g.docs.map((doc) => {
-                    const hasContent = !!doc.content?.trim();
+                    const hasContent = hasDocumentContent(doc.content);
                     const href = openHref(g.caseRecord, doc.id);
 
                     return (

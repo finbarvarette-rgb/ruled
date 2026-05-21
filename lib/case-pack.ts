@@ -252,6 +252,13 @@ AFTER THE HEARING
 
 export type PackDeliverySection = "court" | "hearing";
 
+/** True when saved document text exists (non-null, non-empty after trim). */
+export function hasDocumentContent(
+  value: string | null | undefined
+): boolean {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
 export function deliveryHref(
   caseId: string,
   tier: "demand" | "full",

@@ -9,6 +9,7 @@ import {
   buildHowToFileText,
   extractClaimAmount,
   getProvinceFiling,
+  hasDocumentContent,
   inferClaimantName,
   inferDefendantName,
 } from "@/lib/case-pack";
@@ -447,8 +448,10 @@ function FullCasePackDeliveryContent() {
     async function finishPack(
       data: PaymentData,
       notifyDelivery: boolean,
-      section: GenerateSection | null
+      section: GenerateSection | null,
+      options: { fromDatabase?: boolean } = {}
     ) {
+      const fromDatabase = options.fromDatabase === true;
       if (data.tier !== "full") {
         throw new Error(
           "This delivery page is for Full Case Pack purchases. Check your email for the correct link."
@@ -468,60 +471,79 @@ function FullCasePackDeliveryContent() {
       setAssessment(data.assessment);
       setIntake(data.intake);
 
-      let letter =
-        data.demandLetter ??
-        (typeof window !== "undefined"
-          ? sessionStorage.getItem("ruled_demand_letter")
-          : null);
-      let court = data.courtDocs ?? "";
-      let hearing = data.hearingPrep ?? "";
+      let letter: string | null = hasDocumentContent(data.demandLetter)
+        ? data.demandLetter!.trim()
+        : null;
+      if (!letter && !fromDatabase && typeof window !== "undefined") {
+        const stored = sessionStorage.getItem("ruled_demand_letter");
+        if (hasDocumentContent(stored)) {
+          letter = stored!.trim();
+        }
+      }
+
+      let court: string | null = hasDocumentContent(data.courtDocs)
+        ? data.courtDocs!.trim()
+        : null;
+      let hearing: string | null = hasDocumentContent(data.hearingPrep)
+        ? data.hearingPrep!.trim()
+        : null;
 
       if (section === "court") {
-        if (!court.trim()) {
+        if (!hasDocumentContent(court)) {
           setPhase("generating");
-          court = await fetchCourtDocs(data.assessment, data.province);
+          court = (await fetchCourtDocs(data.assessment, data.province)).trim();
           await savePackPartial(data.caseId, { courtDocs: court });
         }
       } else if (section === "hearing") {
-        if (!hearing.trim()) {
+        if (!hasDocumentContent(hearing)) {
           setPhase("generating");
-          hearing = await fetchHearingPrep(data.assessment, data.province);
+          hearing = (await fetchHearingPrep(data.assessment, data.province)).trim();
           await savePackPartial(data.caseId, { hearingPrep: hearing });
         }
       } else {
-        const needLetter = !letter;
-        const needCourt = !court.trim();
-        const needHearing = !hearing.trim();
+        const needLetter = !hasDocumentContent(letter);
+        const needCourt = !hasDocumentContent(court);
+        const needHearing = !hasDocumentContent(hearing);
         if (needLetter || needCourt || needHearing) {
           setPhase("generating");
           const [letterResult, courtResult, hearingResult] = await Promise.all([
-            needLetter ? generateDemandLetter(data) : Promise.resolve(letter!),
+            needLetter
+              ? generateDemandLetter(data)
+              : Promise.resolve(letter as string),
             needCourt
               ? fetchCourtDocs(data.assessment, data.province)
-              : Promise.resolve(court),
+              : Promise.resolve(court as string),
             needHearing
               ? fetchHearingPrep(data.assessment, data.province)
-              : Promise.resolve(hearing),
+              : Promise.resolve(hearing as string),
           ]);
-          letter = letterResult;
-          court = courtResult;
-          hearing = hearingResult;
-          if (!letter) {
-            throw new Error("Failed to generate demand letter");
+          if (needLetter) {
+            letter = letterResult?.trim() ?? null;
+            if (!hasDocumentContent(letter)) {
+              throw new Error("Failed to generate demand letter");
+            }
+          }
+          if (needCourt) {
+            court = courtResult?.trim() ?? null;
+          }
+          if (needHearing) {
+            hearing = hearingResult?.trim() ?? null;
           }
           const partial: {
             demandLetter?: string;
             courtDocs?: string;
             hearingPrep?: string;
           } = {};
-          if (needLetter) partial.demandLetter = letter;
-          if (needCourt) partial.courtDocs = court;
-          if (needHearing) partial.hearingPrep = hearing;
-          await savePackPartial(data.caseId, partial);
+          if (needLetter && letter) partial.demandLetter = letter;
+          if (needCourt && court) partial.courtDocs = court;
+          if (needHearing && hearing) partial.hearingPrep = hearing;
+          if (Object.keys(partial).length > 0) {
+            await savePackPartial(data.caseId, partial);
+          }
         }
       }
 
-      if (!letter && !section) {
+      if (!hasDocumentContent(letter) && !section) {
         throw new Error("Demand letter is missing");
       }
 
@@ -529,8 +551,8 @@ function FullCasePackDeliveryContent() {
         updateRuledSession({ demandLetter: letter });
       }
       setDemandLetter(letter ?? "");
-      setCourtDocs(court);
-      setHearingPrep(hearing);
+      setCourtDocs(court ?? "");
+      setHearingPrep(hearing ?? "");
       setPhase("ready");
 
       if (notifyDelivery && data.caseId) {
@@ -544,7 +566,7 @@ function FullCasePackDeliveryContent() {
 
     async function load() {
       try {
-        if (caseIdParam && !sessionId) {
+        if (caseIdParam) {
           const url = `/api/cases/access?caseId=${encodeURIComponent(caseIdParam)}`;
           const res = await fetch(url, { credentials: "include" });
           const contentType = res.headers.get("content-type") ?? "";
@@ -557,7 +579,7 @@ function FullCasePackDeliveryContent() {
           if (!res.ok) {
             throw new Error(data.error ?? "Could not load your case");
           }
-          await finishPack(data, false, generateTarget);
+          await finishPack(data, false, generateTarget, { fromDatabase: true });
           return;
         }
 
@@ -686,10 +708,10 @@ function FullCasePackDeliveryContent() {
 
         <div className="flex flex-col gap-8">
           <PackSection title="How to File" content={howToFileText} />
-          {courtDocs.trim() ? (
+          {hasDocumentContent(courtDocs) ? (
             <PackSection title="Court Documents" content={courtDocs} />
           ) : null}
-          {hearingPrep.trim() ? (
+          {hasDocumentContent(hearingPrep) ? (
             <PackSection title="Hearing Prep Script" content={hearingPrep} />
           ) : null}
           <PackSection title="Day of Court Checklist" content={checklist} />

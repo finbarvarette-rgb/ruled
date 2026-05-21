@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { deliveryHref } from "@/lib/case-pack";
+import { deliveryHref, hasDocumentContent } from "@/lib/case-pack";
 import { restoreSessionFromPayment, updateRuledSession } from "@/lib/session";
 import { startCheckout } from "@/lib/checkout";
 import { Spinner } from "@/components/Spinner";
@@ -284,7 +284,11 @@ function DemandLetterDeliveryContent() {
       return;
     }
 
-    async function finishLoad(data: PaymentData, notifyDelivery: boolean) {
+    async function finishLoad(
+      data: PaymentData,
+      notifyDelivery: boolean,
+      fromDatabase: boolean
+    ) {
       restoreSessionFromPayment({
         assessment: data.assessment,
         intake: data.intake,
@@ -299,22 +303,27 @@ function DemandLetterDeliveryContent() {
       setEmail(data.email);
 
       if (data.tier === "full") {
-        const fullPath = sessionId
-          ? `/success/full-case-pack?session_id=${sessionId}`
-          : deliveryHref(data.caseId, "full");
+        const fullPath =
+          fromDatabase || !sessionId
+            ? deliveryHref(data.caseId, "full")
+            : `/success/full-case-pack?session_id=${sessionId}`;
         router.replace(fullPath);
         return;
       }
 
-      let finalLetter =
-        data.demandLetter ??
-        (typeof window !== "undefined"
-          ? sessionStorage.getItem("ruled_demand_letter")
-          : null);
+      let finalLetter: string | null = hasDocumentContent(data.demandLetter)
+        ? data.demandLetter!.trim()
+        : null;
+      if (!finalLetter && !fromDatabase && typeof window !== "undefined") {
+        const stored = sessionStorage.getItem("ruled_demand_letter");
+        if (hasDocumentContent(stored)) {
+          finalLetter = stored!.trim();
+        }
+      }
 
-      if (!finalLetter) {
+      if (!hasDocumentContent(finalLetter)) {
         setPhase("generating");
-        finalLetter = await generateDemandLetter(data);
+        finalLetter = (await generateDemandLetter(data)).trim();
         await fetch("/api/cases/documents", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -351,7 +360,7 @@ function DemandLetterDeliveryContent() {
       if (!res.ok) {
         throw new Error(data.error ?? "Could not load your case");
       }
-      await finishLoad(data, false);
+      await finishLoad(data, false, true);
     }
 
     async function loadFromPayment() {
@@ -364,12 +373,12 @@ function DemandLetterDeliveryContent() {
       if (!res.ok) {
         throw new Error(data.error ?? "Payment verification failed");
       }
-      await finishLoad(data, true);
+      await finishLoad(data, true, false);
     }
 
     async function load() {
       try {
-        if (caseIdParam && !sessionId) {
+        if (caseIdParam) {
           await loadFromAccess(caseIdParam);
           return;
         }

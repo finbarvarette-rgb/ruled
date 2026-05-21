@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { Case } from "@/lib/supabase";
 import { startCheckout } from "@/lib/checkout";
 import { Spinner } from "@/components/Spinner";
-import { deliveryHref } from "@/lib/case-pack";
+import { deliveryHref, hasDocumentContent } from "@/lib/case-pack";
 import { getCaseMeta, getNextStep, type CaseMeta } from "../case-utils";
 import { dash } from "../theme";
 import { CasePipeline } from "./CasePipeline";
@@ -251,22 +251,22 @@ function CaseDocuments({
             <span className="text-sm font-medium">{doc.title}</span>
             <button
               type="button"
-              disabled={!doc.content?.trim()}
+              disabled={!hasDocumentContent(doc.content)}
               onClick={() => {
-                if (!doc.content?.trim()) return;
+                if (!hasDocumentContent(doc.content)) return;
                 const slug = caseRecord.id.slice(0, 8);
                 downloadTextFile(
                   `ruled-${doc.id}-${slug}.txt`,
-                  doc.content
+                  doc.content!
                 );
               }}
               className="text-xs font-semibold rounded-md px-3 py-1.5 disabled:opacity-40 cursor-pointer shrink-0"
               style={{
-                background: doc.content?.trim() ? dash.blue : dash.trackMuted,
-                color: doc.content?.trim() ? "#ffffff" : dash.mainMuted,
+                background: hasDocumentContent(doc.content) ? dash.blue : dash.trackMuted,
+                color: hasDocumentContent(doc.content) ? "#ffffff" : dash.mainMuted,
               }}
             >
-              {doc.content?.trim() ? "Download" : "Generating…"}
+              {hasDocumentContent(doc.content) ? "Download" : "Generating…"}
             </button>
           </li>
         ))}

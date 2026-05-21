@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { hasDocumentContent } from "@/lib/case-pack";
 import { generateCaseTitle, getCaseMeta } from "./case-utils";
 import { dash } from "./theme";
 
@@ -58,7 +59,8 @@ export default async function DashboardPage() {
     const meta = getCaseMeta(c);
     return (
       acc +
-      meta.documents.filter((d) => d.available && d.content?.trim()).length
+      meta.documents.filter((d) => d.available && hasDocumentContent(d.content))
+          .length
     );
   }, 0);
 

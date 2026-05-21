@@ -1,5 +1,9 @@
 import type { Case } from "@/lib/supabase";
-import { deliveryHref, getPackDocumentsForCase } from "@/lib/case-pack";
+import {
+  deliveryHref,
+  getPackDocumentsForCase,
+  hasDocumentContent,
+} from "@/lib/case-pack";
 
 export const PIPELINE_STEPS = [
   { id: "assessment", label: "Case Assessment" },
