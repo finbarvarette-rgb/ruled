@@ -1,8 +1,8 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { restoreSessionFromPayment, updateRuledSession } from "@/lib/session";
 import {
   buildDayOfCourtChecklist,
@@ -14,7 +14,8 @@ import {
   inferDefendantName,
 } from "@/lib/case-pack";
 import { downloadBrandedPdf } from "@/lib/pdf-generator";
-import { Spinner } from "@/components/Spinner";
+import { generateCaseTitle } from "@/app/dashboard/case-utils";
+import type { Case } from "@/lib/supabase";
 
 const LOADING_BG = "#FAFAFA";
 const LOADING_NAVY = "#0F172A";
@@ -151,8 +152,6 @@ type PaymentData = {
   courtDocs?: string | null;
   hearingPrep?: string | null;
 };
-
-type ChatMessage = { role: "user" | "assistant"; content: string };
 
 const PREVIEW_DEMAND_LETTER = `Jane Smith
 Smith Renovations Inc.
@@ -309,63 +308,192 @@ function downloadPdf(title: string, content: string) {
   });
 }
 
-function SerifDoc({ children }: { children: string }) {
-  return (
-    <div
-      className="rounded-xl px-6 sm:px-8 py-6 text-left whitespace-pre-wrap leading-relaxed text-sm md:text-base"
-      style={{
-        background: "#ffffff",
-        color: "#0f0e0c",
-        fontFamily: "Georgia, 'Times New Roman', serif",
-        border: "1px solid #e8e4de",
-      }}
-    >
-      {children}
-    </div>
-  );
-}
+const BRAND_BG = "#FAFAFA";
+const BRAND_NAVY = "#0F172A";
+const BRAND_BLUE = "#2563EB";
+const BRAND_MUTED = "#64748B";
+const BRAND_BORDER = "#E2E8F0";
 
-function PackSection({
+function DeliverySection({
   title,
   content,
-  previewMax = 2400,
+  generateHref,
 }: {
   title: string;
   content: string;
-  previewMax?: number;
+  generateHref?: string | null;
 }) {
-  const preview =
-    content.length > previewMax
-      ? `${content.slice(0, previewMax)}…`
-      : content;
+  const canDownload = hasDocumentContent(content);
 
   return (
     <section
-      className="rounded-xl overflow-hidden flex flex-col"
-      style={{ background: "#1a1916", border: "1px solid #2a2825" }}
+      className="rounded-xl flex flex-col overflow-hidden"
+      style={{
+        background: "#ffffff",
+        border: `1px solid ${BRAND_BORDER}`,
+        boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+      }}
     >
       <div
-        className="px-5 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b"
-        style={{ borderColor: "#2a2825" }}
+        className="px-5 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+        style={{ borderBottom: `1px solid ${BRAND_BORDER}` }}
       >
-        <h2 className="text-lg font-semibold">{title}</h2>
-        <button
-          type="button"
-          onClick={() => downloadPdf(title, content)}
-          className="shrink-0 rounded-lg px-4 py-2.5 text-xs font-semibold cursor-pointer"
-          style={{ background: "#c8392b", color: "#f5f1eb" }}
+        <h2
+          className="text-lg font-semibold tracking-tight"
+          style={{ color: BRAND_NAVY }}
         >
-          Download PDF
-        </button>
+          {title}
+        </h2>
+        {canDownload ? (
+          <button
+            type="button"
+            onClick={() => downloadPdf(title, content)}
+            className="shrink-0 rounded-lg px-4 py-2.5 text-xs font-semibold cursor-pointer text-white"
+            style={{ background: BRAND_BLUE }}
+          >
+            Download PDF
+          </button>
+        ) : generateHref ? (
+          <Link
+            href={generateHref}
+            className="shrink-0 rounded-lg px-4 py-2.5 text-xs font-semibold text-center text-white"
+            style={{ background: BRAND_BLUE }}
+          >
+            Generate
+          </Link>
+        ) : null}
       </div>
-      <div className="px-4 sm:px-5 pb-5 pt-4">
-        <SerifDoc>{preview}</SerifDoc>
-      </div>
+      {canDownload ? (
+        <p
+          className="px-5 sm:px-6 py-3 text-xs"
+          style={{ color: BRAND_MUTED, borderBottom: `1px solid ${BRAND_BORDER}` }}
+        >
+          Preview the full document in your dashboard or download the PDF.
+        </p>
+      ) : (
+        <p className="px-5 sm:px-6 py-4 text-sm" style={{ color: BRAND_MUTED }}>
+          This section has not been generated yet.
+        </p>
+      )}
     </section>
   );
 }
 
+function ReturningPackDelivery({
+  caseTitle,
+  province,
+  howToFileText,
+  courtDocs,
+  hearingPrep,
+  checklist,
+  caseId,
+}: {
+  caseTitle: string;
+  province: string;
+  howToFileText: string;
+  courtDocs: string;
+  hearingPrep: string;
+  checklist: string;
+  caseId: string | null;
+}) {
+  const sectionLink = (section: "court" | "hearing") =>
+    caseId
+      ? `/success/full-case-pack?caseId=${encodeURIComponent(caseId)}&section=${section}`
+      : null;
+
+  return (
+    <main
+      className="flex flex-col flex-1 min-h-screen w-full"
+      style={{ background: BRAND_BG, color: BRAND_NAVY }}
+    >
+      <div className="max-w-2xl mx-auto w-full flex flex-col gap-8 px-4 sm:px-6 py-10 md:py-14">
+        <header className="flex flex-col gap-2">
+          <p
+            className="text-xs font-medium uppercase tracking-wide"
+            style={{ color: BRAND_MUTED }}
+          >
+            Full Case Pack
+          </p>
+          <h1
+            className="text-2xl md:text-3xl font-semibold tracking-tight"
+            style={{ color: BRAND_NAVY }}
+          >
+            {caseTitle}
+          </h1>
+          <p className="text-sm leading-relaxed" style={{ color: BRAND_MUTED }}>
+            Your documents for {province} small claims court. Download each
+            section as a PDF anytime.
+          </p>
+        </header>
+
+        <div className="flex flex-col gap-4">
+          <DeliverySection title="How to File" content={howToFileText} />
+          <DeliverySection
+            title="Court Documents"
+            content={courtDocs}
+            generateHref={sectionLink("court")}
+          />
+          <DeliverySection
+            title="Hearing Prep Script"
+            content={hearingPrep}
+            generateHref={sectionLink("hearing")}
+          />
+          <DeliverySection title="Day of Court Checklist" content={checklist} />
+        </div>
+
+        <p className="text-sm text-center">
+          <Link
+            href="/dashboard/documents"
+            className="font-medium underline-offset-2 hover:underline"
+            style={{ color: BRAND_BLUE }}
+          >
+            Back to all documents in your dashboard
+          </Link>
+        </p>
+      </div>
+    </main>
+  );
+}
+
+async function savePackDocument(
+  caseId: string,
+  partial: {
+    demandLetter?: string;
+    courtDocs?: string;
+    hearingPrep?: string;
+  },
+  paymentSessionId: string | null
+) {
+  if (paymentSessionId) {
+    const res = await fetch("/api/cases/documents/save-after-payment", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sessionId: paymentSessionId,
+        caseId,
+        ...partial,
+      }),
+    });
+    if (!res.ok) {
+      const json = (await res.json().catch(() => ({}))) as { error?: string };
+      throw new Error(json.error ?? "Failed to save documents");
+    }
+    return;
+  }
+
+  const res = await fetch("/api/cases/documents", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ caseId, ...partial }),
+  });
+  if (!res.ok) {
+    const json = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(json.error ?? "Failed to save documents");
+  }
+}
+
 function FullCasePackDeliveryContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
   const caseIdParam = searchParams.get("caseId");
@@ -384,10 +512,6 @@ function FullCasePackDeliveryContent() {
   const [demandLetter, setDemandLetter] = useState("");
   const [courtDocs, setCourtDocs] = useState("");
   const [hearingPrep, setHearingPrep] = useState("");
-  const [aiOpen, setAiOpen] = useState(false);
-  const [chatInput, setChatInput] = useState("");
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  const [chatLoading, setChatLoading] = useState(false);
 
   const isBusy = phase === "loading" || phase === "generating";
   const loadingMessages =
@@ -418,6 +542,36 @@ function FullCasePackDeliveryContent() {
     [province, claimantName]
   );
 
+  const isReturningView = Boolean(caseIdParam || isPreview) && !sessionId;
+
+  const caseTitle = useMemo(() => {
+    if (!assessment || !province) return "Your case";
+    const stub: Case = {
+      id: caseIdParam ?? "preview",
+      created_at: new Date().toISOString(),
+      intake_text: intake,
+      province,
+      case_assessment: assessment,
+      email: null,
+      outcome: null,
+      paid: true,
+      tier_purchased: "full",
+      user_id: null,
+      demand_letter: demandLetter || null,
+      court_docs: courtDocs || null,
+      hearing_prep: hearingPrep || null,
+    };
+    return generateCaseTitle(stub);
+  }, [
+    assessment,
+    intake,
+    province,
+    caseIdParam,
+    demandLetter,
+    courtDocs,
+    hearingPrep,
+  ]);
+
   useEffect(() => {
     if (isPreview) {
       setProvince("Ontario");
@@ -430,26 +584,12 @@ function FullCasePackDeliveryContent() {
       return;
     }
 
-    async function savePackPartial(
-      caseId: string,
-      partial: {
-        demandLetter?: string;
-        courtDocs?: string;
-        hearingPrep?: string;
-      }
-    ) {
-      await fetch("/api/cases/documents", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ caseId, ...partial }),
-      }).catch(() => {});
-    }
-
     async function finishPack(
       data: PaymentData,
       notifyDelivery: boolean,
       section: GenerateSection | null,
-      options: { fromDatabase?: boolean } = {}
+      options: { fromDatabase?: boolean } = {},
+      paymentSessionId: string | null = null
     ) {
       const fromDatabase = options.fromDatabase === true;
       if (data.tier !== "full") {
@@ -488,17 +628,36 @@ function FullCasePackDeliveryContent() {
         ? data.hearingPrep!.trim()
         : null;
 
+      if (fromDatabase && !section && !paymentSessionId) {
+        if (letter) {
+          updateRuledSession({ demandLetter: letter });
+        }
+        setDemandLetter(letter ?? "");
+        setCourtDocs(court ?? "");
+        setHearingPrep(hearing ?? "");
+        setPhase("ready");
+        return;
+      }
+
       if (section === "court") {
         if (!hasDocumentContent(court)) {
           setPhase("generating");
           court = (await fetchCourtDocs(data.assessment, data.province)).trim();
-          await savePackPartial(data.caseId, { courtDocs: court });
+          await savePackDocument(
+            data.caseId,
+            { courtDocs: court },
+            paymentSessionId
+          );
         }
       } else if (section === "hearing") {
         if (!hasDocumentContent(hearing)) {
           setPhase("generating");
           hearing = (await fetchHearingPrep(data.assessment, data.province)).trim();
-          await savePackPartial(data.caseId, { hearingPrep: hearing });
+          await savePackDocument(
+            data.caseId,
+            { hearingPrep: hearing },
+            paymentSessionId
+          );
         }
       } else {
         const needLetter = !hasDocumentContent(letter);
@@ -522,28 +681,36 @@ function FullCasePackDeliveryContent() {
             if (!hasDocumentContent(letter)) {
               throw new Error("Failed to generate demand letter");
             }
+            await savePackDocument(
+              data.caseId,
+              { demandLetter: letter },
+              paymentSessionId
+            );
           }
           if (needCourt) {
             court = courtResult?.trim() ?? null;
+            if (hasDocumentContent(court)) {
+              await savePackDocument(
+                data.caseId,
+                { courtDocs: court },
+                paymentSessionId
+              );
+            }
           }
           if (needHearing) {
             hearing = hearingResult?.trim() ?? null;
-          }
-          const partial: {
-            demandLetter?: string;
-            courtDocs?: string;
-            hearingPrep?: string;
-          } = {};
-          if (needLetter && letter) partial.demandLetter = letter;
-          if (needCourt && court) partial.courtDocs = court;
-          if (needHearing && hearing) partial.hearingPrep = hearing;
-          if (Object.keys(partial).length > 0) {
-            await savePackPartial(data.caseId, partial);
+            if (hasDocumentContent(hearing)) {
+              await savePackDocument(
+                data.caseId,
+                { hearingPrep: hearing },
+                paymentSessionId
+              );
+            }
           }
         }
       }
 
-      if (!hasDocumentContent(letter) && !section) {
+      if (!hasDocumentContent(letter) && !section && paymentSessionId) {
         throw new Error("Demand letter is missing");
       }
 
@@ -553,7 +720,6 @@ function FullCasePackDeliveryContent() {
       setDemandLetter(letter ?? "");
       setCourtDocs(court ?? "");
       setHearingPrep(hearing ?? "");
-      setPhase("ready");
 
       if (notifyDelivery && data.caseId) {
         void fetch("/api/emails/notify", {
@@ -562,6 +728,13 @@ function FullCasePackDeliveryContent() {
           body: JSON.stringify({ type: "full", caseId: data.caseId }),
         }).catch(() => {});
       }
+
+      if (paymentSessionId && !section) {
+        router.replace("/dashboard/documents");
+        return;
+      }
+
+      setPhase("ready");
     }
 
     async function load() {
@@ -579,7 +752,7 @@ function FullCasePackDeliveryContent() {
           if (!res.ok) {
             throw new Error(data.error ?? "Could not load your case");
           }
-          await finishPack(data, false, generateTarget, { fromDatabase: true });
+          await finishPack(data, false, generateTarget, { fromDatabase: true }, null);
           return;
         }
 
@@ -598,7 +771,7 @@ function FullCasePackDeliveryContent() {
         if (!res.ok) {
           throw new Error(data.error ?? "Payment verification failed");
         }
-        await finishPack(data, true, generateTarget);
+        await finishPack(data, true, generateTarget, {}, sessionId);
       } catch (err) {
         setError(
           err instanceof Error
@@ -610,47 +783,7 @@ function FullCasePackDeliveryContent() {
     }
 
     load();
-  }, [sessionId, caseIdParam, isPreview, generateTarget]);
-
-  const handleChatSubmit = useCallback(
-    async (e: React.FormEvent) => {
-      e.preventDefault();
-      if (!chatInput.trim() || chatLoading || !assessment) return;
-      const question = chatInput.trim();
-      setChatInput("");
-      const userMsg: ChatMessage = { role: "user", content: question };
-      const nextMessages = [...chatMessages, userMsg].slice(-10);
-      setChatMessages(nextMessages);
-      setChatLoading(true);
-      try {
-        const res = await fetch("/api/case-qa", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            question,
-            caseAssessment: assessment,
-            history: nextMessages.slice(0, -1),
-          }),
-        });
-        if (!res.ok) throw new Error("Failed");
-        const data = (await res.json()) as { answer?: string };
-        const assistantMsg: ChatMessage = {
-          role: "assistant",
-          content: data.answer ?? "No answer returned.",
-        };
-        setChatMessages((prev) => [...prev, assistantMsg].slice(-10));
-      } catch {
-        const errMsg: ChatMessage = {
-          role: "assistant",
-          content: "Sorry, I could not answer that. Please try again.",
-        };
-        setChatMessages((prev) => [...prev, errMsg].slice(-10));
-      } finally {
-        setChatLoading(false);
-      }
-    },
-    [chatInput, chatLoading, assessment, chatMessages]
-  );
+  }, [sessionId, caseIdParam, isPreview, generateTarget, router]);
 
   if (isBusy) {
     return (
@@ -660,177 +793,49 @@ function FullCasePackDeliveryContent() {
 
   if (phase === "error") {
     return (
-      <main className="flex flex-col flex-1 min-h-screen px-4 sm:px-6 py-16 items-center justify-center">
-        <p className="text-sm text-center max-w-md" style={{ color: "#c8392b" }}>
+      <main
+        className="flex flex-col flex-1 min-h-screen px-4 sm:px-6 py-16 items-center justify-center"
+        style={{ background: BRAND_BG, color: BRAND_NAVY }}
+      >
+        <p className="text-sm text-center max-w-md" style={{ color: BRAND_MUTED }}>
           {error}
         </p>
-        <Link href="/" className="mt-6 text-sm" style={{ color: "#9a9590" }}>
-          Back to home
+        <Link
+          href="/dashboard/documents"
+          className="mt-6 text-sm font-medium"
+          style={{ color: BRAND_BLUE }}
+        >
+          Back to documents
         </Link>
       </main>
     );
   }
 
-  return (
-    <main className="flex flex-col flex-1 min-h-screen overflow-x-hidden pb-24">
-      <div className="max-w-2xl mx-auto w-full flex flex-col gap-6 md:gap-8 min-w-0 px-4 sm:px-6 py-10 md:py-14">
+  if (phase === "ready" && isReturningView) {
+    return (
+      <>
         {isPreview && (
           <p
-            className="text-xs font-medium text-center rounded-lg px-3 py-2"
-            style={{
-              background: "rgba(200, 57, 43, 0.15)",
-              color: "#c8392b",
-              border: "1px dashed #c8392b",
-            }}
+            className="text-xs font-medium text-center py-2"
+            style={{ color: BRAND_MUTED, background: BRAND_BG }}
           >
             Development preview — placeholder data only
           </p>
         )}
+        <ReturningPackDelivery
+          caseTitle={caseTitle}
+          province={province}
+          howToFileText={howToFileText}
+          courtDocs={courtDocs}
+          hearingPrep={hearingPrep}
+          checklist={checklist}
+          caseId={caseIdParam}
+        />
+      </>
+    );
+  }
 
-        <header className="flex flex-col gap-3">
-          <p
-            className="text-xs font-medium uppercase tracking-wide"
-            style={{ color: "#9a9590" }}
-          >
-            Full Case Pack — $199
-          </p>
-          <h1
-            className="text-2xl md:text-3xl font-semibold tracking-tight"
-            style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
-          >
-            Your Full Case Pack is Ready ✅ — You&apos;re prepared to win.
-          </h1>
-          <p className="text-sm leading-relaxed" style={{ color: "#9a9590" }}>
-            Everything you need to file in {province} small claims court and
-            present your case with confidence.
-          </p>
-        </header>
-
-        <div className="flex flex-col gap-8">
-          <PackSection title="How to File" content={howToFileText} />
-          {hasDocumentContent(courtDocs) ? (
-            <PackSection title="Court Documents" content={courtDocs} />
-          ) : null}
-          {hasDocumentContent(hearingPrep) ? (
-            <PackSection title="Hearing Prep Script" content={hearingPrep} />
-          ) : null}
-          <PackSection title="Day of Court Checklist" content={checklist} />
-        </div>
-
-        <p className="text-sm text-center">
-          <Link href="/dashboard" style={{ color: "#c8392b" }}>
-            Your case pack is saved in your Ruled dashboard →
-          </Link>
-        </p>
-      </div>
-
-      {/* Sticky AI CTA */}
-      <div
-        className="fixed bottom-0 left-0 right-0 z-40 px-4 py-3"
-        style={{
-          background: "rgba(15, 14, 12, 0.95)",
-          borderTop: "1px solid #2a2825",
-          backdropFilter: "blur(8px)",
-        }}
-      >
-        <div className="max-w-2xl mx-auto">
-          <button
-            type="button"
-            onClick={() => setAiOpen(true)}
-            className="w-full rounded-xl px-6 py-3.5 text-sm font-semibold cursor-pointer"
-            style={{ background: "#c8392b", color: "#f5f1eb" }}
-          >
-            Have a question? Ask Ruled AI →
-          </button>
-        </div>
-      </div>
-
-      {/* AI panel */}
-      {aiOpen && (
-        <div
-          className="fixed inset-0 z-50 flex flex-col justify-end sm:justify-center sm:items-center sm:px-4"
-          style={{ background: "rgba(15, 14, 12, 0.9)" }}
-          onClick={() => setAiOpen(false)}
-          role="presentation"
-        >
-          <div
-            className="w-full sm:max-w-lg rounded-t-2xl sm:rounded-2xl flex flex-col max-h-[85vh]"
-            style={{ background: "#1a1916", border: "1px solid #2a2825" }}
-            onClick={(e) => e.stopPropagation()}
-            role="dialog"
-            aria-label="Ask Ruled AI"
-          >
-            <div
-              className="flex items-center justify-between px-5 py-4 border-b"
-              style={{ borderColor: "#2a2825" }}
-            >
-              <h2 className="font-semibold">Ask Ruled AI</h2>
-              <button
-                type="button"
-                onClick={() => setAiOpen(false)}
-                className="text-sm cursor-pointer"
-                style={{ color: "#9a9590" }}
-              >
-                Close
-              </button>
-            </div>
-            <div
-              className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-3 min-h-[200px] max-h-[50vh]"
-            >
-              {chatMessages.length === 0 && (
-                <p className="text-sm" style={{ color: "#9a9590" }}>
-                  Unlimited Q&amp;A is included in your Full Case Pack. Ask
-                  about filing, evidence, the hearing, or what to do next.
-                </p>
-              )}
-              {chatMessages.map((msg, i) => (
-                <div key={i} className="text-sm leading-relaxed">
-                  <span
-                    className="text-xs font-semibold block mb-1"
-                    style={{ color: "#c8392b" }}
-                  >
-                    {msg.role === "user" ? "You" : "Ruled AI"}
-                  </span>
-                  <span style={{ color: "#d4cfc9" }}>{msg.content}</span>
-                </div>
-              ))}
-              {chatLoading && (
-                <p className="text-sm flex items-center gap-2" style={{ color: "#9a9590" }}>
-                  <Spinner /> Thinking…
-                </p>
-              )}
-            </div>
-            <form
-              onSubmit={handleChatSubmit}
-              className="px-5 py-4 border-t flex gap-2"
-              style={{ borderColor: "#2a2825" }}
-            >
-              <input
-                type="text"
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                placeholder="Ask about your case…"
-                className="flex-1 rounded-lg px-4 py-3 text-sm outline-none min-w-0"
-                style={{
-                  background: "#0f0e0c",
-                  color: "#f5f1eb",
-                  border: "1px solid #2a2825",
-                }}
-              />
-              <button
-                type="submit"
-                disabled={chatLoading}
-                className="rounded-lg px-4 py-3 text-sm font-semibold disabled:opacity-60 cursor-pointer shrink-0"
-                style={{ background: "#c8392b", color: "#f5f1eb" }}
-              >
-                Ask
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-    </main>
-  );
+  return null;
 }
 
 export default function FullCasePackDeliveryPage() {

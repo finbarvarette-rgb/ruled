@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { useMemo } from "react";
 import type { Case } from "@/lib/supabase";
-import { deliveryHref, hasDocumentContent } from "@/lib/case-pack";
+import {
+  deliveryHref,
+  getPackDocumentsForCase,
+  hasSavedDocumentContent,
+} from "@/lib/case-pack";
 import {
   downloadAssessmentPdf,
   downloadBrandedPdf,
@@ -126,8 +130,20 @@ export function DocumentsClient({ cases }: { cases: Case[] }) {
 
                 <ul className="flex flex-col gap-2">
                   {g.docs.map((doc) => {
-                    const hasContent = hasDocumentContent(doc.content);
-                    const href = openHref(g.caseRecord, doc.id);
+                    const hasContent = hasSavedDocumentContent(
+                      g.caseRecord,
+                      doc.id
+                    );
+                    const href = hasContent
+                      ? null
+                      : openHref(g.caseRecord, doc.id);
+                    const packDoc = getPackDocumentsForCase(g.caseRecord).find(
+                      (d) => d.id === doc.id
+                    );
+                    const downloadContent =
+                      doc.id === "assessment" || doc.id === "demand"
+                        ? doc.content
+                        : (packDoc?.content ?? doc.content);
 
                     return (
                       <li
@@ -141,7 +157,7 @@ export function DocumentsClient({ cases }: { cases: Case[] }) {
                             {g.title}
                           </p>
                         </div>
-                        {hasContent ? (
+                        {hasContent && downloadContent ? (
                           <button
                             type="button"
                             onClick={() =>
@@ -149,7 +165,7 @@ export function DocumentsClient({ cases }: { cases: Case[] }) {
                                 {
                                   id: doc.id,
                                   title: doc.title,
-                                  content: doc.content!,
+                                  content: downloadContent,
                                 },
                                 g.caseRecord
                               )

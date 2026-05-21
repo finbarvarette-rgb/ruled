@@ -256,7 +256,44 @@ export type PackDeliverySection = "court" | "hearing";
 export function hasDocumentContent(
   value: string | null | undefined
 ): boolean {
-  return typeof value === "string" && value.trim().length > 0;
+  if (value == null || typeof value !== "string") return false;
+  const trimmed = value.trim();
+  if (trimmed.length === 0) return false;
+  const sentinel = trimmed.toLowerCase();
+  if (sentinel === "null" || sentinel === "undefined" || sentinel === "n/a") {
+    return false;
+  }
+  return true;
+}
+
+/** Whether a document row should offer download vs generate (uses DB columns where stored). */
+export function hasSavedDocumentContent(
+  caseRecord: Pick<
+    Case,
+    | "case_assessment"
+    | "demand_letter"
+    | "court_docs"
+    | "hearing_prep"
+    | "tier_purchased"
+    | "paid"
+  >,
+  docId: string
+): boolean {
+  switch (docId) {
+    case "assessment":
+      return hasDocumentContent(caseRecord.case_assessment);
+    case "demand":
+      return hasDocumentContent(caseRecord.demand_letter);
+    case "court":
+      return hasDocumentContent(caseRecord.court_docs);
+    case "hearing":
+      return hasDocumentContent(caseRecord.hearing_prep);
+    case "how-to-file":
+    case "checklist":
+      return caseRecord.tier_purchased === "full" && caseRecord.paid === true;
+    default:
+      return false;
+  }
 }
 
 export function deliveryHref(
