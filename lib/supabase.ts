@@ -40,6 +40,16 @@ export type Case = {
   demand_letter: string | null;
   court_docs: string | null;
   hearing_prep: string | null;
+  demand_letter_sent_at: string | null;
+  demand_reminder_sent_at: string | null;
+  stripe_session_id: string | null;
+  amount_paid_cents: number | null;
+  receipt_url: string | null;
+  purchased_at: string | null;
+  assessment_email_sent_at: string | null;
+  demand_delivery_email_sent_at: string | null;
+  full_pack_delivery_email_sent_at: string | null;
+  purchase_confirmation_email_sent_at: string | null;
 };
 
 export type WaitlistEntry = {

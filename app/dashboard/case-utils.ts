@@ -98,7 +98,8 @@ export function getCaseMeta(caseRecord: Case): CaseMeta {
     caseRecord.tier_purchased === "full";
   const hasFullTier = caseRecord.tier_purchased === "full";
   const hasDemandLetter = !!caseRecord.demand_letter?.trim();
-  const daysSinceStart = daysSince(caseRecord.created_at);
+  const demandSentAt = caseRecord.demand_letter_sent_at ?? null;
+  const daysSinceStart = daysSince(demandSentAt ?? caseRecord.created_at);
 
   let statusBadge: CaseStatusBadge = "Assessment Complete";
   let pipelineIndex = 0;

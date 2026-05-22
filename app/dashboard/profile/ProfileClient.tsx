@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { createBrowserClient } from "@supabase/ssr";
+import { useState } from "react";
 import { Spinner } from "@/components/Spinner";
 import { PROVINCES } from "@/lib/constants";
 import { dash } from "../theme";
@@ -43,13 +42,6 @@ export function ProfileClient({
   const [postalCode, setPostalCode] = useState(initialProfile?.postal_code ?? "");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
-
-  useMemo(() => {
-    return createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
-  }, []);
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
