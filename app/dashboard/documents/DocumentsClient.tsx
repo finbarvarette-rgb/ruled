@@ -69,6 +69,9 @@ function downloadCaseDocument(
 
 function openHref(caseRecord: Case, docId: string): string | null {
   if (docId === "demand") {
+    if (caseRecord.tier_purchased === "full") {
+      return deliveryHref(caseRecord.id, "full", "demand");
+    }
     return deliveryHref(caseRecord.id, "demand");
   }
   if (docId === "court") {

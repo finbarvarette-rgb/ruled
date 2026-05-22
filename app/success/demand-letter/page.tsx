@@ -303,10 +303,17 @@ function DemandLetterDeliveryContent() {
       setEmail(data.email);
 
       if (data.tier === "full") {
-        const fullPath =
-          fromDatabase || !sessionId
-            ? deliveryHref(data.caseId, "full")
-            : `/success/full-case-pack?session_id=${sessionId}`;
+        // For full-tier: redirect to full-case-pack delivery.
+        // If the demand letter is missing and we came from the dashboard,
+        // use section=demand so the delivery page generates it.
+        let fullPath: string;
+        if (fromDatabase && !hasDocumentContent(data.demandLetter)) {
+          fullPath = deliveryHref(data.caseId, "full", "demand");
+        } else if (fromDatabase || !sessionId) {
+          fullPath = deliveryHref(data.caseId, "full");
+        } else {
+          fullPath = `/success/full-case-pack?session_id=${sessionId}`;
+        }
         router.replace(fullPath);
         return;
       }
@@ -324,14 +331,28 @@ function DemandLetterDeliveryContent() {
       if (!hasDocumentContent(finalLetter)) {
         setPhase("generating");
         finalLetter = (await generateDemandLetter(data)).trim();
-        await fetch("/api/cases/documents", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            caseId: data.caseId,
-            demandLetter: finalLetter,
-          }),
-        }).catch(() => {});
+        // Use save-after-payment when we have a Stripe session (unauthenticated flow),
+        // otherwise use the authenticated PATCH endpoint.
+        if (sessionId) {
+          await fetch("/api/cases/documents/save-after-payment", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              sessionId,
+              caseId: data.caseId,
+              demandLetter: finalLetter,
+            }),
+          }).catch(() => {});
+        } else {
+          await fetch("/api/cases/documents", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              caseId: data.caseId,
+              demandLetter: finalLetter,
+            }),
+          }).catch(() => {});
+        }
       }
 
       updateRuledSession({ demandLetter: finalLetter });

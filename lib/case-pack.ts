@@ -250,7 +250,7 @@ AFTER THE HEARING
 ☐ Save all documents from the hearing`;
 }
 
-export type PackDeliverySection = "court" | "hearing";
+export type PackDeliverySection = "court" | "hearing" | "demand";
 
 /** True when saved document text exists (non-null, non-empty after trim). */
 export function hasDocumentContent(

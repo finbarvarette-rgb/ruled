@@ -13,7 +13,7 @@ import {
   inferClaimantName,
   inferDefendantName,
 } from "@/lib/case-pack";
-import { downloadBrandedPdf } from "@/lib/pdf-generator";
+import { downloadBrandedPdf, downloadDemandLetterPdf } from "@/lib/pdf-generator";
 import { generateCaseTitle } from "@/app/dashboard/case-utils";
 import type { Case } from "@/lib/supabase";
 
@@ -43,7 +43,13 @@ const HEARING_STATUS_MESSAGES = [
   "Almost ready...",
 ];
 
-type GenerateSection = "court" | "hearing";
+const DEMAND_STATUS_MESSAGES = [
+  "Reviewing your case details...",
+  "Drafting your demand letter...",
+  "Finalizing your letter...",
+];
+
+type GenerateSection = "court" | "hearing" | "demand";
 
 function useGenerationLoading(active: boolean, messages: string[]) {
   const [progress, setProgress] = useState(0);
@@ -318,10 +324,12 @@ function DeliverySection({
   title,
   content,
   generateHref,
+  onDownload,
 }: {
   title: string;
   content: string;
   generateHref?: string | null;
+  onDownload?: (content: string) => void;
 }) {
   const canDownload = hasDocumentContent(content);
 
@@ -347,7 +355,7 @@ function DeliverySection({
         {canDownload ? (
           <button
             type="button"
-            onClick={() => downloadPdf(title, content)}
+            onClick={() => onDownload ? onDownload(content) : downloadPdf(title, content)}
             className="shrink-0 rounded-lg px-4 py-2.5 text-xs font-semibold cursor-pointer text-white"
             style={{ background: BRAND_BLUE }}
           >
@@ -382,6 +390,7 @@ function DeliverySection({
 function ReturningPackDelivery({
   caseTitle,
   province,
+  demandLetter,
   howToFileText,
   courtDocs,
   hearingPrep,
@@ -390,13 +399,14 @@ function ReturningPackDelivery({
 }: {
   caseTitle: string;
   province: string;
+  demandLetter: string;
   howToFileText: string;
   courtDocs: string;
   hearingPrep: string;
   checklist: string;
   caseId: string | null;
 }) {
-  const sectionLink = (section: "court" | "hearing") =>
+  const sectionLink = (section: "court" | "hearing" | "demand") =>
     caseId
       ? `/success/full-case-pack?caseId=${encodeURIComponent(caseId)}&section=${section}`
       : null;
@@ -427,6 +437,12 @@ function ReturningPackDelivery({
         </header>
 
         <div className="flex flex-col gap-4">
+          <DeliverySection
+            title="Demand Letter"
+            content={demandLetter}
+            generateHref={sectionLink("demand")}
+            onDownload={(c) => downloadDemandLetterPdf(c)}
+          />
           <DeliverySection title="How to File" content={howToFileText} />
           <DeliverySection
             title="Court Documents"
@@ -519,7 +535,9 @@ function FullCasePackDeliveryContent() {
       ? COURT_STATUS_MESSAGES
       : generateTarget === "hearing"
         ? HEARING_STATUS_MESSAGES
-        : PACK_STATUS_MESSAGES;
+        : generateTarget === "demand"
+          ? DEMAND_STATUS_MESSAGES
+          : PACK_STATUS_MESSAGES;
   const { progress, statusMessage } = useGenerationLoading(isBusy, loadingMessages);
 
   const claimantName = useMemo(
@@ -656,6 +674,16 @@ function FullCasePackDeliveryContent() {
           await savePackDocument(
             data.caseId,
             { hearingPrep: hearing },
+            paymentSessionId
+          );
+        }
+      } else if (section === "demand") {
+        if (!hasDocumentContent(letter)) {
+          setPhase("generating");
+          letter = (await generateDemandLetter(data)).trim();
+          await savePackDocument(
+            data.caseId,
+            { demandLetter: letter },
             paymentSessionId
           );
         }
@@ -825,6 +853,7 @@ function FullCasePackDeliveryContent() {
         <ReturningPackDelivery
           caseTitle={caseTitle}
           province={province}
+          demandLetter={demandLetter}
           howToFileText={howToFileText}
           courtDocs={courtDocs}
           hearingPrep={hearingPrep}
