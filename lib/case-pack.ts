@@ -143,9 +143,12 @@ export function extractClaimAmount(
 }
 
 export function inferDefendantName(intake: string): string {
+  // Capture consecutive Title-Case words (optional "&") so the name stops at
+  // lowercase connectors ("to"/"for"/"who") instead of running into the rest
+  // of the sentence.
   const patterns = [
-    /(?:contractor|client|landlord|tenant|company|business)\s+(?:named\s+)?([A-Z][A-Za-z0-9\s&.'-]{2,40})/i,
-    /(?:from|by|with)\s+([A-Z][A-Za-z0-9\s&.'-]{2,30})(?:\s+who|\s+that|,|\.)/,
+    /(?:[Cc]ontractor|[Cc]lient|[Ll]andlord|[Tt]enant|[Cc]ompany|[Bb]usiness)\s+(?:named\s+)?([A-Z][A-Za-z0-9.'&-]+(?:\s+(?:&\s+)?[A-Z][A-Za-z0-9.'&-]*){0,4})/,
+    /(?:[Ff]rom|[Bb]y|[Ww]ith)\s+([A-Z][A-Za-z0-9.'&-]+(?:\s+(?:&\s+)?[A-Z][A-Za-z0-9.'&-]*){0,4})/,
     /([A-Z][a-z]+\s+[A-Z][a-z]+)\s+(?:took|owes|refused|ghosted)/,
   ];
   for (const re of patterns) {
