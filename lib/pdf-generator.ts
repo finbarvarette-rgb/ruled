@@ -10,11 +10,10 @@ const MARGIN = 54;
 const HEADER_HEIGHT = 40;
 const FOOTER_HEIGHT = 32;
 const BODY_FONT_SIZE = 11;
-const LINE_HEIGHT = 16;
-const PARA_GAP = 10;
-const SECTION_GAP = 20;
-const BULLET_INDENT = 20;
-const BULLET_CHAR = "\u25CF"; // ●
+const LINE_HEIGHT = 17;
+const PARA_GAP = 14;
+const SECTION_GAP = 28;
+const BULLET_INDENT = 22;
 
 const OLD_SECTION_HEADERS = [
   "CASE STRENGTH",
@@ -51,17 +50,17 @@ const NAMED_HTML_ENTITIES: Record<string, string> = {
   quot: '"',
   apos: "'",
   nbsp: " ",
-  ndash: "\u2013",
-  mdash: "\u2014",
-  hellip: "\u2026",
-  lsquo: "\u2018",
-  rsquo: "\u2019",
-  ldquo: "\u201C",
-  rdquo: "\u201D",
-  bull: "\u2022",
-  copy: "\u00A9",
-  reg: "\u00AE",
-  trade: "\u2122",
+  ndash: "–",
+  mdash: "—",
+  hellip: "…",
+  lsquo: "‘",
+  rsquo: "’",
+  ldquo: "“",
+  rdquo: "”",
+  bull: "•",
+  copy: "©",
+  reg: "®",
+  trade: "™",
 };
 
 function normalizeNewlines(text: string): string {
@@ -103,8 +102,8 @@ export function sanitizePdfText(text: string): string {
   }
 
   return decoded
-    .replace(/\u00A0/g, " ")
-    .replace(/[\u200B-\u200D\uFEFF]/g, "")
+    .replace(/ /g, " ")
+    .replace(/[​-‍﻿]/g, "")
     .replace(/[ \t]+\n/g, "\n")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
@@ -419,25 +418,29 @@ class BrandedPdfBuilder {
   }
 
   addDocumentTitle(title: string) {
-    this.ensureSpace(34);
+    this.ensureSpace(40);
     this.doc.setFont(FONT, "bold");
-    this.doc.setFontSize(18);
+    this.doc.setFontSize(20);
     this.doc.setTextColor(BODY_COLOR.r, BODY_COLOR.g, BODY_COLOR.b);
     const lines = this.doc.splitTextToSize(title, this.contentWidth);
-    this.renderWrappedLines(lines, MARGIN, this.contentWidth, 20);
-    this.y += 6;
+    this.renderWrappedLines(lines, MARGIN, this.contentWidth, 24);
+    this.y += 12;
     this.setBodyStyle();
   }
 
   addSectionTitle(title: string) {
-    this.ensureSpace(26);
-    this.y += SECTION_GAP * 0.4;
+    this.ensureSpace(50);
+    this.y += SECTION_GAP * 0.6;
     this.doc.setFont(FONT, "bold");
-    this.doc.setFontSize(14);
+    this.doc.setFontSize(16);
     this.doc.setTextColor(BODY_COLOR.r, BODY_COLOR.g, BODY_COLOR.b);
     const lines = this.doc.splitTextToSize(title, this.contentWidth);
-    this.renderWrappedLines(lines, MARGIN, this.contentWidth, 18);
-    this.y += 4;
+    this.renderWrappedLines(lines, MARGIN, this.contentWidth, 22);
+    // Rule line under heading for visual separation
+    this.doc.setDrawColor(BODY_COLOR.r, BODY_COLOR.g, BODY_COLOR.b);
+    this.doc.setLineWidth(0.5);
+    this.doc.line(MARGIN, this.y + 2, MARGIN + this.contentWidth, this.y + 2);
+    this.y += 10;
     this.setBodyStyle();
   }
 
@@ -454,22 +457,22 @@ class BrandedPdfBuilder {
   }
 
   private addBulletItem(text: string) {
-    const bulletX = MARGIN;
     const textX = MARGIN + BULLET_INDENT;
     const textWidth = this.contentWidth - BULLET_INDENT;
     const bodyLines = this.doc.splitTextToSize(text, textWidth);
-    const blockHeight = bodyLines.length * LINE_HEIGHT;
+    const blockHeight = bodyLines.length * LINE_HEIGHT + 3;
     this.ensureSpace(blockHeight);
 
     this.setBodyStyle();
-    this.doc.setFont(FONT, "normal");
-    this.doc.setFontSize(BODY_FONT_SIZE);
-    this.doc.text(BULLET_CHAR, bulletX, this.y);
+    // Draw a filled circle bullet — avoids jsPDF encoding issues with Unicode symbols
+    this.doc.setFillColor(BODY_COLOR.r, BODY_COLOR.g, BODY_COLOR.b);
+    this.doc.circle(MARGIN + 5, this.y - 3.5, 2, "F");
 
     for (let i = 0; i < bodyLines.length; i++) {
       this.doc.text(bodyLines[i], textX, this.y, { maxWidth: textWidth });
       this.y += LINE_HEIGHT;
     }
+    this.y += 3;
   }
 
   private addTextParagraph(text: string) {
