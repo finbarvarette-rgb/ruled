@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { createBrowserClient } from "@supabase/ssr";
 import type { Case } from "@/lib/supabase";
 import { startCheckout } from "@/lib/checkout";
 import { Spinner } from "@/components/Spinner";
@@ -18,8 +20,15 @@ const BODY_TEXT = "#0F172A";
 const SECTION_BORDER = "#E2E8F0";
 
 export function CaseAssessmentsClient({ cases }: { cases: Case[] }) {
+  const router = useRouter();
   const [openCase, setOpenCase] = useState<Case | null>(null);
   const [checkoutLoading, setCheckoutLoading] = useState<"demand" | "full" | null>(null);
+  const [filingId, setFilingId] = useState<string | null>(null);
+
+  const supabase = useMemo(() => createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  ), []);
 
   const sorted = useMemo(() => cases, [cases]);
 
@@ -32,6 +41,17 @@ export function CaseAssessmentsClient({ cases }: { cases: Case[] }) {
       setOpenCase(match);
     }
   }, [cases]);
+
+  async function handleMarkFiled(caseId: string) {
+    if (!window.confirm("Mark this case as Filed in Court?\n\nOnly do this after you have actually submitted your claim to the courthouse.")) return;
+    setFilingId(caseId);
+    try {
+      await supabase.from("cases").update({ outcome: "filed" }).eq("id", caseId);
+      router.refresh();
+    } finally {
+      setFilingId(null);
+    }
+  }
 
   async function handleCheckout(tier: "demand" | "full", c: Case) {
     setCheckoutLoading(tier);
@@ -142,6 +162,18 @@ export function CaseAssessmentsClient({ cases }: { cases: Case[] }) {
                   >
                     View Full Assessment
                   </button>
+                  {meta.pipelineIndex === 1 && (
+                    <button
+                      type="button"
+                      onClick={() => handleMarkFiled(c.id)}
+                      disabled={filingId === c.id}
+                      className="rounded-lg px-4 py-3 min-h-11 text-sm font-semibold cursor-pointer w-full sm:w-auto inline-flex items-center justify-center gap-2 disabled:opacity-60"
+                      style={{ background: "transparent", color: dash.mainText, border: dash.chromeBorder }}
+                    >
+                      {filingId === c.id && <Spinner />}
+                      Mark as Filed in Court
+                    </button>
+                  )}
                   {!meta.hasDemandTier && (
                     <Link
                       href={`/dashboard/demand-letter/${c.id}`}

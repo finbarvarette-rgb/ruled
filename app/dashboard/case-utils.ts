@@ -109,7 +109,7 @@ export function getCaseMeta(caseRecord: Case): CaseMeta {
   } else if (caseRecord.outcome === "hearing") {
     statusBadge = "Hearing Scheduled";
     pipelineIndex = 3;
-  } else if (hasFullTier || caseRecord.court_docs) {
+  } else if (caseRecord.outcome === "filed") {
     statusBadge = "Filed";
     pipelineIndex = 2;
   } else if (hasDemandLetter || (hasDemandTier && caseRecord.paid)) {
