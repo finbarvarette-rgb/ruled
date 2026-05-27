@@ -6,7 +6,8 @@ import { usePathname } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
 
 const NAVY = "#0F172A";
-const BLUE = "#2563EB";
+const BLUE = "#C8392B";
+const AMBER = "#F59E0B";
 const SURFACE = "#F1F5F9";
 const BORDER = "#E2E8F0";
 const MUTED = "#64748B";
@@ -24,7 +25,7 @@ const WELCOME: ChatMessage = {
     "Hi — I'm Ruled AI. Ask about small claims, demand letters, or money you're owed. I'll keep it short and practical — legal information, not advice.",
 };
 
-function ChatIcon({ className }: { className?: string }) {
+function ChatIcon({ className, stroke }: { className?: string; stroke?: string }) {
   return (
     <svg
       className={className}
@@ -32,7 +33,7 @@ function ChatIcon({ className }: { className?: string }) {
       height="20"
       viewBox="0 0 24 24"
       fill="none"
-      stroke="currentColor"
+      stroke={stroke ?? "currentColor"}
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -288,7 +289,7 @@ export function RuledAIChat() {
           style={{ background: NAVY, color: "#ffffff" }}
           aria-label="Open Ruled AI chat"
         >
-          <ChatIcon />
+          <ChatIcon stroke={AMBER} />
           <span>Ask Ruled AI</span>
         </button>
       )}

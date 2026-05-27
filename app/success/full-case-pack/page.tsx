@@ -19,7 +19,7 @@ import type { Case } from "@/lib/supabase";
 
 const LOADING_BG = "#FAFAFA";
 const LOADING_NAVY = "#0F172A";
-const LOADING_BLUE = "#2563EB";
+const LOADING_BLUE = "#C8392B";
 const LOADING_MUTED = "#64748B";
 const LOADING_BORDER = "#E2E8F0";
 
@@ -316,7 +316,7 @@ function downloadPdf(title: string, content: string) {
 
 const BRAND_BG = "#FAFAFA";
 const BRAND_NAVY = "#0F172A";
-const BRAND_BLUE = "#2563EB";
+const BRAND_BLUE = "#C8392B";
 const BRAND_MUTED = "#64748B";
 const BRAND_BORDER = "#E2E8F0";
 

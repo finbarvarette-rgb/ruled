@@ -3,7 +3,7 @@
  * Do not import from marketing routes.
  */
 export const dash = {
-  blue: "#2563EB",
+  blue: "#C8392B",
   amber: "#F59E0B",
   navy: "#0F172A",
   mainBg: "#FAFAFA",
@@ -34,7 +34,7 @@ export const dash = {
   trackMuted: "#CBD5E1",
   /** Primary CTA buttons */
   primaryBtn: {
-    background: "#2563EB",
+    background: "#C8392B",
     color: "#ffffff",
   },
   /** Status badges (replaces former red badge styling) */
@@ -45,10 +45,10 @@ export const dash = {
   },
   /** Accent highlight blocks (next step, etc.) */
   accentPanel: {
-    border: "1px solid rgba(37, 99, 235, 0.35)",
+    border: "1px solid rgba(200, 57, 43, 0.35)",
   },
   accentLabel: {
-    color: "#2563EB",
+    color: "#C8392B",
   },
   /** Form / inline errors (was red) */
   errorText: "#B45309",
@@ -61,7 +61,7 @@ export const dash = {
     color: "#B45309",
     border: "1px solid #F59E0B",
   },
-  pipelineActive: "#2563EB",
-  pipelineActiveGlow: "0 0 0 4px rgba(37, 99, 235, 0.25)",
-  pipelineConnector: "rgba(37, 99, 235, 0.5)",
+  pipelineActive: "#C8392B",
+  pipelineActiveGlow: "0 0 0 4px rgba(200, 57, 43, 0.25)",
+  pipelineConnector: "rgba(200, 57, 43, 0.5)",
 } as const;

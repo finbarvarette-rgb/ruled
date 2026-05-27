@@ -4,7 +4,7 @@ const FROM = "Ruled <hello@ruled.ca>";
 
 export const EMAIL_BRAND = {
   navy: "#0F172A",
-  blue: "#2563EB",
+  blue: "#C8392B",
   amber: "#F59E0B",
   green: "#10B981",
   muted: "#64748B",

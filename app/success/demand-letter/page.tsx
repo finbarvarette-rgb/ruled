@@ -11,7 +11,7 @@ import { downloadDemandLetterPdf } from "@/lib/pdf-generator";
 
 const LOADING_BG = "#FAFAFA";
 const LOADING_NAVY = "#0F172A";
-const LOADING_BLUE = "#2563EB";
+const LOADING_BLUE = "#C8392B";
 const LOADING_MUTED = "#64748B";
 const LOADING_BORDER = "#E2E8F0";
 
@@ -617,7 +617,7 @@ function DemandLetterDeliveryContent() {
               onClick={handleMarkSent}
               className="w-full rounded-xl px-5 py-3.5 text-sm font-semibold cursor-pointer disabled:opacity-60 mt-2"
               style={{
-                background: markSentDone ? "#2a2825" : "#2563EB",
+                background: markSentDone ? "#2a2825" : "#C8392B",
                 color: "#f5f1eb",
               }}
             >

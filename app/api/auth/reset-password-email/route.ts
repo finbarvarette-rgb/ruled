@@ -6,7 +6,7 @@ const FROM = "Ruled <hello@ruled.ca>";
 
 const BRAND = {
   navy: "#0F172A",
-  blue: "#2563EB",
+  blue: "#C8392B",
   amber: "#F59E0B",
   muted: "#64748B",
   surface: "#F1F5F9",

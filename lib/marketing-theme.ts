@@ -6,7 +6,7 @@ export const m = {
   muted: "#64748B",
   border: "#E2E8F0",
   surface: "#F1F5F9",
-  blue: "#2563EB",
+  blue: "#C8392B",
   amber: "#F59E0B",
   green: "#10B981",
   white: "#FFFFFF",
@@ -60,6 +60,6 @@ export function marketingStrengthBadgeStyle(strength: MarketingStrength): {
     case "Moderate":
       return { background: "rgba(245, 158, 11, 0.15)", color: m.amber };
     case "Weak":
-      return { background: "rgba(37, 99, 235, 0.12)", color: m.blue };
+      return { background: "rgba(200, 57, 43, 0.12)", color: m.blue };
   }
 }

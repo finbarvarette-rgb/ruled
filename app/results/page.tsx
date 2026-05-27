@@ -307,7 +307,7 @@ function AssessmentBody({ content }: { content: string }) {
     elements.push(
       <ul
         key={k++}
-        className="list-disc pl-5 flex flex-col gap-1.5 marker:text-[#2563EB]"
+        className="list-disc pl-5 flex flex-col gap-1.5 marker:text-[#C8392B]"
         style={{ color: m.subtext }}
       >
         {pendingList.map((item, i) => (

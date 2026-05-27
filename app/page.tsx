@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useState } from "react";
 
 const NAVY = "#0F172A";
-const BLUE = "#2563EB";
+const BLUE = "#C8392B";
 const SUBTEXT = "#4B5563";
 const SURFACE = "#F1F5F9";
 const PAGE_BG = "#FAFAFA";
@@ -755,7 +755,7 @@ function PricingTierCard({ tier }: { tier: (typeof PRICING_TIERS)[number] }) {
               background: BLUE,
               border: `2px solid ${BLUE}`,
               color: "#ffffff",
-              boxShadow: "0 8px 24px rgba(37, 99, 235, 0.28)",
+              boxShadow: "0 8px 24px rgba(200, 57, 43, 0.28)",
             }
           : {
               background: "#ffffff",

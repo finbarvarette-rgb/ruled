@@ -1,0 +1,18 @@
+Swap the primary color from blue #2563EB to red #C8392B 
+across the entire site. 
+
+Rules:
+- All primary CTA buttons → red #C8392B
+- All blue accent text → either red or navy #0F172A 
+  depending on context
+- Keep amber #F59E0B for checkmarks and highlights
+- Keep navy #0F172A for backgrounds and headings
+- The "Ask Ruled AI" floating button → navy #0F172A 
+  background with amber chat icon
+- Dashboard sidebar active state → red #C8392B
+- Do NOT change any functionality, copy, or layout
+- Touch globals.css first to update CSS variables, 
+  then update any hardcoded blue hex values in 
+  component files
+
+Commit when done.

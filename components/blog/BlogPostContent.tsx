@@ -44,7 +44,7 @@ export function BlogPostContent({ blocks }: { blocks: BlogBlock[] }) {
                 style={{ color: m.subtext }}
               >
                 {block.items.map((item, j) => (
-                  <li key={j} className="break-words marker:text-[#2563EB]">
+                  <li key={j} className="break-words marker:text-[#C8392B]">
                     {item}
                   </li>
                 ))}
@@ -58,7 +58,7 @@ export function BlogPostContent({ blocks }: { blocks: BlogBlock[] }) {
                 style={{ color: m.subtext }}
               >
                 {block.items.map((item, j) => (
-                  <li key={j} className="break-words marker:text-[#2563EB]">
+                  <li key={j} className="break-words marker:text-[#C8392B]">
                     {item}
                   </li>
                 ))}

@@ -80,7 +80,7 @@ export default function CaseAssessmentHowItWorksPage() {
             What the AI analyzes
           </h2>
           <ul
-            className="list-disc pl-5 text-sm leading-relaxed flex flex-col gap-2 marker:text-[#2563EB]"
+            className="list-disc pl-5 text-sm leading-relaxed flex flex-col gap-2 marker:text-[#C8392B]"
             style={{ color: m.subtext }}
           >
             <li>The facts you provide (who, what, when, amounts, province)</li>

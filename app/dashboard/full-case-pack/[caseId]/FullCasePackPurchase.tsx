@@ -13,7 +13,7 @@ import {
 import { saveCaseToSession } from "../../components/dashboard-session";
 import { dash } from "../../theme";
 
-const BLUE = "#2563EB";
+const BLUE = "#C8392B";
 const NAVY = "#0F172A";
 const AMBER = "#F59E0B";
 
