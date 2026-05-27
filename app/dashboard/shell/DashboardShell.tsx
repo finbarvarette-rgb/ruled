@@ -196,20 +196,12 @@ export function DashboardShell({
           style={{ borderColor: "#1E293B", background: dash.navy }}
         >
           <div className="flex flex-col w-full p-4 gap-4">
-            <Link href="/dashboard" className="flex items-center gap-2 px-2 py-3">
+            <Link href="/dashboard" className="flex items-center px-2 py-3">
               <img
-                src="/brand/logo_icon.png"
-                alt=""
-                width={32}
-                height={32}
-                className="shrink-0 object-contain"
+                src="/brand/wordmark_light.png"
+                alt="ruled.ca"
+                className="h-7 w-auto object-contain"
               />
-              <span
-                className="text-xl font-bold tracking-tight"
-                style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
-              >
-                ruled<span style={{ color: dash.blue }}>.ca</span>
-              </span>
             </Link>
 
             <nav className="flex flex-col gap-1">
