@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import type { Case } from "@/lib/supabase";
 import { generateCaseTitle, getCaseMeta } from "../case-utils";
@@ -101,6 +101,8 @@ export function DashboardShell({
   const [query, setQuery] = useState("");
   const [notifOpen, setNotifOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [avatarOpen, setAvatarOpen] = useState(false);
+  const avatarRef = useRef<HTMLDivElement>(null);
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchCases, setSearchCases] = useState<Case[]>([]);
 
@@ -125,7 +127,19 @@ export function DashboardShell({
 
   useEffect(() => {
     setNotifOpen(false);
+    setAvatarOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (!avatarOpen) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (avatarRef.current && !avatarRef.current.contains(e.target as Node)) {
+        setAvatarOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [avatarOpen]);
 
   async function openSearch() {
     setSearchOpen(true);
@@ -305,16 +319,41 @@ export function DashboardShell({
                 >
                   <IconSettings active={false} mutedStroke={dash.mainMuted} />
                 </Link>
-                <div
-                  className="w-10 h-10 md:w-9 md:h-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-                  style={{
-                    background: "#F1F5F9",
-                    border: dash.chromeBorder,
-                    color: dash.mainText,
-                  }}
-                  title={user.email ?? undefined}
-                >
-                  {user.initials}
+                <div className="relative" ref={avatarRef}>
+                  <button
+                    type="button"
+                    onClick={() => setAvatarOpen((v) => !v)}
+                    className="w-10 h-10 md:w-9 md:h-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0 cursor-pointer"
+                    style={{ background: "#F1F5F9", border: dash.chromeBorder, color: dash.mainText }}
+                    title={user.email ?? undefined}
+                    aria-label="Account menu"
+                  >
+                    {user.initials}
+                  </button>
+                  {avatarOpen && (
+                    <div
+                      className="absolute right-0 mt-2 w-48 rounded-xl overflow-hidden z-50"
+                      style={{ ...dash.panel }}
+                    >
+                      <Link
+                        href="/dashboard/account"
+                        className="flex items-center px-4 py-3 text-sm font-medium hover:opacity-80 transition-opacity"
+                        style={{ color: dash.mainText }}
+                        onClick={() => setAvatarOpen(false)}
+                      >
+                        Account
+                      </Link>
+                      <div style={{ borderTop: `1px solid ${dash.rowDivider}` }} />
+                      <button
+                        type="button"
+                        onClick={() => { setAvatarOpen(false); handleSignOut(); }}
+                        className="w-full text-left px-4 py-3 text-sm font-medium cursor-pointer hover:opacity-80 transition-opacity"
+                        style={{ color: dash.mainText }}
+                      >
+                        Sign Out
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
