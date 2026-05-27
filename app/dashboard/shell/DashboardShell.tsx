@@ -470,25 +470,6 @@ export function DashboardShell({
         </div>
       )}
 
-      {/* Floating + button */}
-      <div className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:bottom-6 right-4 md:right-6 z-50 group">
-        <div
-          className="pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity absolute right-0 -top-10 text-xs font-semibold px-3 py-2 rounded-lg"
-          style={{ ...dash.panel, color: dash.mainText }}
-        >
-          Start New Case Assessment
-        </div>
-        <button
-          type="button"
-          onClick={() => router.push("/dashboard/new-assessment")}
-          className="w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold cursor-pointer shadow-lg"
-          style={dash.primaryBtn}
-          aria-label="Start New Case Assessment"
-        >
-          +
-        </button>
-      </div>
-
       {/* Mobile bottom tab bar */}
       <nav
         className="md:hidden fixed bottom-0 inset-x-0 z-40 border-t"
