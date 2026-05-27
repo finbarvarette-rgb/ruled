@@ -270,11 +270,11 @@ export function RuledAIChat() {
   }
 
   const launcherPosition = isDashboard
-    ? "bottom-[calc(8.5rem+env(safe-area-inset-bottom,0px))] md:bottom-[5.75rem]"
+    ? "bottom-[calc(8.5rem+env(safe-area-inset-bottom,0px))] md:bottom-6"
     : "bottom-6";
 
   const panelPosition = isDashboard
-    ? "bottom-[calc(8.5rem+env(safe-area-inset-bottom,0px))] md:bottom-[5.75rem]"
+    ? "bottom-[calc(8.5rem+env(safe-area-inset-bottom,0px))] md:bottom-6"
     : "bottom-6";
 
   return (

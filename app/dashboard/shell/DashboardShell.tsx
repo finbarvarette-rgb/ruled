@@ -193,11 +193,11 @@ export function DashboardShell({
           style={{ borderColor: "#1E293B", background: dash.navy }}
         >
           <div className="flex flex-col w-full p-4 gap-4">
-            <Link href="/dashboard" className="flex items-center px-2 py-3">
+            <Link href="/dashboard" className="flex items-center px-2 py-4">
               <img
                 src="/brand/wordmark_light.png"
                 alt="ruled.ca"
-                className="h-7 w-auto object-contain"
+                className="h-10 w-auto object-contain"
               />
             </Link>
 
@@ -285,7 +285,7 @@ export function DashboardShell({
                   aria-label="New Assessment"
                   title="New Assessment"
                 >
-                  <span style={{ fontSize: "20px", fontWeight: 700, lineHeight: 1 }}>+</span>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M8 2v12M2 8h12" /></svg>
                 </Link>
                 <Link
                   href="/dashboard/settings"
@@ -394,11 +394,11 @@ export function DashboardShell({
               ) : (
                 <div className="overflow-y-auto flex flex-col gap-5" style={{ maxHeight: "min(420px, 50vh)" }}>
                   <div className="flex flex-col gap-2">
-                    <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: dash.mainMuted }}>
+                    <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "#475569" }}>
                       Cases
                     </p>
                     {searchResults.cases.length === 0 ? (
-                      <p className="text-sm" style={{ color: dash.mainMuted }}>
+                      <p className="text-sm" style={{ color: "#475569" }}>
                         {query.trim() ? "No matching cases." : "Type to search…"}
                       </p>
                     ) : (
@@ -416,7 +416,7 @@ export function DashboardShell({
                             style={{ background: dash.nested.background, border: dash.nested.border }}
                           >
                             <p className="text-sm font-semibold leading-snug">{generateCaseTitle(c)}</p>
-                            <p className="text-xs mt-0.5" style={{ color: dash.mainMuted }}>
+                            <p className="text-xs mt-0.5" style={{ color: "#475569" }}>
                               {c.province}
                             </p>
                           </button>
@@ -426,11 +426,11 @@ export function DashboardShell({
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: dash.mainMuted }}>
+                    <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "#475569" }}>
                       Documents
                     </p>
                     {searchResults.docs.length === 0 ? (
-                      <p className="text-sm" style={{ color: dash.mainMuted }}>
+                      <p className="text-sm" style={{ color: "#475569" }}>
                         {query.trim() ? "No matching documents." : ""}
                       </p>
                     ) : (
