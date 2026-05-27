@@ -14,7 +14,7 @@ type NavItem = {
     | "case-assessments"
     | "documents"
     | "billing"
-    | "profile"
+    | "account"
     | "settings";
   label: string;
   href: string;
@@ -47,9 +47,9 @@ const NAV: NavItem[] = [
     icon: (active) => <IconCreditCard active={active} />,
   },
   {
-    key: "profile",
-    label: "Profile",
-    href: "/dashboard/profile",
+    key: "account",
+    label: "Account",
+    href: "/dashboard/account",
     icon: (active) => <IconUser active={active} />,
   },
   {
@@ -82,9 +82,9 @@ const MOBILE_TAB_NAV: { key: NavItem["key"]; label: string; href: string; icon: 
     icon: (a) => <IconCreditCard active={a} />,
   },
   {
-    key: "profile",
-    label: "Profile",
-    href: "/dashboard/profile",
+    key: "account",
+    label: "Account",
+    href: "/dashboard/account",
     icon: (a) => <IconUser active={a} />,
   },
 ];
