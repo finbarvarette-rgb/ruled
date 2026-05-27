@@ -250,6 +250,7 @@ export default function Home() {
           backgroundImage: "url(/brand/stats_bg.png)",
           backgroundSize: "cover",
           backgroundPosition: "center",
+          borderTop: "1px solid rgba(255,255,255,0.10)",
         }}
       >
         <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-6 text-center relative z-10">
@@ -268,7 +269,7 @@ export default function Home() {
       >
         <div className="max-w-5xl mx-auto w-full flex flex-col gap-6">
           <h2 className="text-2xl md:text-3xl font-semibold text-center tracking-tight" style={{ color: NAVY }}>
-            Three Steps to Getting Paid
+            Simple Steps to Get Paid
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
             <StepCard
@@ -294,20 +295,22 @@ export default function Home() {
       </section>
 
       {/* Who This Is For */}
-      <section className="px-4 sm:px-6 py-10 md:py-12" style={{ background: "#ffffff" }}>
+      <section className="px-4 sm:px-6 py-10 md:py-12" style={{ background: NAVY }}>
         <div className="max-w-5xl mx-auto w-full flex flex-col gap-6">
-          <h2 className="text-2xl md:text-3xl font-semibold text-center tracking-tight" style={{ color: NAVY }}>
+          <h2 className="text-2xl md:text-3xl font-semibold text-center tracking-tight" style={{ color: "#ffffff" }}>
             Built for People Who Got Screwed
           </h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 items-center w-full">
             <div className="w-full flex items-center justify-center lg:min-h-[320px]">
-              <Image
-                src="/brand/use_cases_illustration.png"
-                alt=""
-                width={480}
-                height={480}
-                className="w-full h-auto object-contain"
-              />
+              <div className="rounded-2xl overflow-hidden bg-white w-full">
+                <Image
+                  src="/brand/use_cases_illustration.png"
+                  alt=""
+                  width={480}
+                  height={480}
+                  className="w-full h-auto object-contain"
+                />
+              </div>
             </div>
             <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-4">
               <AudienceCard
@@ -346,9 +349,9 @@ export default function Home() {
       </section>
 
       {/* FAQ */}
-      <section className="px-4 sm:px-6 py-10 md:py-12" style={{ background: "#ffffff" }}>
+      <section className="px-4 sm:px-6 py-10 md:py-12" style={{ background: NAVY }}>
         <div className="max-w-5xl mx-auto w-full flex flex-col gap-6">
-          <h2 className="text-2xl md:text-3xl font-semibold text-center tracking-tight" style={{ color: NAVY }}>
+          <h2 className="text-2xl md:text-3xl font-semibold text-center tracking-tight" style={{ color: "#ffffff" }}>
             Frequently asked questions
           </h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
@@ -531,8 +534,8 @@ function StepCard({
           alt=""
           width={720}
           height={280}
-          className="absolute top-0 h-full max-w-none object-cover"
-          style={{ width: "300%", left: `-${iconIndex * 100}%` }}
+          className="absolute max-w-none"
+          style={{ width: "300%", height: "auto", left: `-${iconIndex * 100}%`, top: "50%", transform: "translateY(-50%)" }}
         />
       </div>
       <div
