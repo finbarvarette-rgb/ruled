@@ -42,9 +42,9 @@ function LoginForm() {
       }
       const pendingIntake = sessionStorage.getItem("onboarding_intake");
       if (pendingIntake) {
-        router.push("/processing");
+        router.replace("/processing");
       } else {
-        router.push("/dashboard");
+        router.replace("/dashboard");
       }
     } catch (err) {
       setError(
