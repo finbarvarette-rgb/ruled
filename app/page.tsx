@@ -128,12 +128,12 @@ export default function Home() {
         }
       ` }} />
       <div className="flex flex-col flex-1" style={{ background: PAGE_BG, color: NAVY }}>
+
       {/* Hero */}
       <section
         className="relative min-h-screen flex flex-col justify-center px-4 sm:px-6 py-10 md:py-14 lg:py-16 overflow-hidden"
         style={{ background: NAVY }}
       >
-        {/* Animated gradient blobs */}
         <div aria-hidden className="absolute inset-0 pointer-events-none">
           <div style={{
             position: "absolute", borderRadius: "50%",
@@ -159,7 +159,6 @@ export default function Home() {
         </div>
 
         <div className="relative z-10 max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
-          {/* Left: copy */}
           <div className="flex flex-col gap-8 order-2 lg:order-1">
             <div className="flex flex-col gap-4">
               <h1
@@ -195,7 +194,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Right: floating browser mockup */}
           <div className="order-1 lg:order-2 flex justify-center lg:justify-end">
             <div
               className="w-full"
@@ -208,7 +206,6 @@ export default function Home() {
                 background: "#1E293B",
               }}
             >
-              {/* Browser chrome */}
               <div style={{
                 display: "flex", alignItems: "center", gap: "8px",
                 padding: "10px 14px",
@@ -228,7 +225,6 @@ export default function Home() {
                   ruled.ca
                 </div>
               </div>
-              {/* Screenshot */}
               <Image
                 src="/brand/product-screenshot.png.PNG"
                 alt="Ruled.ca product interface"
@@ -242,15 +238,14 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Stats */}
+      {/* Stats — connected to hero, no separator */}
       <section
-        className="px-4 sm:px-6 py-10 md:py-12 relative overflow-hidden"
+        className="px-4 sm:px-6 py-16 md:py-20 relative overflow-hidden"
         style={{
           backgroundColor: NAVY,
           backgroundImage: "url(/brand/stats_bg.png)",
           backgroundSize: "cover",
           backgroundPosition: "center",
-          borderTop: "1px solid rgba(255,255,255,0.10)",
         }}
       >
         <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-6 text-center relative z-10">
@@ -264,12 +259,12 @@ export default function Home() {
       {/* How It Works */}
       <section
         id="how-it-works"
-        className="px-4 sm:px-6 py-10 md:py-12 scroll-mt-16"
+        className="px-4 sm:px-6 py-16 md:py-20 scroll-mt-16"
         style={{ background: SURFACE }}
       >
-        <div className="max-w-5xl mx-auto w-full flex flex-col gap-6">
-          <h2 className="text-2xl md:text-3xl font-semibold text-center tracking-tight" style={{ color: NAVY }}>
-            Simple Steps to Get Paid
+        <div className="max-w-5xl mx-auto w-full flex flex-col gap-8">
+          <h2 className="text-3xl md:text-4xl font-bold text-center tracking-tight" style={{ color: NAVY }}>
+            How It Works
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
             <StepCard
@@ -294,50 +289,41 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Who This Is For */}
-      <section className="px-4 sm:px-6 py-10 md:py-12" style={{ background: NAVY }}>
-        <div className="max-w-5xl mx-auto w-full flex flex-col gap-6">
-          <h2 className="text-2xl md:text-3xl font-semibold text-center tracking-tight" style={{ color: "#ffffff" }}>
-            Built for People Who Got Screwed
+      {/* Built for situations like yours */}
+      <section className="px-4 sm:px-6 py-16 md:py-20" style={{ background: "#ffffff" }}>
+        <div className="max-w-5xl mx-auto w-full flex flex-col gap-10">
+          <h2 className="text-3xl md:text-4xl font-bold text-center tracking-tight" style={{ color: NAVY }}>
+            Built for situations like yours
           </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 items-center w-full">
-            <div className="w-full flex items-center justify-center lg:min-h-[320px]">
-              <div className="rounded-2xl overflow-hidden bg-white w-full">
-                <Image
-                  src="/brand/use_cases_illustration.png"
-                  alt=""
-                  width={480}
-                  height={480}
-                  className="w-full h-auto object-contain"
-                />
-              </div>
-            </div>
-            <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <AudienceCard
-                title="Contractors and Trades"
-                description="Client won't pay. Chargeback after job completion. We help you fight back."
-              />
-              <AudienceCard
-                title="Landlords"
-                description="Deposit dispute. Property damage. Unpaid rent. Know your rights."
-              />
-              <AudienceCard
-                title="Small Businesses"
-                description="Reversed payment. Broken contract. Supplier didn't deliver."
-              />
-              <AudienceCard
-                title="Everyday Canadians"
-                description="Bad contractor. Faulty product. Service never delivered."
-              />
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <SituationCard
+              icon={<WrenchIcon />}
+              title="Contractors and Trades"
+              description="Client won't pay after job completion. Draft a formal demand and file if needed."
+            />
+            <SituationCard
+              icon={<KeyIcon />}
+              title="Landlords"
+              description="Deposit disputes, property damage, unpaid rent — know your rights and act."
+            />
+            <SituationCard
+              icon={<BriefcaseIcon />}
+              title="Small Businesses"
+              description="Reversed payments, broken contracts, and suppliers who didn't deliver."
+            />
+            <SituationCard
+              icon={<ShieldIcon />}
+              title="Everyday Canadians"
+              description="Bad contractors, faulty products, or services you paid for and never received."
+            />
           </div>
         </div>
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="px-4 sm:px-6 py-10 md:py-12 scroll-mt-16" style={{ background: PAGE_BG }}>
+      <section id="pricing" className="px-4 sm:px-6 py-16 md:py-20 scroll-mt-16" style={{ background: PAGE_BG }}>
         <div className="max-w-5xl mx-auto w-full flex flex-col gap-8">
-          <h2 className="text-2xl md:text-3xl font-semibold text-center tracking-tight" style={{ color: NAVY }}>
+          <h2 className="text-3xl md:text-4xl font-bold text-center tracking-tight" style={{ color: NAVY }}>
             Simple Flat-Fee Pricing. No surprises.
           </h2>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -349,10 +335,10 @@ export default function Home() {
       </section>
 
       {/* FAQ */}
-      <section className="px-4 sm:px-6 py-10 md:py-12" style={{ background: NAVY }}>
-        <div className="max-w-5xl mx-auto w-full flex flex-col gap-6">
-          <h2 className="text-2xl md:text-3xl font-semibold text-center tracking-tight" style={{ color: "#ffffff" }}>
-            Frequently asked questions
+      <section className="px-4 sm:px-6 py-16 md:py-20" style={{ background: "#F8F7F4" }}>
+        <div className="max-w-5xl mx-auto w-full flex flex-col gap-8">
+          <h2 className="text-3xl md:text-4xl font-bold text-center tracking-tight" style={{ color: NAVY }}>
+            Common questions
           </h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
             <div className="flex flex-col gap-4">
@@ -369,32 +355,22 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="px-4 sm:px-6 py-10 md:py-12" style={{ background: SURFACE }}>
-        <div className="max-w-5xl mx-auto w-full flex flex-col gap-8">
-          <h2 className="text-2xl md:text-3xl font-semibold text-center tracking-tight" style={{ color: NAVY }}>
-            Canadians Getting Their Money Back
+      {/* Social Proof / Waitlist */}
+      <section className="px-4 sm:px-6 py-16 md:py-20" style={{ background: SURFACE }}>
+        <div className="max-w-2xl mx-auto w-full flex flex-col gap-6 items-center text-center">
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight" style={{ color: NAVY }}>
+            Real results from real Canadians
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <TestimonialCard
-              quote="I got my $4,200 deposit back in 6 weeks. The demand letter did it — never even went to court."
-              author="Sarah M., Halifax NS"
-            />
-            <TestimonialCard
-              quote="My contractor took $8,000 and ghosted. Ruled helped me file and recover in 3 months."
-              author="James T., Moncton NB"
-            />
-            <TestimonialCard
-              quote="I was ready to give up on $3,500. The case assessment gave me confidence to fight. I got paid."
-              author="Mike R., Toronto ON"
-            />
-          </div>
+          <p className="text-lg leading-relaxed max-w-lg" style={{ color: SUBTEXT }}>
+            Ruled is helping Canadians fight back. Be among the first.
+          </p>
+          <WaitlistCapture />
         </div>
       </section>
 
       {/* Bottom CTA */}
       <section
-        className="px-4 sm:px-6 py-10 md:py-12 text-center relative overflow-hidden"
+        className="px-4 sm:px-6 py-16 md:py-20 text-center relative overflow-hidden"
         style={{
           backgroundColor: NAVY,
           backgroundImage: "url(/brand/cta_bg.png)",
@@ -409,7 +385,7 @@ export default function Home() {
         />
         <div className="max-w-2xl mx-auto flex flex-col gap-5 items-center relative z-10">
           <h2
-            className="text-2xl md:text-3xl font-semibold tracking-tight"
+            className="text-3xl md:text-4xl font-bold tracking-tight"
             style={{ color: "#ffffff", textShadow: "0 2px 12px rgba(0, 0, 0, 0.45)" }}
           >
             Ready to Fight Back?
@@ -440,55 +416,32 @@ export default function Home() {
             <div className="flex flex-col gap-3">
               <p className="text-xs font-semibold uppercase tracking-wider text-white/60">Product</p>
               <nav className="flex flex-col gap-2 text-sm">
-                <Link href="/#how-it-works" className="text-white/80 hover:text-white transition-colors">
-                  How It Works
-                </Link>
-                <Link href="/#pricing" className="text-white/80 hover:text-white transition-colors">
-                  Pricing
-                </Link>
-                <Link href="/demand-preview" className="text-white/80 hover:text-white transition-colors">
-                  Demand Letter
-                </Link>
-                <Link href="/full-case-pack-preview" className="text-white/80 hover:text-white transition-colors">
-                  Full Case Pack
-                </Link>
-                <Link href="/blog" className="text-white/80 hover:text-white transition-colors">
-                  Blog
-                </Link>
+                <Link href="/#how-it-works" className="text-white/80 hover:text-white transition-colors">How It Works</Link>
+                <Link href="/#pricing" className="text-white/80 hover:text-white transition-colors">Pricing</Link>
+                <Link href="/demand-preview" className="text-white/80 hover:text-white transition-colors">Demand Letter</Link>
+                <Link href="/full-case-pack-preview" className="text-white/80 hover:text-white transition-colors">Full Case Pack</Link>
+                <Link href="/blog" className="text-white/80 hover:text-white transition-colors">Blog</Link>
               </nav>
             </div>
             <div className="flex flex-col gap-3">
               <p className="text-xs font-semibold uppercase tracking-wider text-white/60">Company</p>
               <nav className="flex flex-col gap-2 text-sm">
-                <Link href="/login" className="text-white/80 hover:text-white transition-colors">
-                  Sign In
-                </Link>
-                <Link href="/about" className="text-white/80 hover:text-white transition-colors">
-                  About
-                </Link>
-                <Link href="/blog" className="text-white/80 hover:text-white transition-colors">
-                  Blog
-                </Link>
-                <Link href="/contact" className="text-white/80 hover:text-white transition-colors">
-                  Contact
-                </Link>
+                <Link href="/login" className="text-white/80 hover:text-white transition-colors">Sign In</Link>
+                <Link href="/about" className="text-white/80 hover:text-white transition-colors">About</Link>
+                <Link href="/blog" className="text-white/80 hover:text-white transition-colors">Blog</Link>
+                <Link href="/contact" className="text-white/80 hover:text-white transition-colors">Contact</Link>
               </nav>
             </div>
             <div className="flex flex-col gap-3">
               <p className="text-xs font-semibold uppercase tracking-wider text-white/60">Legal</p>
               <nav className="flex flex-col gap-2 text-sm">
-                <Link href="/privacy" className="text-white/80 hover:text-white transition-colors">
-                  Privacy Policy
-                </Link>
-                <Link href="/terms" className="text-white/80 hover:text-white transition-colors">
-                  Terms of Service
-                </Link>
+                <Link href="/privacy" className="text-white/80 hover:text-white transition-colors">Privacy Policy</Link>
+                <Link href="/terms" className="text-white/80 hover:text-white transition-colors">Terms of Service</Link>
               </nav>
             </div>
           </div>
           <p className="text-xs text-white/50 border-t border-white/10 pt-6">
-            &copy; 2026 ruled.ca. Ruled provides legal information, not legal
-            advice. Not a law firm.
+            &copy; 2026 ruled.ca. Ruled provides legal information, not legal advice. Not a law firm.
           </p>
         </div>
       </footer>
@@ -509,6 +462,97 @@ function RuledLogo({ size = "lg", variant = "dark" }: { size?: "lg" | "sm"; vari
       <span style={{ color: ruledColor }}>ruled</span>
       <span style={{ color: caColor }}>.ca</span>
     </span>
+  );
+}
+
+function WaitlistCapture() {
+  const [email, setEmail] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+
+  if (submitted) {
+    return (
+      <p className="text-base font-semibold py-3" style={{ color: BLUE }}>
+        You&apos;re on the list — we&apos;ll be in touch.
+      </p>
+    );
+  }
+
+  return (
+    <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
+      <input
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        onKeyDown={(e) => { if (e.key === "Enter" && email.trim()) setSubmitted(true); }}
+        placeholder="Enter your email"
+        className="flex-1 rounded-full px-5 py-3 text-sm outline-none"
+        style={{ background: "#ffffff", border: "1px solid #E2E8F0", color: NAVY }}
+      />
+      <button
+        type="button"
+        onClick={() => { if (email.trim()) setSubmitted(true); }}
+        className="rounded-full px-6 py-3 text-sm font-semibold whitespace-nowrap cursor-pointer"
+        style={{ background: BLUE, color: "#ffffff" }}
+      >
+        Get Early Access
+      </button>
+    </div>
+  );
+}
+
+function SituationCard({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
+  return (
+    <div
+      className="rounded-xl p-6 flex flex-col gap-4"
+      style={{ background: "#ffffff", border: "1px solid #E2E8F0", boxShadow: CARD_SHADOW }}
+    >
+      <div
+        className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+        style={{ background: "rgba(245,158,11,0.12)" }}
+      >
+        {icon}
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <h3 className="font-bold text-base" style={{ color: NAVY }}>{title}</h3>
+        <p className="text-sm leading-relaxed" style={{ color: SUBTEXT }}>{description}</p>
+      </div>
+    </div>
+  );
+}
+
+function WrenchIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={AMBER} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+    </svg>
+  );
+}
+
+function KeyIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={AMBER} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <circle cx="7.5" cy="15.5" r="5.5" />
+      <path d="M21 2l-9.6 9.6" />
+      <path d="M15.5 7.5l3 3" />
+    </svg>
+  );
+}
+
+function BriefcaseIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={AMBER} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <rect x="2" y="7" width="20" height="14" rx="2" />
+      <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
+      <path d="M2 12h20" />
+    </svg>
+  );
+}
+
+function ShieldIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={AMBER} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </svg>
   );
 }
 
@@ -545,22 +589,6 @@ function StepCard({
         {step}
       </div>
       <h3 className="text-lg font-semibold" style={{ color: NAVY }}>
-        {title}
-      </h3>
-      <p className="text-sm leading-relaxed" style={{ color: SUBTEXT }}>
-        {description}
-      </p>
-    </div>
-  );
-}
-
-function AudienceCard({ title, description }: { title: string; description: string }) {
-  return (
-    <div
-      className="rounded-xl p-5 flex flex-col gap-2 h-full"
-      style={{ background: "#ffffff", border: "1px solid #E2E8F0", boxShadow: CARD_SHADOW }}
-    >
-      <h3 className="font-semibold text-sm" style={{ color: BLUE }}>
         {title}
       </h3>
       <p className="text-sm leading-relaxed" style={{ color: SUBTEXT }}>
@@ -710,22 +738,6 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
           </p>
         </div>
       )}
-    </div>
-  );
-}
-
-function TestimonialCard({ quote, author }: { quote: string; author: string }) {
-  return (
-    <div
-      className="rounded-xl p-6 flex flex-col gap-4 h-full"
-      style={{ background: "#ffffff", boxShadow: CARD_SHADOW, border: "1px solid #E2E8F0" }}
-    >
-      <p className="text-sm leading-relaxed italic break-words" style={{ color: NAVY }}>
-        &ldquo;{quote}&rdquo;
-      </p>
-      <p className="text-xs font-medium" style={{ color: BLUE }}>
-        — {author}
-      </p>
     </div>
   );
 }
