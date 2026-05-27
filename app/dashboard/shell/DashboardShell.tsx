@@ -392,17 +392,17 @@ export function DashboardShell({
                   Loading…
                 </p>
               ) : (
-                <div className="flex flex-col gap-5">
+                <div className="overflow-y-auto flex flex-col gap-5" style={{ maxHeight: "min(420px, 50vh)" }}>
                   <div className="flex flex-col gap-2">
                     <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: dash.mainMuted }}>
                       Cases
                     </p>
                     {searchResults.cases.length === 0 ? (
                       <p className="text-sm" style={{ color: dash.mainMuted }}>
-                        No matching cases.
+                        {query.trim() ? "No matching cases." : "Type to search…"}
                       </p>
                     ) : (
-                      <div className="flex flex-col gap-2">
+                      <div className="flex flex-col gap-1.5">
                         {searchResults.cases.map((c) => (
                           <button
                             key={c.id}
@@ -412,11 +412,11 @@ export function DashboardShell({
                               router.push("/dashboard/case-assessments");
                               setSearchOpen(false);
                             }}
-                            className="text-left rounded-xl px-4 py-3 cursor-pointer"
+                            className="text-left rounded-xl px-4 py-3 cursor-pointer w-full"
                             style={{ background: dash.nested.background, border: dash.nested.border }}
                           >
-                            <p className="text-sm font-semibold">{generateCaseTitle(c)}</p>
-                            <p className="text-xs" style={{ color: dash.mainMuted }}>
+                            <p className="text-sm font-semibold leading-snug">{generateCaseTitle(c)}</p>
+                            <p className="text-xs mt-0.5" style={{ color: dash.mainMuted }}>
                               {c.province}
                             </p>
                           </button>
@@ -431,17 +431,17 @@ export function DashboardShell({
                     </p>
                     {searchResults.docs.length === 0 ? (
                       <p className="text-sm" style={{ color: dash.mainMuted }}>
-                        No matching documents.
+                        {query.trim() ? "No matching documents." : ""}
                       </p>
                     ) : (
-                      <div className="flex flex-col gap-2">
+                      <div className="flex flex-col gap-1.5">
                         {searchResults.docs.map((d) => (
                           <div
                             key={d.key}
-                            className="rounded-xl px-4 py-3 flex items-center justify-between gap-3"
+                            className="rounded-xl px-4 py-3 flex items-start justify-between gap-3"
                             style={{ background: dash.nested.background, border: dash.nested.border }}
                           >
-                            <p className="text-sm font-semibold min-w-0 truncate">{d.label}</p>
+                            <p className="text-sm font-medium leading-snug min-w-0 break-words" style={{ color: dash.mainText }}>{d.label}</p>
                             <button
                               type="button"
                               onClick={() => {
