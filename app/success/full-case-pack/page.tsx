@@ -516,7 +516,11 @@ function FullCasePackDeliveryContent() {
   const isPreview = searchParams.get("preview") === "true";
   const sectionParam = searchParams.get("section");
   const generateTarget: GenerateSection | null =
-    sectionParam === "court" || sectionParam === "hearing" ? sectionParam : null;
+    sectionParam === "court" ||
+    sectionParam === "hearing" ||
+    sectionParam === "demand"
+      ? sectionParam
+      : null;
 
   const [phase, setPhase] = useState<"loading" | "generating" | "ready" | "error">(
     "loading"
