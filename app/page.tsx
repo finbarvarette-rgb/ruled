@@ -109,23 +109,66 @@ const FAQ_ITEMS = [
 export default function Home() {
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: ".site-body { border-top: none !important; }" }} />
+      <style dangerouslySetInnerHTML={{ __html: `
+        .site-body { border-top: none !important; }
+        @keyframes heroBlob1 {
+          0%, 100% { transform: translate(0px, 0px) scale(1); }
+          33%       { transform: translate(50px, -70px) scale(1.15); }
+          66%       { transform: translate(-35px, 40px) scale(0.9); }
+        }
+        @keyframes heroBlob2 {
+          0%, 100% { transform: translate(0px, 0px) scale(1); }
+          40%       { transform: translate(-60px, 35px) scale(1.1); }
+          70%       { transform: translate(40px, -50px) scale(0.95); }
+        }
+        @keyframes heroBlob3 {
+          0%, 100% { transform: translate(0px, 0px) scale(1); }
+          30%       { transform: translate(60px, -45px) scale(1.2); }
+          65%       { transform: translate(-45px, 55px) scale(0.85); }
+        }
+      ` }} />
       <div className="flex flex-col flex-1" style={{ background: PAGE_BG, color: NAVY }}>
       {/* Hero */}
       <section
-        className="min-h-screen flex flex-col justify-center px-4 sm:px-6 py-10 md:py-14 lg:py-16"
-        style={{ background: "#ffffff" }}
+        className="relative min-h-screen flex flex-col justify-center px-4 sm:px-6 py-10 md:py-14 lg:py-16 overflow-hidden"
+        style={{ background: NAVY }}
       >
-        <div className="max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-12 items-center">
+        {/* Animated gradient blobs */}
+        <div aria-hidden className="absolute inset-0 pointer-events-none">
+          <div style={{
+            position: "absolute", borderRadius: "50%",
+            width: "640px", height: "640px", top: "-180px", left: "-120px",
+            background: "radial-gradient(circle, rgba(37,99,235,0.38) 0%, transparent 70%)",
+            filter: "blur(64px)",
+            animation: "heroBlob1 20s ease-in-out infinite",
+          }} />
+          <div style={{
+            position: "absolute", borderRadius: "50%",
+            width: "520px", height: "520px", bottom: "-120px", right: "-100px",
+            background: "radial-gradient(circle, rgba(245,158,11,0.28) 0%, transparent 70%)",
+            filter: "blur(64px)",
+            animation: "heroBlob2 25s ease-in-out infinite",
+          }} />
+          <div style={{
+            position: "absolute", borderRadius: "50%",
+            width: "480px", height: "480px", top: "35%", left: "38%",
+            background: "radial-gradient(circle, rgba(37,99,235,0.22) 0%, transparent 70%)",
+            filter: "blur(80px)",
+            animation: "heroBlob3 30s ease-in-out infinite",
+          }} />
+        </div>
+
+        <div className="relative z-10 max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+          {/* Left: copy */}
           <div className="flex flex-col gap-8 order-2 lg:order-1">
             <div className="flex flex-col gap-4">
               <h1
                 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-tight break-words"
-                style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: NAVY }}
+                style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: "#ffffff" }}
               >
                 Get the money you&apos;re owed.
               </h1>
-              <p className="text-base md:text-lg leading-relaxed max-w-lg" style={{ color: SUBTEXT }}>
+              <p className="text-base md:text-lg leading-relaxed max-w-lg" style={{ color: "rgba(255,255,255,0.70)" }}>
                 AI-powered demand letters and small claims support. Flat fee. No lawyer needed.
               </p>
             </div>
@@ -141,25 +184,60 @@ export default function Home() {
                 <Link
                   href="/#how-it-works"
                   className="w-full sm:flex-1 min-h-12 rounded-full px-6 py-4 text-base font-semibold text-center flex items-center justify-center"
-                  style={{ color: BLUE, border: `2px solid ${BLUE}`, background: "transparent" }}
+                  style={{ color: "#ffffff", border: "2px solid rgba(255,255,255,0.30)", background: "transparent" }}
                 >
                   Learn More
                 </Link>
               </div>
-              <p className="text-sm text-center sm:text-left" style={{ color: SUBTEXT }}>
+              <p className="text-sm text-center sm:text-left" style={{ color: "rgba(255,255,255,0.50)" }}>
                 ✅ Free to start · No credit card required
               </p>
             </div>
           </div>
+
+          {/* Right: floating browser mockup */}
           <div className="order-1 lg:order-2 flex justify-center lg:justify-end">
-            <Image
-              src="/brand/hero_image.png"
-              alt=""
-              width={560}
-              height={420}
-              className="w-full max-w-md lg:max-w-none h-auto"
-              priority
-            />
+            <div
+              className="w-full"
+              style={{
+                maxWidth: "540px",
+                transform: "rotate(-1.5deg) translateY(10px)",
+                borderRadius: "12px",
+                overflow: "hidden",
+                boxShadow: "0 30px 60px rgba(0,0,0,0.60), 0 0 0 1px rgba(255,255,255,0.07)",
+                background: "#1E293B",
+              }}
+            >
+              {/* Browser chrome */}
+              <div style={{
+                display: "flex", alignItems: "center", gap: "8px",
+                padding: "10px 14px",
+                background: "#0F172A",
+                borderBottom: "1px solid rgba(255,255,255,0.06)",
+              }}>
+                <div style={{ display: "flex", gap: "5px", flexShrink: 0 }}>
+                  <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#EF4444", display: "block" }} />
+                  <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#F59E0B", display: "block" }} />
+                  <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#10B981", display: "block" }} />
+                </div>
+                <div style={{
+                  flex: 1, background: "#1E293B", borderRadius: "6px",
+                  padding: "3px 10px", fontSize: "11px",
+                  color: "rgba(255,255,255,0.35)", fontFamily: "monospace",
+                }}>
+                  ruled.ca
+                </div>
+              </div>
+              {/* Screenshot */}
+              <Image
+                src="/brand/product-screenshot.png.PNG"
+                alt="Ruled.ca product interface"
+                width={1753}
+                height={1271}
+                className="w-full h-auto block"
+                priority
+              />
+            </div>
           </div>
         </div>
       </section>

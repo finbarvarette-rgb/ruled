@@ -15,6 +15,11 @@ const PARA_GAP = 14;
 const SECTION_GAP = 28;
 const BULLET_INDENT = 22;
 
+// wordmark_light.png natural dimensions (1680×720) for correct aspect ratio
+const LOGO_ASPECT = 1680 / 720;
+const LOGO_HEIGHT = 28;
+const LOGO_WIDTH = LOGO_HEIGHT * LOGO_ASPECT;
+
 const OLD_SECTION_HEADERS = [
   "CASE STRENGTH",
   "LEGAL BASIS",
@@ -53,8 +58,8 @@ const NAMED_HTML_ENTITIES: Record<string, string> = {
   ndash: "–",
   mdash: "—",
   hellip: "…",
-  lsquo: "‘",
-  rsquo: "’",
+  lsquo: "'",
+  rsquo: "'",
   ldquo: "“",
   rdquo: "”",
   bull: "•",
@@ -102,7 +107,7 @@ export function sanitizePdfText(text: string): string {
   }
 
   return decoded
-    .replace(/ /g, " ")
+    .replace(/ /g, " ")
     .replace(/[​-‍﻿]/g, "")
     .replace(/[ \t]+\n/g, "\n")
     .replace(/\n{3,}/g, "\n\n")
@@ -262,7 +267,6 @@ export function buildAssessmentSections(
 ): PdfSection[] {
   const legacy = parseLegacySections(assessment);
   const hasNewFormat = Boolean(legacy.newFormat.summary);
-  const applicableLawHeader = `Applicable Law in ${province || "Your Province"}`;
 
   if (hasNewFormat) {
     const applicableFromLegacy = [legacy.legalBasis, legacy.provinceRules]
@@ -331,6 +335,28 @@ function triggerBlobDownload(filename: string, blob: Blob) {
   URL.revokeObjectURL(url);
 }
 
+// Module-level logo cache — fetched once per browser session.
+let _logoDataUrl: string | null | undefined = undefined;
+
+async function fetchLogoDataUrl(): Promise<string | null> {
+  if (typeof window === "undefined") return null;
+  if (_logoDataUrl !== undefined) return _logoDataUrl;
+  try {
+    const resp = await fetch("/brand/wordmark_light.png");
+    if (!resp.ok) throw new Error("logo fetch failed");
+    const blob = await resp.blob();
+    _logoDataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    _logoDataUrl = null;
+  }
+  return _logoDataUrl;
+}
+
 class BrandedPdfBuilder {
   private doc: jsPDF;
   private y: number;
@@ -339,8 +365,10 @@ class BrandedPdfBuilder {
   private readonly contentWidth: number;
   private readonly bodyTop: number;
   private readonly bodyBottom: number;
+  private readonly logoDataUrl: string | null;
 
-  constructor() {
+  constructor(logoDataUrl: string | null = null) {
+    this.logoDataUrl = logoDataUrl;
     this.doc = new jsPDF({ unit: "pt", format: "letter" });
     this.pageWidth = this.doc.internal.pageSize.getWidth();
     this.pageHeight = this.doc.internal.pageSize.getHeight();
@@ -354,12 +382,20 @@ class BrandedPdfBuilder {
   private drawHeader() {
     this.doc.setFillColor(NAVY.r, NAVY.g, NAVY.b);
     this.doc.rect(0, 0, this.pageWidth, HEADER_HEIGHT, "F");
-    this.doc.setTextColor(255, 255, 255);
-    this.doc.setFont(FONT, "bold");
-    this.doc.setFontSize(14);
-    this.doc.text("ruled.ca", MARGIN, 26);
+
+    if (this.logoDataUrl) {
+      const logoY = (HEADER_HEIGHT - LOGO_HEIGHT) / 2;
+      this.doc.addImage(this.logoDataUrl, "PNG", MARGIN, logoY, LOGO_WIDTH, LOGO_HEIGHT);
+    } else {
+      this.doc.setTextColor(255, 255, 255);
+      this.doc.setFont(FONT, "bold");
+      this.doc.setFontSize(14);
+      this.doc.text("ruled.ca", MARGIN, 26);
+    }
+
     this.doc.setFont(FONT, "normal");
     this.doc.setFontSize(10);
+    this.doc.setTextColor(255, 255, 255);
     this.doc.text(formatDate(), this.pageWidth - MARGIN, 26, { align: "right" });
   }
 
@@ -541,8 +577,9 @@ class BrandedPdfBuilder {
   }
 }
 
-function buildPdfBlob(options: PdfBuildOptions): Blob {
-  const builder = new BrandedPdfBuilder();
+async function buildPdfBlob(options: PdfBuildOptions): Promise<Blob> {
+  const logoDataUrl = await fetchLogoDataUrl();
+  const builder = new BrandedPdfBuilder(logoDataUrl);
   if (options.documentTitle) {
     builder.addDocumentTitle(options.documentTitle);
   }
@@ -557,26 +594,26 @@ function buildPdfBlob(options: PdfBuildOptions): Blob {
   return builder.build();
 }
 
-export function downloadBrandedPdf(
+export async function downloadBrandedPdf(
   filename: string,
   options: PdfBuildOptions
-): void {
-  const blob = buildPdfBlob(options);
+): Promise<void> {
+  const blob = await buildPdfBlob(options);
   triggerBlobDownload(filename.endsWith(".pdf") ? filename : `${filename}.pdf`, blob);
 }
 
-export function downloadAssessmentPdf(params: {
+export async function downloadAssessmentPdf(params: {
   assessment: string;
   intake: string;
   province: string;
   filename?: string;
-}): void {
+}): Promise<void> {
   const sections = buildAssessmentSections(
     params.assessment,
     params.intake,
     params.province
   );
-  downloadBrandedPdf(params.filename ?? "ruled-case-assessment.pdf", {
+  await downloadBrandedPdf(params.filename ?? "ruled-case-assessment.pdf", {
     documentTitle: "Case Assessment",
     sections,
   });
@@ -593,11 +630,12 @@ function isReLine(line: string): boolean {
   return /^RE:\s/i.test(line.trim());
 }
 
-export function downloadDemandLetterPdf(
+export async function downloadDemandLetterPdf(
   letter: string,
   filename = "ruled-demand-letter.pdf"
-): void {
-  const builder = new BrandedPdfBuilder();
+): Promise<void> {
+  const logoDataUrl = await fetchLogoDataUrl();
+  const builder = new BrandedPdfBuilder(logoDataUrl);
   builder.addDocumentTitle("Demand Letter");
 
   const lines = sanitizePdfText(letter).split("\n");
@@ -643,7 +681,7 @@ export async function downloadPdfZip(files: PdfZipEntry[]): Promise<void> {
   const zip = new JSZip();
   for (const file of files) {
     const { filename, ...opts } = file;
-    const blob = buildPdfBlob(opts);
+    const blob = await buildPdfBlob(opts);
     zip.file(filename.endsWith(".pdf") ? filename : `${filename}.pdf`, blob);
   }
   const zipBlob = await zip.generateAsync({ type: "blob" });
