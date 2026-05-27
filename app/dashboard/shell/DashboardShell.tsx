@@ -99,7 +99,6 @@ export function DashboardShell({
   const pathname = usePathname();
   const router = useRouter();
   const [query, setQuery] = useState("");
-  const [notifOpen, setNotifOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
   const avatarRef = useRef<HTMLDivElement>(null);
@@ -126,7 +125,6 @@ export function DashboardShell({
   }
 
   useEffect(() => {
-    setNotifOpen(false);
     setAvatarOpen(false);
   }, [pathname]);
 
@@ -143,7 +141,6 @@ export function DashboardShell({
 
   async function openSearch() {
     setSearchOpen(true);
-    setNotifOpen(false);
     if (searchCases.length > 0 || searchLoading) return;
     setSearchLoading(true);
     try {
@@ -281,27 +278,15 @@ export function DashboardShell({
               </div>
 
               <div className="flex items-center gap-3 md:ml-0 ml-auto">
-                <div className="relative hidden md:block">
-                  <IconButton
-                    label="Notifications"
-                    onClick={() => {
-                      setNotifOpen((v) => !v);
-                      setSearchOpen(false);
-                    }}
-                  >
-                    <IconBell active={false} mutedStroke={dash.mainMuted} />
-                  </IconButton>
-                  {notifOpen && (
-                    <div
-                      className="absolute right-0 mt-2 w-64 rounded-xl overflow-hidden"
-                      style={{ ...dash.panel }}
-                    >
-                      <div className="px-4 py-3 text-sm" style={{ color: dash.mainMuted }}>
-                        No notifications yet
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <Link
+                  href="/dashboard/new-assessment"
+                  className="hidden md:flex w-9 h-9 rounded-lg items-center justify-center shrink-0"
+                  style={{ background: dash.blue, color: "#ffffff" }}
+                  aria-label="New Assessment"
+                  title="New Assessment"
+                >
+                  <span style={{ fontSize: "20px", fontWeight: 700, lineHeight: 1 }}>+</span>
+                </Link>
                 <Link
                   href="/dashboard/settings"
                   className="hidden md:flex w-9 h-9 rounded-lg items-center justify-center transition-colors"
