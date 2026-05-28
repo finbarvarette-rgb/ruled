@@ -8,7 +8,6 @@ const NAVY = "#0F172A";
 const BLUE = "#C8392B";
 const SUBTEXT = "#4B5563";
 const SURFACE = "#F1F5F9";
-const PAGE_BG = "#FAFAFA";
 const GREEN = "#10B981";
 const AMBER = "#F59E0B";
 const CARD_SHADOW = "0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06)";
@@ -108,89 +107,50 @@ const FAQ_ITEMS = [
 
 export default function Home() {
   return (
-    <>
-      <style dangerouslySetInnerHTML={{ __html: `
-        .site-body { border-top: none !important; }
-        @keyframes heroBlob1 {
-          0%, 100% { transform: translate(0px, 0px) scale(1); }
-          33%       { transform: translate(50px, -70px) scale(1.15); }
-          66%       { transform: translate(-35px, 40px) scale(0.9); }
-        }
-        @keyframes heroBlob2 {
-          0%, 100% { transform: translate(0px, 0px) scale(1); }
-          40%       { transform: translate(-60px, 35px) scale(1.1); }
-          70%       { transform: translate(40px, -50px) scale(0.95); }
-        }
-        @keyframes heroBlob3 {
-          0%, 100% { transform: translate(0px, 0px) scale(1); }
-          30%       { transform: translate(60px, -45px) scale(1.2); }
-          65%       { transform: translate(-45px, 55px) scale(0.85); }
-        }
-      ` }} />
-      <div className="flex flex-col flex-1" style={{ background: PAGE_BG, color: NAVY }}>
+    <div className="flex flex-col flex-1" style={{ background: "#ffffff", color: NAVY }}>
 
-      {/* Hero */}
+      {/* Hero — white background */}
       <section
-        className="relative min-h-screen flex flex-col justify-center px-4 sm:px-6 py-10 md:py-14 lg:py-16 overflow-hidden"
-        style={{ background: NAVY }}
+        className="relative flex flex-col justify-center px-4 sm:px-6 py-16 md:py-24 overflow-hidden"
+        style={{ background: "#ffffff" }}
       >
-        <div aria-hidden className="absolute inset-0 pointer-events-none">
-          <div style={{
-            position: "absolute", borderRadius: "50%",
-            width: "640px", height: "640px", top: "-180px", left: "-120px",
-            background: "radial-gradient(circle, rgba(37,99,235,0.38) 0%, transparent 70%)",
-            filter: "blur(64px)",
-            animation: "heroBlob1 20s ease-in-out infinite",
-          }} />
-          <div style={{
-            position: "absolute", borderRadius: "50%",
-            width: "520px", height: "520px", bottom: "-120px", right: "-100px",
-            background: "radial-gradient(circle, rgba(245,158,11,0.28) 0%, transparent 70%)",
-            filter: "blur(64px)",
-            animation: "heroBlob2 25s ease-in-out infinite",
-          }} />
-          <div style={{
-            position: "absolute", borderRadius: "50%",
-            width: "480px", height: "480px", top: "35%", left: "38%",
-            background: "radial-gradient(circle, rgba(37,99,235,0.22) 0%, transparent 70%)",
-            filter: "blur(80px)",
-            animation: "heroBlob3 30s ease-in-out infinite",
-          }} />
-        </div>
-
-        <div className="relative z-10 max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+        <div className="max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           <div className="flex flex-col gap-8 order-2 lg:order-1">
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
               <h1
-                className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-tight break-words"
-                style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: "#ffffff" }}
+                className="font-bold tracking-tight leading-[1.05]"
+                style={{ fontSize: "clamp(40px, 5.5vw, 80px)", color: NAVY }}
               >
-                Get the money you&apos;re owed.
+                We give you the tools to get your money back. Fast.
               </h1>
-              <p className="text-base md:text-lg leading-relaxed max-w-lg" style={{ color: "rgba(255,255,255,0.70)" }}>
+              <p
+                className="font-bold tracking-tight leading-[1.05]"
+                style={{ fontSize: "clamp(40px, 5.5vw, 80px)", color: BLUE }}
+              >
                 Win without a lawyer.
               </p>
             </div>
-            <div className="flex flex-col gap-4 w-full max-w-md">
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Link
-                  href="/onboarding"
-                  className="w-full sm:flex-1 min-h-12 rounded-full px-6 py-4 text-base font-semibold text-center flex items-center justify-center whitespace-nowrap"
-                  style={{ background: BLUE, color: "#ffffff" }}
-                >
-                  Start Free Assessment →
-                </Link>
-                <Link
-                  href="/#how-it-works"
-                  className="w-full sm:flex-1 min-h-12 rounded-full px-6 py-4 text-base font-semibold text-center flex items-center justify-center"
-                  style={{ color: "#ffffff", border: "2px solid rgba(255,255,255,0.30)", background: "transparent" }}
-                >
-                  Learn More
-                </Link>
-              </div>
-              <p className="text-sm text-center sm:text-left" style={{ color: "rgba(255,255,255,0.50)" }}>
-                ✅ Free to start · No credit card required
-              </p>
+            <p className="text-lg leading-relaxed max-w-lg" style={{ color: SUBTEXT }}>
+              Tell us what happened. Our AI builds your case, drafts your demand letter, and prepares you for court — in minutes.
+            </p>
+            <p className="text-sm font-medium" style={{ color: SUBTEXT }}>
+              ⭐⭐⭐⭐⭐ Trusted by Canadians across all 10 provinces · Free to start · No credit card required
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Link
+                href="/onboarding"
+                className="min-h-12 rounded-full px-7 py-3.5 text-base font-semibold text-center flex items-center justify-center whitespace-nowrap"
+                style={{ background: BLUE, color: "#ffffff" }}
+              >
+                Free Case Assessment →
+              </Link>
+              <Link
+                href="#how-it-works"
+                className="min-h-12 rounded-full px-7 py-3.5 text-base font-semibold text-center flex items-center justify-center whitespace-nowrap"
+                style={{ color: NAVY, border: `1.5px solid ${NAVY}`, background: "transparent" }}
+              >
+                See How It Works
+              </Link>
             </div>
           </div>
 
@@ -202,7 +162,7 @@ export default function Home() {
                 transform: "rotate(-1.5deg) translateY(10px)",
                 borderRadius: "12px",
                 overflow: "hidden",
-                boxShadow: "0 30px 60px rgba(0,0,0,0.60), 0 0 0 1px rgba(255,255,255,0.07)",
+                boxShadow: "0 30px 60px rgba(0,0,0,0.18), 0 0 0 1px rgba(15,23,42,0.08)",
                 background: "#1E293B",
               }}
             >
@@ -238,7 +198,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Stats — connected to hero, no separator */}
+      {/* Stats — dark navy with texture */}
       <section
         className="px-4 sm:px-6 py-16 md:py-20 relative overflow-hidden"
         style={{
@@ -252,26 +212,99 @@ export default function Home() {
           <Stat icon="gavel" value="$35,000" label="Maximum claim limit in most provinces" />
           <Stat icon="trophy" value="76%" label="of claimants win when properly prepared" />
           <Stat icon="chart" value="40%" label="Resolve Before Court" />
-          <Stat icon="map" value="All 10" label="Provinces Supported" />
+          <StatAlert value="67%" label="Give up without a fight. You don't have to." />
+        </div>
+      </section>
+
+      {/* Problem */}
+      <section className="px-4 sm:px-6 py-20 md:py-28" style={{ background: "#ffffff" }}>
+        <div className="max-w-3xl mx-auto w-full flex flex-col gap-8">
+          <h2
+            className="text-4xl md:text-5xl font-bold tracking-tight leading-tight"
+            style={{ color: NAVY }}
+          >
+            You got screwed. You&apos;re not alone.
+          </h2>
+          <p className="text-xl leading-relaxed" style={{ color: SUBTEXT }}>
+            Every year, millions of Canadians lose money to contractors who disappear, landlords who keep deposits, and businesses that don&apos;t deliver. Most do nothing — because the system feels too complicated, too expensive, and too intimidating. Ruled changes that.
+          </p>
+        </div>
+      </section>
+
+      {/* Comparison Table */}
+      <section className="px-4 sm:px-6 py-16 md:py-20" style={{ background: "#F8F7F4" }}>
+        <div className="max-w-4xl mx-auto w-full flex flex-col gap-10">
+          <h2 className="text-3xl md:text-4xl font-bold text-center tracking-tight" style={{ color: NAVY }}>
+            Why Ruled — not a lawyer.
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="rounded-2xl p-7 flex flex-col gap-5" style={{ background: "#ffffff", border: "1px solid #E2E8F0" }}>
+              <h3 className="font-bold text-lg text-center pb-4" style={{ color: NAVY, borderBottom: "1px solid #E2E8F0" }}>
+                Traditional Lawyer
+              </h3>
+              <ul className="flex flex-col gap-4">
+                {[
+                  "$300–500/hour",
+                  "Weeks or months to get started",
+                  "Intimidating and confusing",
+                  "No guarantee of outcome",
+                  "Minimum $2,000–5,000 to start",
+                ].map((item) => (
+                  <li key={item} className="flex items-start gap-3 text-sm" style={{ color: SUBTEXT }}>
+                    <XMarkIcon />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="rounded-2xl p-7 flex flex-col gap-5" style={{ background: "#ffffff", border: `2px solid ${BLUE}` }}>
+              <h3 className="font-bold text-lg text-center pb-4" style={{ color: BLUE, borderBottom: "1px solid rgba(200,57,43,0.2)" }}>
+                Ruled
+              </h3>
+              <ul className="flex flex-col gap-4">
+                {[
+                  "Flat fee — $49 or $199",
+                  "Ready in minutes",
+                  "Plain language, step by step",
+                  "AI-powered and built for small claims",
+                  "Free to start, no commitment",
+                ].map((item) => (
+                  <li key={item} className="flex items-start gap-3 text-sm font-medium" style={{ color: NAVY }}>
+                    <RedCheckIcon />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+          <div className="flex justify-center">
+            <Link
+              href="/onboarding"
+              className="min-h-12 rounded-full px-8 py-3.5 text-base font-semibold inline-flex items-center justify-center"
+              style={{ background: BLUE, color: "#ffffff" }}
+            >
+              Start Free — See If You Have a Case
+            </Link>
+          </div>
         </div>
       </section>
 
       {/* How It Works */}
       <section
         id="how-it-works"
-        className="px-4 sm:px-6 py-16 md:py-20 scroll-mt-16"
-        style={{ background: SURFACE }}
+        className="px-4 sm:px-6 py-16 md:py-24 scroll-mt-16"
+        style={{ background: "#ffffff" }}
       >
-        <div className="max-w-5xl mx-auto w-full flex flex-col gap-8">
+        <div className="max-w-5xl mx-auto w-full flex flex-col gap-14">
           <h2 className="text-3xl md:text-4xl font-bold text-center tracking-tight" style={{ color: NAVY }}>
             How It Works
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
             <StepCard
               step={1}
               iconIndex={0}
               title="Tell Your Story"
-              description="Describe what happened in plain language. No legal jargon needed—just the facts."
+              description="Describe what happened in plain language. No legal jargon needed — just the facts."
             />
             <StepCard
               step={2}
@@ -289,44 +322,39 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Built for situations like yours */}
+      {/* What You Get */}
       <section className="px-4 sm:px-6 py-16 md:py-20" style={{ background: "#ffffff" }}>
         <div className="max-w-5xl mx-auto w-full flex flex-col gap-10">
           <h2 className="text-3xl md:text-4xl font-bold text-center tracking-tight" style={{ color: NAVY }}>
-            Built for situations like yours
+            Everything you need. Nothing you don&apos;t.
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <SituationCard
-              icon={<WrenchIcon />}
-              title="Contractors and Trades"
-              description="Client won't pay after job completion. Draft a formal demand and file if needed."
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <WhatYouGetCard
+              title="Free Case Assessment"
+              price={null}
+              description="AI analyzes your situation and tells you exactly where you stand. No fluff."
             />
-            <SituationCard
-              icon={<KeyIcon />}
-              title="Landlords"
-              description="Deposit disputes, property damage, unpaid rent — know your rights and act."
+            <WhatYouGetCard
+              title="Demand Letter"
+              price="$49"
+              description="A legally formatted letter that gets results. 40% of cases resolve here."
             />
-            <SituationCard
-              icon={<BriefcaseIcon />}
-              title="Small Businesses"
-              description="Reversed payments, broken contracts, and suppliers who didn't deliver."
-            />
-            <SituationCard
-              icon={<ShieldIcon />}
-              title="Everyday Canadians"
-              description="Bad contractors, faulty products, or services you paid for and never received."
+            <WhatYouGetCard
+              title="Full Case Pack"
+              price="$199"
+              description="Everything to walk into court and win. Filing instructions, scripts, documents."
             />
           </div>
         </div>
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="px-4 sm:px-6 py-16 md:py-20 scroll-mt-16" style={{ background: PAGE_BG }}>
-        <div className="max-w-5xl mx-auto w-full flex flex-col gap-8">
+      <section id="pricing" className="px-4 sm:px-6 py-16 md:py-24 scroll-mt-16" style={{ background: "#F8F7F4" }}>
+        <div className="max-w-5xl mx-auto w-full flex flex-col gap-10">
           <h2 className="text-3xl md:text-4xl font-bold text-center tracking-tight" style={{ color: NAVY }}>
             Simple Flat-Fee Pricing. No surprises.
           </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
             {PRICING_TIERS.map((tier) => (
               <PricingTierCard key={tier.subtitle} tier={tier} />
             ))}
@@ -334,9 +362,36 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Founder */}
+      <section className="px-4 sm:px-6 py-16 md:py-24" style={{ background: "#ffffff" }}>
+        <div className="max-w-4xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center">
+          <div
+            className="rounded-2xl flex items-center justify-center w-full aspect-[4/5] shrink-0"
+            style={{ background: SURFACE, border: "1px solid #E2E8F0" }}
+          >
+            <span className="text-base font-medium" style={{ color: "#64748B" }}>Finn — Founder</span>
+          </div>
+          <div className="flex flex-col gap-6">
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight leading-tight" style={{ color: NAVY }}>
+              Built from a bad experience.
+            </h2>
+            <p className="text-lg leading-relaxed" style={{ color: SUBTEXT }}>
+              I built Ruled because I got screwed out of money and had no idea what to do. I didn&apos;t know I could send a demand letter. I didn&apos;t know I could represent myself in court for a small filing fee. Most people don&apos;t. Ruled exists so that the next person who gets ripped off knows exactly what to do — and has the tools to fight back.
+            </p>
+            <Link
+              href="/onboarding"
+              className="min-h-12 rounded-full px-7 py-3.5 text-base font-semibold inline-flex items-center justify-center self-start"
+              style={{ background: BLUE, color: "#ffffff" }}
+            >
+              Start Your Free Assessment →
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* FAQ */}
-      <section className="px-4 sm:px-6 py-16 md:py-20" style={{ background: "#F8F7F4" }}>
-        <div className="max-w-5xl mx-auto w-full flex flex-col gap-8">
+      <section className="px-4 sm:px-6 py-16 md:py-20" style={{ background: "#ffffff" }}>
+        <div className="max-w-5xl mx-auto w-full flex flex-col gap-10">
           <h2 className="text-3xl md:text-4xl font-bold text-center tracking-tight" style={{ color: NAVY }}>
             Common questions
           </h2>
@@ -352,19 +407,6 @@ export default function Home() {
               ))}
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* Social Proof / Waitlist */}
-      <section className="px-4 sm:px-6 py-16 md:py-20" style={{ background: SURFACE }}>
-        <div className="max-w-2xl mx-auto w-full flex flex-col gap-6 items-center text-center">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight" style={{ color: NAVY }}>
-            Real results from real Canadians
-          </h2>
-          <p className="text-lg leading-relaxed max-w-lg" style={{ color: SUBTEXT }}>
-            Ruled is helping Canadians fight back. Be among the first.
-          </p>
-          <WaitlistCapture />
         </div>
       </section>
 
@@ -384,13 +426,10 @@ export default function Home() {
           aria-hidden
         />
         <div className="max-w-2xl mx-auto flex flex-col gap-5 items-center relative z-10">
-          <h2
-            className="text-3xl md:text-4xl font-bold tracking-tight"
-            style={{ color: "#ffffff", textShadow: "0 2px 12px rgba(0, 0, 0, 0.45)" }}
-          >
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight" style={{ color: "#ffffff" }}>
             Ready to Fight Back?
           </h2>
-          <p className="text-lg" style={{ color: "rgba(255, 255, 255, 0.92)", textShadow: "0 1px 6px rgba(0, 0, 0, 0.35)" }}>
+          <p className="text-lg" style={{ color: "rgba(255, 255, 255, 0.92)" }}>
             Get your free case assessment in 60 seconds. No credit card required.
           </p>
           <Link
@@ -445,8 +484,7 @@ export default function Home() {
           </p>
         </div>
       </footer>
-      </div>
-    </>
+    </div>
   );
 }
 
@@ -465,94 +503,53 @@ function RuledLogo({ size = "lg", variant = "dark" }: { size?: "lg" | "sm"; vari
   );
 }
 
-function WaitlistCapture() {
-  const [email, setEmail] = useState("");
-  const [submitted, setSubmitted] = useState(false);
-
-  if (submitted) {
-    return (
-      <p className="text-base font-semibold py-3" style={{ color: BLUE }}>
-        You&apos;re on the list — we&apos;ll be in touch.
-      </p>
-    );
-  }
-
-  return (
-    <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md">
-      <input
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        onKeyDown={(e) => { if (e.key === "Enter" && email.trim()) setSubmitted(true); }}
-        placeholder="Enter your email"
-        className="flex-1 rounded-full px-5 py-3 text-sm outline-none"
-        style={{ background: "#ffffff", border: "1px solid #E2E8F0", color: NAVY }}
-      />
-      <button
-        type="button"
-        onClick={() => { if (email.trim()) setSubmitted(true); }}
-        className="rounded-full px-6 py-3 text-sm font-semibold whitespace-nowrap cursor-pointer"
-        style={{ background: BLUE, color: "#ffffff" }}
-      >
-        Get Early Access
-      </button>
-    </div>
-  );
-}
-
-function SituationCard({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
+function WhatYouGetCard({ title, price, description }: { title: string; price: string | null; description: string }) {
   return (
     <div
-      className="rounded-xl p-6 flex flex-col gap-4"
-      style={{ background: "#ffffff", border: "1px solid #E2E8F0", boxShadow: CARD_SHADOW }}
+      className="rounded-2xl p-7 flex flex-col gap-4 h-full"
+      style={{
+        background: "#ffffff",
+        border: "1px solid #E2E8F0",
+        borderTop: `3px solid ${BLUE}`,
+        boxShadow: CARD_SHADOW,
+      }}
     >
-      <div
-        className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
-        style={{ background: "rgba(245,158,11,0.12)" }}
-      >
-        {icon}
+      <div className="flex items-baseline gap-3 flex-wrap">
+        <h3 className="font-bold text-lg" style={{ color: NAVY }}>{title}</h3>
+        {price && (
+          <span className="text-sm font-semibold" style={{ color: BLUE }}>{price}</span>
+        )}
       </div>
-      <div className="flex flex-col gap-1.5">
-        <h3 className="font-bold text-base" style={{ color: NAVY }}>{title}</h3>
-        <p className="text-sm leading-relaxed" style={{ color: SUBTEXT }}>{description}</p>
-      </div>
+      <p className="text-sm leading-relaxed flex-1" style={{ color: SUBTEXT }}>{description}</p>
     </div>
   );
 }
 
-function WrenchIcon() {
+function XMarkIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={AMBER} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
-    </svg>
+    <span
+      className="inline-flex shrink-0 w-5 h-5 rounded-full items-center justify-center mt-0.5"
+      style={{ background: "#E2E8F0" }}
+      aria-hidden
+    >
+      <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+        <path d="M2 2L8 8M8 2L2 8" stroke="#94A3B8" strokeWidth="1.75" strokeLinecap="round" />
+      </svg>
+    </span>
   );
 }
 
-function KeyIcon() {
+function RedCheckIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={AMBER} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <circle cx="7.5" cy="15.5" r="5.5" />
-      <path d="M21 2l-9.6 9.6" />
-      <path d="M15.5 7.5l3 3" />
-    </svg>
-  );
-}
-
-function BriefcaseIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={AMBER} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <rect x="2" y="7" width="20" height="14" rx="2" />
-      <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
-      <path d="M2 12h20" />
-    </svg>
-  );
-}
-
-function ShieldIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={AMBER} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-    </svg>
+    <span
+      className="inline-flex shrink-0 w-5 h-5 rounded-full items-center justify-center mt-0.5"
+      style={{ background: BLUE }}
+      aria-hidden
+    >
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+        <path d="M2.5 6L5 8.5L9.5 3.5" stroke="#ffffff" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </span>
   );
 }
 
@@ -569,10 +566,10 @@ function StepCard({
 }) {
   return (
     <div
-      className="flex flex-col gap-4 rounded-xl p-6 h-full"
-      style={{ background: "#ffffff", boxShadow: CARD_SHADOW, border: "1px solid #E2E8F0" }}
+      className="flex flex-col gap-5 rounded-2xl p-7 lg:p-8 h-full"
+      style={{ background: "#ffffff", boxShadow: "0 2px 8px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.06)", border: "1px solid #E2E8F0" }}
     >
-      <div className="relative w-16 h-16 overflow-hidden rounded-lg shrink-0 border border-[#E2E8F0] bg-white">
+      <div className="relative w-20 h-20 overflow-hidden rounded-xl shrink-0 border border-[#E2E8F0] bg-white">
         <Image
           src="/brand/steps_illustration.png"
           alt=""
@@ -583,17 +580,19 @@ function StepCard({
         />
       </div>
       <div
-        className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold shrink-0"
-        style={{ background: "#DBEAFE", color: BLUE }}
+        className="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold shrink-0"
+        style={{ background: "rgba(200,57,43,0.10)", color: BLUE }}
       >
         {step}
       </div>
-      <h3 className="text-lg font-semibold" style={{ color: NAVY }}>
-        {title}
-      </h3>
-      <p className="text-sm leading-relaxed" style={{ color: SUBTEXT }}>
-        {description}
-      </p>
+      <div className="flex flex-col gap-2">
+        <h3 className="text-lg font-bold" style={{ color: NAVY }}>
+          {title}
+        </h3>
+        <p className="text-sm leading-relaxed" style={{ color: SUBTEXT }}>
+          {description}
+        </p>
+      </div>
     </div>
   );
 }
@@ -611,7 +610,26 @@ function Stat({
     <div className="flex flex-col items-center gap-3 px-2 text-white">
       <StatIcon type={icon} />
       <span
-        className="text-3xl md:text-4xl font-bold"
+        className="text-4xl md:text-5xl font-bold"
+        style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
+      >
+        {value}
+      </span>
+      <span className="text-sm opacity-90 leading-snug max-w-[14rem]">{label}</span>
+    </div>
+  );
+}
+
+function StatAlert({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="flex flex-col items-center gap-3 px-2 text-white">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#93C5FD" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+        <line x1="12" y1="9" x2="12" y2="13" />
+        <line x1="12" y1="17" x2="12.01" y2="17" />
+      </svg>
+      <span
+        className="text-4xl md:text-5xl font-bold"
         style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
       >
         {value}
@@ -748,7 +766,7 @@ function PricingTierCard({ tier }: { tier: (typeof PRICING_TIERS)[number] }) {
 
   return (
     <div
-      className="relative rounded-2xl p-6 flex flex-col gap-5 h-full"
+      className="relative rounded-2xl p-7 flex flex-col gap-5 h-full"
       style={
         isPopular
           ? {
