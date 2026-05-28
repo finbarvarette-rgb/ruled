@@ -168,7 +168,7 @@ export default function Home() {
                 Get the money you&apos;re owed.
               </h1>
               <p className="text-base md:text-lg leading-relaxed max-w-lg" style={{ color: "rgba(255,255,255,0.70)" }}>
-                AI-powered demand letters and small claims support. Flat fee. No lawyer needed.
+                Win without a lawyer.
               </p>
             </div>
             <div className="flex flex-col gap-4 w-full max-w-md">
