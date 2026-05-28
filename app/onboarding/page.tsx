@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
@@ -152,6 +152,9 @@ function OnboardingContent() {
 
   const [qStep, setQStep] = useState<1 | 2 | 3 | 4>(1);
   const [intakeData, setIntakeData] = useState<IntakeData>(EMPTY_INTAKE);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -164,6 +167,19 @@ function OnboardingContent() {
   const set = useCallback(<K extends keyof IntakeData>(key: K, value: IntakeData[K]) => {
     setIntakeData((prev) => ({ ...prev, [key]: value }));
   }, []);
+
+  function addFiles(files: FileList | File[]) {
+    const accepted = ["image/jpeg", "image/png", "application/pdf", "text/plain"];
+    const maxSize = 5 * 1024 * 1024;
+    const valid = Array.from(files).filter(
+      (f) => accepted.includes(f.type) && f.size <= maxSize
+    );
+    setUploadedFiles((prev) => [...prev, ...valid].slice(0, 10));
+  }
+
+  function removeFile(idx: number) {
+    setUploadedFiles((prev) => prev.filter((_, i) => i !== idx));
+  }
 
   const proceedToProcessing = useCallback(() => {
     router.push("/processing");
@@ -624,6 +640,71 @@ function OnboardingContent() {
                       />
                     </div>
                   )}
+
+                  {/* File upload */}
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-medium" style={{ color: m.text }}>
+                      Upload your evidence{" "}
+                      <span style={{ color: m.subtext }}>(optional)</span>
+                    </label>
+                    <div
+                      className="rounded-xl border-2 border-dashed p-6 text-center cursor-pointer transition-colors"
+                      style={{
+                        borderColor: dragOver ? m.blue : m.border,
+                        background: dragOver ? "rgba(200,57,43,0.04)" : m.white,
+                      }}
+                      onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                      onDragLeave={() => setDragOver(false)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setDragOver(false);
+                        addFiles(Array.from(e.dataTransfer.files));
+                      }}
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        multiple
+                        accept=".jpg,.jpeg,.png,.pdf,.txt"
+                        className="hidden"
+                        onChange={(e) => {
+                          if (e.target.files) {
+                            addFiles(e.target.files);
+                            e.target.value = "";
+                          }
+                        }}
+                      />
+                      <p className="text-sm" style={{ color: m.subtext }}>
+                        Drag files here or{" "}
+                        <span style={{ color: m.blue }}>click to browse</span>
+                      </p>
+                      <p className="text-xs mt-1" style={{ color: m.muted }}>
+                        JPG, PNG, PDF, TXT · Max 5MB each · Up to 10 files
+                      </p>
+                    </div>
+                    {uploadedFiles.length > 0 && (
+                      <ul className="flex flex-col gap-1.5">
+                        {uploadedFiles.map((file, i) => (
+                          <li
+                            key={i}
+                            className="flex items-center justify-between gap-3 rounded-lg px-4 py-2.5 text-sm"
+                            style={{ background: m.surface, border: `1px solid ${m.border}` }}
+                          >
+                            <span className="truncate" style={{ color: m.text }}>{file.name}</span>
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); removeFile(i); }}
+                              className="shrink-0 text-xs cursor-pointer hover:opacity-70"
+                              style={{ color: m.subtext }}
+                            >
+                              Remove
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 </>
               )}
 

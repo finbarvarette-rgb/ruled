@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { startCheckout } from "@/lib/checkout";
 import { Spinner } from "@/components/Spinner";
@@ -404,6 +404,13 @@ export default function ResultsPage() {
     "demand" | "full" | null
   >(null);
   const [checkoutError, setCheckoutError] = useState("");
+  const [hasEvidence, setHasEvidence] = useState<boolean | null>(null);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [modalFiles, setModalFiles] = useState<File[]>([]);
+  const [modalDragOver, setModalDragOver] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const modalFileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const s = readRuledSession();
@@ -418,6 +425,48 @@ export default function ResultsPage() {
   useEffect(() => {
     if (mounted && !rawText) router.replace("/onboarding");
   }, [mounted, rawText, router]);
+
+  useEffect(() => {
+    if (!caseId) return;
+    fetch(`/api/cases/upload-evidence?caseId=${caseId}`)
+      .then((r) => r.json())
+      .then((d: { hasEvidence?: boolean }) => setHasEvidence(d.hasEvidence ?? false))
+      .catch(() => setHasEvidence(false));
+  }, [caseId]);
+
+  function addModalFiles(files: FileList | File[]) {
+    const accepted = ["image/jpeg", "image/png", "application/pdf", "text/plain"];
+    const maxSize = 5 * 1024 * 1024;
+    const valid = Array.from(files).filter(
+      (f) => accepted.includes(f.type) && f.size <= maxSize
+    );
+    setModalFiles((prev) => [...prev, ...valid].slice(0, 10));
+  }
+
+  function removeModalFile(idx: number) {
+    setModalFiles((prev) => prev.filter((_, i) => i !== idx));
+  }
+
+  async function handleUpload() {
+    if (!caseId || modalFiles.length === 0) return;
+    setUploading(true);
+    setUploadError("");
+    try {
+      const fd = new FormData();
+      fd.append("caseId", caseId);
+      modalFiles.forEach((f) => fd.append("files", f));
+      const res = await fetch("/api/cases/upload-evidence", { method: "POST", body: fd });
+      const data = (await res.json()) as { uploaded?: unknown[]; error?: string };
+      if (!res.ok) throw new Error(data.error ?? "Upload failed");
+      setHasEvidence(true);
+      setShowUploadModal(false);
+      setModalFiles([]);
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Upload failed. Please try again.");
+    } finally {
+      setUploading(false);
+    }
+  }
 
   const strength = useMemo(() => parseCaseStrength(rawText), [rawText]);
   const caseType = useMemo(() => inferCaseType(intake), [intake]);
@@ -572,6 +621,124 @@ export default function ResultsPage() {
             </span>
           )}
         </header>
+
+        {/* Evidence banner */}
+        {caseId && hasEvidence === true && (
+          <div
+            className="rounded-xl px-5 py-4 flex items-center gap-3 text-sm font-medium"
+            style={{ background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.3)", color: "#065F46" }}
+          >
+            <span>✓</span>
+            <span>Your evidence has been attached to your case.</span>
+          </div>
+        )}
+        {caseId && hasEvidence === false && (
+          <div
+            className="rounded-xl px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+            style={{ background: "rgba(245,158,11,0.10)", border: "1px solid rgba(245,158,11,0.35)" }}
+          >
+            <p className="text-sm font-medium" style={{ color: "#92400E" }}>
+              Strengthen your case — upload your evidence
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowUploadModal(true)}
+              className="shrink-0 rounded-full px-4 py-2 text-sm font-semibold cursor-pointer whitespace-nowrap"
+              style={{ background: m.amber, color: "#ffffff" }}
+            >
+              Upload Evidence
+            </button>
+          </div>
+        )}
+
+        {/* Upload modal */}
+        {showUploadModal && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ background: "rgba(15,23,42,0.55)" }}
+            onClick={(e) => { if (e.target === e.currentTarget) setShowUploadModal(false); }}
+          >
+            <div
+              className="w-full max-w-lg rounded-2xl flex flex-col gap-5 p-6"
+              style={{ background: "#ffffff", boxShadow: "0 20px 60px rgba(0,0,0,0.25)" }}
+            >
+              <div className="flex items-center justify-between">
+                <h2 className="text-base font-semibold" style={{ color: m.text }}>Upload Evidence</h2>
+                <button
+                  type="button"
+                  onClick={() => setShowUploadModal(false)}
+                  className="p-1.5 rounded-lg cursor-pointer hover:opacity-60"
+                  style={{ color: m.muted }}
+                  aria-label="Close"
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+                    <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+                  </svg>
+                </button>
+              </div>
+              <div
+                className="rounded-xl border-2 border-dashed p-6 text-center cursor-pointer transition-colors"
+                style={{
+                  borderColor: modalDragOver ? m.blue : m.border,
+                  background: modalDragOver ? "rgba(200,57,43,0.04)" : m.surface,
+                }}
+                onDragOver={(e) => { e.preventDefault(); setModalDragOver(true); }}
+                onDragLeave={() => setModalDragOver(false)}
+                onDrop={(e) => { e.preventDefault(); setModalDragOver(false); addModalFiles(Array.from(e.dataTransfer.files)); }}
+                onClick={() => modalFileInputRef.current?.click()}
+              >
+                <input
+                  ref={modalFileInputRef}
+                  type="file"
+                  multiple
+                  accept=".jpg,.jpeg,.png,.pdf,.txt"
+                  className="hidden"
+                  onChange={(e) => { if (e.target.files) { addModalFiles(e.target.files); e.target.value = ""; } }}
+                />
+                <p className="text-sm" style={{ color: m.subtext }}>
+                  Drag files here or <span style={{ color: m.blue }}>click to browse</span>
+                </p>
+                <p className="text-xs mt-1" style={{ color: m.muted }}>
+                  JPG, PNG, PDF, TXT · Max 5MB each · Up to 10 files
+                </p>
+              </div>
+              {modalFiles.length > 0 && (
+                <ul className="flex flex-col gap-1.5 max-h-40 overflow-y-auto">
+                  {modalFiles.map((file, i) => (
+                    <li
+                      key={i}
+                      className="flex items-center justify-between gap-3 rounded-lg px-4 py-2.5 text-sm"
+                      style={{ background: m.surface, border: `1px solid ${m.border}` }}
+                    >
+                      <span className="truncate" style={{ color: m.text }}>{file.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeModalFile(i)}
+                        className="shrink-0 text-xs cursor-pointer hover:opacity-70"
+                        style={{ color: m.subtext }}
+                      >
+                        Remove
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {uploadError && (
+                <p className="text-sm" style={{ color: m.blue }}>{uploadError}</p>
+              )}
+              <button
+                type="button"
+                disabled={uploading || modalFiles.length === 0}
+                onClick={handleUpload}
+                className="w-full min-h-12 rounded-full px-6 py-3.5 text-sm font-semibold disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2"
+                style={marketingBtnPrimary}
+              >
+                {uploading && <Spinner />}
+                {uploading ? "Uploading…" : `Upload ${modalFiles.length > 0 ? `${modalFiles.length} file${modalFiles.length > 1 ? "s" : ""}` : "files"}`}
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Assessment body */}
         <section className="flex flex-col gap-6">
