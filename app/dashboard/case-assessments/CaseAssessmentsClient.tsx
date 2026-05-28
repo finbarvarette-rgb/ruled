@@ -19,28 +19,31 @@ const NAVY = "#0F172A";
 const BODY_TEXT = "#0F172A";
 const SECTION_BORDER = "#E2E8F0";
 
-export function CaseAssessmentsClient({ cases }: { cases: Case[] }) {
+export function CaseAssessmentsClient({ cases: initialCases }: { cases: Case[] }) {
   const router = useRouter();
+  const [caseList, setCaseList] = useState<Case[]>(initialCases);
   const [openCase, setOpenCase] = useState<Case | null>(null);
   const [checkoutLoading, setCheckoutLoading] = useState<"demand" | "full" | null>(null);
   const [filingId, setFilingId] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const supabase = useMemo(() => createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   ), []);
 
-  const sorted = useMemo(() => cases, [cases]);
+  const sorted = useMemo(() => caseList, [caseList]);
 
   useEffect(() => {
     const target = sessionStorage.getItem("dashboard_open_case_id");
     if (!target) return;
     sessionStorage.removeItem("dashboard_open_case_id");
-    const match = cases.find((c) => c.id === target);
+    const match = caseList.find((c) => c.id === target);
     if (match) {
       setOpenCase(match);
     }
-  }, [cases]);
+  }, [caseList]);
 
   async function handleMarkFiled(caseId: string) {
     if (!window.confirm("Mark this case as Filed in Court?\n\nOnly do this after you have actually submitted your claim to the courthouse.")) return;
@@ -60,6 +63,24 @@ export function CaseAssessmentsClient({ cases }: { cases: Case[] }) {
       await startCheckout(tier, c.id, c.email);
     } catch {
       setCheckoutLoading(null);
+    }
+  }
+
+  async function handleDeleteConfirmed() {
+    if (!deleteConfirmId) return;
+    setDeleteLoading(true);
+    try {
+      const res = await fetch("/api/cases/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ caseId: deleteConfirmId }),
+      });
+      if (res.ok) {
+        setCaseList((prev) => prev.filter((c) => c.id !== deleteConfirmId));
+        setDeleteConfirmId(null);
+      }
+    } finally {
+      setDeleteLoading(false);
     }
   }
 
@@ -200,6 +221,21 @@ export function CaseAssessmentsClient({ cases }: { cases: Case[] }) {
                       Get Full Case Pack
                     </Link>
                   )}
+                  <button
+                    type="button"
+                    onClick={() => setDeleteConfirmId(c.id)}
+                    className="rounded-lg px-3 py-3 min-h-11 text-xs font-semibold cursor-pointer inline-flex items-center justify-center gap-1.5 w-full sm:w-auto"
+                    style={{
+                      background: "transparent",
+                      color: "#DC2626",
+                      border: "1px solid #DC2626",
+                    }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                      <path d="M2 4h12M5 4V2h6v2M6 7v5M10 7v5M3 4l1 9a1 1 0 001 1h6a1 1 0 001-1l1-9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    Delete case
+                  </button>
                 </div>
               </article>
             );
@@ -212,6 +248,51 @@ export function CaseAssessmentsClient({ cases }: { cases: Case[] }) {
           caseRecord={openCase}
           onClose={() => setOpenCase(null)}
         />
+      )}
+
+      {deleteConfirmId && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center px-4"
+          style={{ background: "rgba(15, 23, 42, 0.55)" }}
+          onClick={() => { if (!deleteLoading) setDeleteConfirmId(null); }}
+          role="presentation"
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl p-6 flex flex-col gap-5 shadow-2xl"
+            style={{ background: "#ffffff" }}
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-labelledby="delete-modal-title"
+          >
+            <h2 id="delete-modal-title" className="text-base font-semibold" style={{ color: NAVY }}>
+              Delete this case?
+            </h2>
+            <p className="text-sm leading-relaxed" style={{ color: "#475569" }}>
+              Are you sure you want to delete this case? This will permanently delete your case assessment and all associated documents. This cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmId(null)}
+                disabled={deleteLoading}
+                className="rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer disabled:opacity-60"
+                style={{ background: "transparent", color: NAVY, border: "1px solid #E2E8F0" }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteConfirmed}
+                disabled={deleteLoading}
+                className="rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer disabled:opacity-60 inline-flex items-center gap-2"
+                style={{ background: "#DC2626", color: "#ffffff", border: "none" }}
+              >
+                {deleteLoading && <Spinner />}
+                Delete permanently
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </main>
   );
