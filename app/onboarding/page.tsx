@@ -23,10 +23,124 @@ import {
 
 const inputStyle = marketingInput;
 
+const DISPUTE_TYPES = [
+  "Contractor/trades",
+  "Landlord/tenant",
+  "Product or service not delivered",
+  "Unpaid invoice",
+  "Property damage",
+  "Other",
+] as const;
+
+const EVIDENCE_OPTIONS = [
+  "Written contract or agreement",
+  "Invoices or receipts",
+  "Text messages or emails",
+  "Photos or videos",
+  "Bank records or payment proof",
+  "Witnesses",
+  "None of the above",
+] as const;
+
+const Q_STEP_TITLES = ["Basic Info", "What Happened", "Your Evidence", "Their Side"] as const;
+
+type IntakeData = {
+  whoOwes: string;
+  amountOwed: string;
+  province: string;
+  disputeType: string;
+  whatHappened: string;
+  whenHappened: string;
+  hadContract: string;
+  whatWasSupposed: string;
+  evidence: string[];
+  triedToResolve: string;
+  resolveAttemptDetails: string;
+  theirReason: string;
+  theirReasonDetails: string;
+  theirResponse: string;
+};
+
+const EMPTY_INTAKE: IntakeData = {
+  whoOwes: "",
+  amountOwed: "",
+  province: "",
+  disputeType: "",
+  whatHappened: "",
+  whenHappened: "",
+  hadContract: "",
+  whatWasSupposed: "",
+  evidence: [],
+  triedToResolve: "",
+  resolveAttemptDetails: "",
+  theirReason: "",
+  theirReasonDetails: "",
+  theirResponse: "",
+};
+
+function wordCount(text: string): number {
+  return text.trim().split(/\s+/).filter(Boolean).length;
+}
+
+function compileIntake(d: IntakeData): string {
+  const lines: string[] = [];
+  lines.push(`Province: ${d.province}`);
+  lines.push(`Dispute type: ${d.disputeType}`);
+  lines.push(`Who owes money: ${d.whoOwes}`);
+  lines.push(`Amount owed: $${d.amountOwed}`);
+  lines.push(`\nWhat happened:\n${d.whatHappened}`);
+  lines.push(`\nWhen it happened: ${d.whenHappened}`);
+  lines.push(`Written agreement or contract: ${d.hadContract}`);
+  if (d.whatWasSupposed.trim()) {
+    lines.push(`What was supposed to happen: ${d.whatWasSupposed}`);
+  }
+  lines.push(`\nEvidence confirmed: ${d.evidence.length > 0 ? d.evidence.join("; ") : "None"}`);
+  lines.push(`Attempted to resolve before now: ${d.triedToResolve}`);
+  if (d.triedToResolve === "Yes" && d.resolveAttemptDetails.trim()) {
+    lines.push(`Details of resolution attempt: ${d.resolveAttemptDetails}`);
+  }
+  lines.push(`\nDid they give a reason for not paying or delivering: ${d.theirReason}`);
+  if (d.theirReason === "Yes" && d.theirReasonDetails.trim()) {
+    lines.push(`Their reason: ${d.theirReasonDetails}`);
+  }
+  lines.push(`Their response to contact attempts: ${d.theirResponse}`);
+  return lines.join("\n");
+}
+
 function getSupabaseBrowser() {
   return createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+}
+
+function OptionPills({
+  options,
+  value,
+  onChange,
+}: {
+  options: readonly string[];
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div className="flex gap-2 flex-wrap">
+      {options.map((opt) => (
+        <button
+          key={opt}
+          type="button"
+          onClick={() => onChange(opt)}
+          className="rounded-full px-4 py-2 text-sm font-medium cursor-pointer transition-colors"
+          style={{
+            background: value === opt ? m.blue : m.white,
+            color: value === opt ? m.white : m.text,
+            border: `1.5px solid ${value === opt ? m.blue : m.border}`,
+          }}
+        >
+          {opt}
+        </button>
+      ))}
+    </div>
   );
 }
 
@@ -36,8 +150,8 @@ function OnboardingContent() {
   const stepParam = searchParams.get("step");
   const step = stepParam === "2" ? 2 : 1;
 
-  const [intake, setIntake] = useState("");
-  const [province, setProvince] = useState("");
+  const [qStep, setQStep] = useState<1 | 2 | 3 | 4>(1);
+  const [intakeData, setIntakeData] = useState<IntakeData>(EMPTY_INTAKE);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -46,6 +160,10 @@ function OnboardingContent() {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [needsVerification, setNeedsVerification] = useState(false);
   const [authMode, setAuthMode] = useState<"signup" | "signin">("signup");
+
+  const set = useCallback(<K extends keyof IntakeData>(key: K, value: IntakeData[K]) => {
+    setIntakeData((prev) => ({ ...prev, [key]: value }));
+  }, []);
 
   const proceedToProcessing = useCallback(() => {
     router.push("/processing");
@@ -70,42 +188,68 @@ function OnboardingContent() {
           router.replace("/onboarding");
           return;
         }
-
         const signedIn = await checkSignedIn();
         if (signedIn) {
           proceedToProcessing();
           return;
         }
-
         const storedEmail = sessionStorage.getItem(ONBOARDING_EMAIL_KEY);
         if (storedEmail) setEmail(storedEmail);
       } else {
-        const storedIntake = sessionStorage.getItem(ONBOARDING_INTAKE_KEY);
         const storedProvince = sessionStorage.getItem(ONBOARDING_PROVINCE_KEY);
-        if (storedIntake) setIntake(storedIntake);
-        if (storedProvince) setProvince(storedProvince);
+        if (storedProvince) setIntakeData((prev) => ({ ...prev, province: storedProvince }));
       }
       setCheckingAuth(false);
     }
-
     init();
   }, [step, router, checkSignedIn, proceedToProcessing]);
 
-  async function handleStep1Continue(e: React.FormEvent) {
+  function validateQStep(): string {
+    if (qStep === 1) {
+      if (!intakeData.whoOwes.trim()) return "Please enter who owes you money.";
+      if (!intakeData.amountOwed || Number(intakeData.amountOwed) <= 0) return "Please enter a valid amount.";
+      if (!intakeData.province) return "Please select your province.";
+      if (!intakeData.disputeType) return "Please select the type of dispute.";
+    }
+    if (qStep === 2) {
+      const wc = wordCount(intakeData.whatHappened);
+      if (wc < 50) return `Please describe what happened in at least 50 words (currently ${wc}).`;
+      if (!intakeData.whenHappened.trim()) return "Please indicate when this happened.";
+      if (!intakeData.hadContract) return "Please indicate whether you had a written agreement.";
+    }
+    if (qStep === 3) {
+      if (intakeData.evidence.length === 0) return "Please select at least one option — even if it's 'None of the above'.";
+      if (!intakeData.triedToResolve) return "Please indicate whether you've tried to resolve this.";
+    }
+    if (qStep === 4) {
+      if (!intakeData.theirReason) return "Please indicate whether they gave a reason.";
+      if (!intakeData.theirResponse) return "Please indicate how they responded.";
+    }
+    return "";
+  }
+
+  function handleQNext(e: React.FormEvent) {
     e.preventDefault();
-    if (!intake.trim() || !province) {
-      setError("Please describe your situation and select your province.");
+    const validationError = validateQStep();
+    if (validationError) {
+      setError(validationError);
       return;
     }
     setError("");
+    if (qStep < 4) {
+      setQStep((prev) => (prev + 1) as 1 | 2 | 3 | 4);
+    } else {
+      void handleStep1Continue();
+    }
+  }
+
+  async function handleStep1Continue() {
     setLoading(true);
-
-    sessionStorage.setItem(ONBOARDING_INTAKE_KEY, intake.trim());
-    sessionStorage.setItem(ONBOARDING_PROVINCE_KEY, province);
-
+    const compiled = compileIntake(intakeData);
+    sessionStorage.setItem(ONBOARDING_INTAKE_KEY, compiled);
+    sessionStorage.setItem(ONBOARDING_PROVINCE_KEY, intakeData.province);
     const signedIn = await checkSignedIn();
     setLoading(false);
-
     if (signedIn) {
       proceedToProcessing();
     } else {
@@ -139,7 +283,6 @@ function OnboardingContent() {
   async function handleSignIn(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-
     if (!email.trim()) {
       setError("Please enter your email address.");
       return;
@@ -148,7 +291,6 @@ function OnboardingContent() {
       setError("Please enter your password.");
       return;
     }
-
     setLoading(true);
     try {
       const res = await fetch("/api/auth/login", {
@@ -157,15 +299,11 @@ function OnboardingContent() {
         body: JSON.stringify({ email: email.trim(), password }),
       });
       const data = (await res.json()) as { error?: string };
-      if (!res.ok) {
-        throw new Error(data.error ?? "Sign in failed");
-      }
+      if (!res.ok) throw new Error(data.error ?? "Sign in failed");
       sessionStorage.setItem(ONBOARDING_EMAIL_KEY, email.trim());
       proceedToProcessing();
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Something went wrong. Please try again."
-      );
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -174,7 +312,6 @@ function OnboardingContent() {
   async function handleSignUp(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-
     if (!email.trim()) {
       setError("Please enter your email address.");
       return;
@@ -187,39 +324,27 @@ function OnboardingContent() {
       setError("Passwords do not match.");
       return;
     }
-
     setLoading(true);
     try {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: email.trim(),
-          password,
-          next: "/processing",
-        }),
+        body: JSON.stringify({ email: email.trim(), password, next: "/processing" }),
       });
       const data = (await res.json()) as {
         success?: boolean;
         needsVerification?: boolean;
         error?: string;
       };
-
-      if (!res.ok) {
-        throw new Error(data.error ?? "Failed to create account");
-      }
-
+      if (!res.ok) throw new Error(data.error ?? "Failed to create account");
       sessionStorage.setItem(ONBOARDING_EMAIL_KEY, email.trim());
-
       if (data.needsVerification) {
         setNeedsVerification(true);
       } else {
         proceedToProcessing();
       }
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Something went wrong. Please try again."
-      );
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -246,19 +371,15 @@ function OnboardingContent() {
             </h1>
             <p className="text-sm leading-relaxed" style={{ color: m.subtext }}>
               We sent a verification link to{" "}
-              <span style={{ color: m.text }}>{email}</span>. Click it to
-              verify your account and see your case assessment.
+              <span style={{ color: m.text }}>{email}</span>. Click it to verify
+              your account and see your case assessment.
             </p>
             <p className="text-sm leading-relaxed" style={{ color: m.subtext }}>
               Your case details have been saved — they will be waiting when you
               come back.
             </p>
           </div>
-          <Link
-            href="/login"
-            className="text-sm w-fit"
-            style={{ color: m.blue }}
-          >
+          <Link href="/login" className="text-sm w-fit" style={{ color: m.blue }}>
             Already verified? Sign in &rarr;
           </Link>
         </div>
@@ -272,56 +393,289 @@ function OnboardingContent() {
       style={marketingPageMain}
     >
       <div className="max-w-xl mx-auto w-full flex flex-col gap-8">
-        <Link href="/" className="text-sm w-fit" style={{ color: m.subtext }}>
-          &larr; Back to home
-        </Link>
+
+        {step === 1 && qStep === 1 && (
+          <Link href="/" className="text-sm w-fit" style={{ color: m.subtext }}>
+            &larr; Back to home
+          </Link>
+        )}
+        {step === 1 && qStep > 1 && (
+          <button
+            type="button"
+            onClick={() => { setError(""); setQStep((prev) => (prev - 1) as 1 | 2 | 3 | 4); }}
+            className="text-sm w-fit cursor-pointer"
+            style={{ color: m.subtext, background: "none", border: "none", padding: 0 }}
+          >
+            &larr; Back
+          </button>
+        )}
 
         <OnboardingProgress step={step === 1 ? 1 : 2} />
 
         {step === 1 ? (
           <>
-            <div className="flex flex-col gap-2">
-              <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
-                Tell us what happened.
-              </h1>
-              <p className="text-sm leading-relaxed" style={{ color: m.subtext }}>
-                Describe your situation in plain language. Who owes you money,
-                how much, and why.
+            <div className="flex flex-col gap-1">
+              <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: m.blue }}>
+                Step {qStep} of 4 — {Q_STEP_TITLES[qStep - 1]}
               </p>
+              <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
+                {qStep === 1 && "Let's start with the basics."}
+                {qStep === 2 && "Tell us what happened."}
+                {qStep === 3 && "What evidence do you have?"}
+                {qStep === 4 && "What have they said?"}
+              </h1>
             </div>
 
-            <form onSubmit={handleStep1Continue} className="flex flex-col gap-4">
-              <textarea
-                value={intake}
-                onChange={(e) => setIntake(e.target.value)}
-                rows={10}
-                placeholder="Example: My contractor took a $5,000 deposit, did half the work, and stopped responding..."
-                className="w-full rounded-xl px-4 py-4 text-base sm:text-sm leading-relaxed resize-none outline-none min-h-[10rem]"
-                style={inputStyle}
-                onFocus={(e) => (e.currentTarget.style.borderColor = m.blue)}
-                onBlur={(e) => (e.currentTarget.style.borderColor = m.border)}
-              />
-              <select
-                required
-                value={province}
-                onChange={(e) => setProvince(e.target.value)}
-                className="w-full rounded-lg px-4 py-3.5 text-base sm:text-sm outline-none appearance-none cursor-pointer min-h-12"
-                style={{ ...inputStyle, color: province ? m.text : m.subtext }}
-              >
-                <option value="" disabled>
-                  Select your province
-                </option>
-                {PROVINCES.map((p) => (
-                  <option key={p} value={p}>
-                    {p}
-                  </option>
-                ))}
-              </select>
+            <form onSubmit={handleQNext} className="flex flex-col gap-5">
+
+              {qStep === 1 && (
+                <>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-medium" style={{ color: m.text }}>
+                      Who owes you money?
+                    </label>
+                    <input
+                      type="text"
+                      value={intakeData.whoOwes}
+                      onChange={(e) => set("whoOwes", e.target.value)}
+                      placeholder="Person or business name"
+                      className="w-full rounded-lg px-4 py-3.5 text-base sm:text-sm outline-none min-h-12"
+                      style={inputStyle}
+                      onFocus={(e) => (e.currentTarget.style.borderColor = m.blue)}
+                      onBlur={(e) => (e.currentTarget.style.borderColor = m.border)}
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-medium" style={{ color: m.text }}>
+                      Approximate amount owed ($)
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={intakeData.amountOwed}
+                      onChange={(e) => set("amountOwed", e.target.value)}
+                      placeholder="e.g. 2500"
+                      className="w-full rounded-lg px-4 py-3.5 text-base sm:text-sm outline-none min-h-12"
+                      style={inputStyle}
+                      onFocus={(e) => (e.currentTarget.style.borderColor = m.blue)}
+                      onBlur={(e) => (e.currentTarget.style.borderColor = m.border)}
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-medium" style={{ color: m.text }}>
+                      Which province are you in?
+                    </label>
+                    <select
+                      value={intakeData.province}
+                      onChange={(e) => set("province", e.target.value)}
+                      className="w-full rounded-lg px-4 py-3.5 text-base sm:text-sm outline-none appearance-none cursor-pointer min-h-12"
+                      style={{ ...inputStyle, color: intakeData.province ? m.text : m.subtext }}
+                    >
+                      <option value="" disabled>Select your province</option>
+                      {PROVINCES.map((p) => (
+                        <option key={p} value={p}>{p}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-medium" style={{ color: m.text }}>
+                      What type of dispute is this?
+                    </label>
+                    <select
+                      value={intakeData.disputeType}
+                      onChange={(e) => set("disputeType", e.target.value)}
+                      className="w-full rounded-lg px-4 py-3.5 text-base sm:text-sm outline-none appearance-none cursor-pointer min-h-12"
+                      style={{ ...inputStyle, color: intakeData.disputeType ? m.text : m.subtext }}
+                    >
+                      <option value="" disabled>Select dispute type</option>
+                      {DISPUTE_TYPES.map((d) => (
+                        <option key={d} value={d}>{d}</option>
+                      ))}
+                    </select>
+                  </div>
+                </>
+              )}
+
+              {qStep === 2 && (
+                <>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-medium" style={{ color: m.text }}>
+                      Describe what happened in your own words
+                    </label>
+                    <textarea
+                      value={intakeData.whatHappened}
+                      onChange={(e) => set("whatHappened", e.target.value)}
+                      rows={7}
+                      placeholder="Tell us what happened. The more detail you give, the better your assessment will be..."
+                      className="w-full rounded-xl px-4 py-4 text-base sm:text-sm leading-relaxed resize-none outline-none min-h-[10rem]"
+                      style={inputStyle}
+                      onFocus={(e) => (e.currentTarget.style.borderColor = m.blue)}
+                      onBlur={(e) => (e.currentTarget.style.borderColor = m.border)}
+                    />
+                    <p
+                      className="text-xs"
+                      style={{
+                        color: wordCount(intakeData.whatHappened) >= 50 ? "#10B981" : m.subtext,
+                      }}
+                    >
+                      {wordCount(intakeData.whatHappened)} words
+                      {wordCount(intakeData.whatHappened) < 50 && " (50 required)"}
+                    </p>
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-medium" style={{ color: m.text }}>
+                      When did this happen?
+                    </label>
+                    <input
+                      type="text"
+                      value={intakeData.whenHappened}
+                      onChange={(e) => set("whenHappened", e.target.value)}
+                      placeholder="e.g. March 2025 or about 6 months ago"
+                      className="w-full rounded-lg px-4 py-3.5 text-base sm:text-sm outline-none min-h-12"
+                      style={inputStyle}
+                      onFocus={(e) => (e.currentTarget.style.borderColor = m.blue)}
+                      onBlur={(e) => (e.currentTarget.style.borderColor = m.border)}
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-medium" style={{ color: m.text }}>
+                      Did you have a written agreement or contract?
+                    </label>
+                    <OptionPills
+                      options={["Yes", "No", "Verbal only"]}
+                      value={intakeData.hadContract}
+                      onChange={(v) => set("hadContract", v)}
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-sm font-medium" style={{ color: m.text }}>
+                      What was supposed to happen that didn&apos;t?{" "}
+                      <span style={{ color: m.subtext }}>(optional)</span>
+                    </label>
+                    <textarea
+                      value={intakeData.whatWasSupposed}
+                      onChange={(e) => set("whatWasSupposed", e.target.value)}
+                      rows={3}
+                      placeholder="e.g. They were supposed to complete the renovation by April..."
+                      className="w-full rounded-xl px-4 py-3.5 text-base sm:text-sm leading-relaxed resize-none outline-none"
+                      style={inputStyle}
+                      onFocus={(e) => (e.currentTarget.style.borderColor = m.blue)}
+                      onBlur={(e) => (e.currentTarget.style.borderColor = m.border)}
+                    />
+                  </div>
+                </>
+              )}
+
+              {qStep === 3 && (
+                <>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-medium" style={{ color: m.text }}>
+                      Do you have any of the following? (check all that apply)
+                    </label>
+                    <div className="flex flex-col gap-3">
+                      {EVIDENCE_OPTIONS.map((item) => (
+                        <label key={item} className="flex items-center gap-3 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={intakeData.evidence.includes(item)}
+                            onChange={(e) => {
+                              if (item === "None of the above") {
+                                set("evidence", e.target.checked ? ["None of the above"] : []);
+                              } else {
+                                const next = e.target.checked
+                                  ? [...intakeData.evidence.filter((i) => i !== "None of the above"), item]
+                                  : intakeData.evidence.filter((i) => i !== item);
+                                set("evidence", next);
+                              }
+                            }}
+                            className="w-4 h-4 cursor-pointer flex-shrink-0"
+                            style={{ accentColor: m.blue }}
+                          />
+                          <span className="text-sm" style={{ color: m.text }}>{item}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-medium" style={{ color: m.text }}>
+                      Have you already tried to resolve this?
+                    </label>
+                    <OptionPills
+                      options={["Yes", "No"]}
+                      value={intakeData.triedToResolve}
+                      onChange={(v) => set("triedToResolve", v)}
+                    />
+                  </div>
+                  {intakeData.triedToResolve === "Yes" && (
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-sm font-medium" style={{ color: m.text }}>
+                        What happened when you tried?{" "}
+                        <span style={{ color: m.subtext }}>(optional)</span>
+                      </label>
+                      <textarea
+                        value={intakeData.resolveAttemptDetails}
+                        onChange={(e) => set("resolveAttemptDetails", e.target.value)}
+                        rows={3}
+                        placeholder="e.g. I emailed them twice and they ignored me..."
+                        className="w-full rounded-xl px-4 py-3.5 text-base sm:text-sm leading-relaxed resize-none outline-none"
+                        style={inputStyle}
+                        onFocus={(e) => (e.currentTarget.style.borderColor = m.blue)}
+                        onBlur={(e) => (e.currentTarget.style.borderColor = m.border)}
+                      />
+                    </div>
+                  )}
+                </>
+              )}
+
+              {qStep === 4 && (
+                <>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-medium" style={{ color: m.text }}>
+                      Have they given any reason for not paying or delivering?
+                    </label>
+                    <OptionPills
+                      options={["Yes", "No"]}
+                      value={intakeData.theirReason}
+                      onChange={(v) => set("theirReason", v)}
+                    />
+                  </div>
+                  {intakeData.theirReason === "Yes" && (
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-sm font-medium" style={{ color: m.text }}>
+                        What reason did they give?{" "}
+                        <span style={{ color: m.subtext }}>(optional)</span>
+                      </label>
+                      <textarea
+                        value={intakeData.theirReasonDetails}
+                        onChange={(e) => set("theirReasonDetails", e.target.value)}
+                        rows={3}
+                        placeholder="e.g. They said the work wasn't up to their standards..."
+                        className="w-full rounded-xl px-4 py-3.5 text-base sm:text-sm leading-relaxed resize-none outline-none"
+                        style={inputStyle}
+                        onFocus={(e) => (e.currentTarget.style.borderColor = m.blue)}
+                        onBlur={(e) => (e.currentTarget.style.borderColor = m.border)}
+                      />
+                    </div>
+                  )}
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-medium" style={{ color: m.text }}>
+                      Have they responded to any of your attempts to contact them?
+                    </label>
+                    <OptionPills
+                      options={["Yes", "No", "Never contacted them"]}
+                      value={intakeData.theirResponse}
+                      onChange={(v) => set("theirResponse", v)}
+                    />
+                  </div>
+                </>
+              )}
+
               {error && (
                 <p className="text-sm" style={{ color: m.blue }}>
                   {error}
                 </p>
               )}
+
               <button
                 type="submit"
                 disabled={loading}
@@ -329,7 +683,11 @@ function OnboardingContent() {
                 style={marketingBtnPrimary}
               >
                 {loading && <Spinner />}
-                {loading ? "Continuing…" : "Continue"}
+                {loading
+                  ? "Continuing…"
+                  : qStep < 4
+                    ? "Next →"
+                    : "See My Assessment →"}
               </button>
             </form>
           </>
@@ -350,10 +708,7 @@ function OnboardingContent() {
               disabled={loading}
               onClick={handleGoogleSignIn}
               className="w-full min-h-12 rounded-full px-6 py-3.5 text-sm font-semibold disabled:opacity-60 cursor-pointer flex items-center justify-center gap-3"
-              style={{
-                ...marketingBtnSecondary,
-                background: m.white,
-              }}
+              style={{ ...marketingBtnSecondary, background: m.white }}
             >
               <GoogleIcon />
               Continue with Google
@@ -361,9 +716,7 @@ function OnboardingContent() {
 
             <div className="flex items-center gap-3">
               <div className="flex-1 h-px" style={{ background: m.border }} />
-              <span className="text-xs" style={{ color: m.subtext }}>
-                or
-              </span>
+              <span className="text-xs" style={{ color: m.subtext }}>or</span>
               <div className="flex-1 h-px" style={{ background: m.border }} />
             </div>
 
@@ -373,10 +726,7 @@ function OnboardingContent() {
             >
               <button
                 type="button"
-                onClick={() => {
-                  setAuthMode("signup");
-                  setError("");
-                }}
+                onClick={() => { setAuthMode("signup"); setError(""); }}
                 className="flex-1 rounded-md px-3 py-2.5 min-h-10 text-xs font-semibold cursor-pointer"
                 style={{
                   background: authMode === "signup" ? m.blue : "transparent",
@@ -387,10 +737,7 @@ function OnboardingContent() {
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  setAuthMode("signin");
-                  setError("");
-                }}
+                onClick={() => { setAuthMode("signin"); setError(""); }}
                 className="flex-1 rounded-md px-3 py-2.5 min-h-10 text-xs font-semibold cursor-pointer"
                 style={{
                   background: authMode === "signin" ? m.blue : "transparent",
@@ -422,14 +769,8 @@ function OnboardingContent() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder={
-                  authMode === "signup"
-                    ? "Password (min. 8 characters)"
-                    : "Password"
-                }
-                autoComplete={
-                  authMode === "signup" ? "new-password" : "current-password"
-                }
+                placeholder={authMode === "signup" ? "Password (min. 8 characters)" : "Password"}
+                autoComplete={authMode === "signup" ? "new-password" : "current-password"}
                 className="w-full rounded-lg px-4 py-3.5 text-base sm:text-sm outline-none min-h-12"
                 style={inputStyle}
                 onFocus={(e) => (e.currentTarget.style.borderColor = m.blue)}
@@ -445,12 +786,8 @@ function OnboardingContent() {
                   autoComplete="new-password"
                   className="w-full rounded-lg px-4 py-3.5 text-base sm:text-sm outline-none min-h-12"
                   style={inputStyle}
-                  onFocus={(e) =>
-                    (e.currentTarget.style.borderColor = m.blue)
-                  }
-                  onBlur={(e) =>
-                    (e.currentTarget.style.borderColor = m.border)
-                  }
+                  onFocus={(e) => (e.currentTarget.style.borderColor = m.blue)}
+                  onBlur={(e) => (e.currentTarget.style.borderColor = m.border)}
                 />
               )}
               {error && (
@@ -466,25 +803,16 @@ function OnboardingContent() {
               >
                 {loading && <Spinner />}
                 {loading
-                  ? authMode === "signup"
-                    ? "Creating account…"
-                    : "Signing in…"
-                  : authMode === "signup"
-                    ? "Create Account & Continue"
-                    : "Sign In & Continue"}
+                  ? authMode === "signup" ? "Creating account…" : "Signing in…"
+                  : authMode === "signup" ? "Create Account & Continue" : "Sign In & Continue"}
               </button>
             </form>
 
             <p className="text-xs text-center leading-relaxed" style={{ color: m.muted }}>
               By continuing you agree to our{" "}
-              <Link href="/terms" className="underline">
-                Terms of Service
-              </Link>{" "}
+              <Link href="/terms" className="underline">Terms of Service</Link>{" "}
               and{" "}
-              <Link href="/privacy" className="underline">
-                Privacy Policy
-              </Link>
-              .
+              <Link href="/privacy" className="underline">Privacy Policy</Link>.
             </p>
           </>
         )}
