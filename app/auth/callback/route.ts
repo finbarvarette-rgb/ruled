@@ -5,8 +5,10 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
   const nextParam = searchParams.get("next");
+  // Fall back to onboarding step 2 so the client can check for pending
+  // assessment data and auto-route to /processing or /dashboard.
   const next =
-    nextParam && nextParam.startsWith("/") ? nextParam : "/dashboard";
+    nextParam && nextParam.startsWith("/") ? nextParam : "/onboarding?step=2";
 
   if (!code) {
     return NextResponse.redirect(`${origin}/login?error=auth`);

@@ -198,17 +198,25 @@ function OnboardingContent() {
   useEffect(() => {
     async function init() {
       if (step === 2) {
+        // Check auth first — handles return from Google OAuth
+        const signedIn = await checkSignedIn();
         const storedIntake = sessionStorage.getItem(ONBOARDING_INTAKE_KEY);
         const storedProvince = sessionStorage.getItem(ONBOARDING_PROVINCE_KEY);
-        if (!storedIntake?.trim() || !storedProvince) {
-          router.replace("/onboarding");
-          return;
-        }
-        const signedIn = await checkSignedIn();
+
         if (signedIn) {
-          proceedToProcessing();
+          if (storedIntake?.trim() && storedProvince) {
+            proceedToProcessing(); // has pending data → submit assessment
+          } else {
+            router.replace("/dashboard"); // signed in but no pending data
+          }
           return;
         }
+
+        if (!storedIntake?.trim() || !storedProvince) {
+          router.replace("/onboarding"); // not signed in, no data → restart
+          return;
+        }
+
         const storedEmail = sessionStorage.getItem(ONBOARDING_EMAIL_KEY);
         if (storedEmail) setEmail(storedEmail);
       } else {
@@ -264,6 +272,10 @@ function OnboardingContent() {
     const compiled = compileIntake(intakeData);
     sessionStorage.setItem(ONBOARDING_INTAKE_KEY, compiled);
     sessionStorage.setItem(ONBOARDING_PROVINCE_KEY, intakeData.province);
+    if (uploadedFiles.length > 0) {
+      const meta = uploadedFiles.map((f) => ({ name: f.name, size: f.size, type: f.type }));
+      sessionStorage.setItem("ruled_pending_files", JSON.stringify(meta));
+    }
     const signedIn = await checkSignedIn();
     setLoading(false);
     if (signedIn) {
@@ -282,7 +294,7 @@ function OnboardingContent() {
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${origin}/auth/callback?next=${encodeURIComponent("/processing")}`,
+          redirectTo: `${origin}/auth/callback?next=${encodeURIComponent("/onboarding?step=2")}`,
         },
       });
       if (oauthError) throw oauthError;
@@ -794,6 +806,18 @@ function OnboardingContent() {
               <GoogleIcon />
               Continue with Google
             </button>
+
+            <p className="text-sm text-center" style={{ color: m.subtext }}>
+              Already have an account?{" "}
+              <button
+                type="button"
+                onClick={() => { setAuthMode("signin"); setError(""); }}
+                className="font-semibold cursor-pointer hover:opacity-70"
+                style={{ color: m.blue, background: "none", border: "none", padding: 0 }}
+              >
+                Sign in →
+              </button>
+            </p>
 
             <div className="flex items-center gap-3">
               <div className="flex-1 h-px" style={{ background: m.border }} />
