@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Suspense } from "react";
-import { createBrowserClient } from "@supabase/ssr";
 import { Spinner } from "@/components/Spinner";
 import {
   m,
@@ -26,16 +25,14 @@ function ForgotPasswordForm() {
     setError("");
     setLoading(true);
     try {
-      const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      );
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(
-        email.trim(),
-        { redirectTo: "https://ruled.ca/auth/reset-password" }
-      );
-      if (resetError) {
-        throw new Error(resetError.message ?? "Something went wrong. Please try again.");
+      const res = await fetch("/api/auth/reset-password-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), redirectTo: "https://ruled.ca/auth/reset-password" }),
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        throw new Error(data.error ?? "Something went wrong. Please try again.");
       }
       setSent(true);
     } catch (err) {
