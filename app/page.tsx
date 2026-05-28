@@ -114,7 +114,7 @@ export default function Home() {
         className="relative flex flex-col justify-center px-4 sm:px-6 py-16 md:py-24 overflow-hidden"
         style={{ background: "#ffffff" }}
       >
-        <div className="max-w-6xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+        <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-12 lg:gap-16 items-center">
           <div className="flex flex-col gap-8 order-2 lg:order-1">
             <div className="flex flex-col gap-2">
               <h1
@@ -133,8 +133,8 @@ export default function Home() {
             <p className="text-lg leading-relaxed max-w-lg" style={{ color: SUBTEXT }}>
               Tell us what happened. Our AI builds your case, drafts your demand letter, and prepares you for court — in minutes.
             </p>
-            <p className="text-sm font-medium" style={{ color: SUBTEXT }}>
-              ⭐⭐⭐⭐⭐ Trusted by Canadians across all 10 provinces · Free to start · No credit card required
+            <p className="text-xs font-medium whitespace-nowrap overflow-hidden text-ellipsis" style={{ color: SUBTEXT }}>
+              ⭐⭐⭐⭐⭐ Trusted across all 10 provinces · Free to start · No credit card required
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
               <Link
@@ -209,7 +209,7 @@ export default function Home() {
         }}
       >
         <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-6 text-center relative z-10">
-          <Stat icon="gavel" value="$35,000" label="Maximum claim limit in most provinces" />
+          <Stat icon="gavel" value="3M+" label="Canadians owed money every year who never see it back" />
           <Stat icon="trophy" value="76%" label="of claimants win when properly prepared" />
           <Stat icon="chart" value="40%" label="Resolve Before Court" />
           <StatAlert value="67%" label="Give up without a fight. You don't have to." />
@@ -235,7 +235,7 @@ export default function Home() {
       <section className="px-4 sm:px-6 py-16 md:py-20" style={{ background: "#F8F7F4" }}>
         <div className="max-w-4xl mx-auto w-full flex flex-col gap-10">
           <h2 className="text-3xl md:text-4xl font-bold text-center tracking-tight" style={{ color: NAVY }}>
-            Why Ruled — not a lawyer.
+            Why Ruled?
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="rounded-2xl p-7 flex flex-col gap-5" style={{ background: "#ffffff", border: "1px solid #E2E8F0" }}>
@@ -302,19 +302,16 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
             <StepCard
               step={1}
-              iconIndex={0}
               title="Tell Your Story"
               description="Describe what happened in plain language. No legal jargon needed — just the facts."
             />
             <StepCard
               step={2}
-              iconIndex={1}
               title="AI Analysis"
               description="Our AI instantly analyzes your case strength, evidence, and next steps tailored to your province."
             />
             <StepCard
               step={3}
-              iconIndex={2}
               title="Get Paid"
               description="Send your demand letter or take it to court fully prepared. Get what you're owed."
             />
@@ -333,16 +330,19 @@ export default function Home() {
               title="Free Case Assessment"
               price={null}
               description="AI analyzes your situation and tells you exactly where you stand. No fluff."
+              imageSrc="/brand/product-screenshot.png"
             />
             <WhatYouGetCard
               title="Demand Letter"
               price="$49"
               description="A legally formatted letter that gets results. 40% of cases resolve here."
+              imageSrc="/brand/demand-preview-screenshot.png"
             />
             <WhatYouGetCard
               title="Full Case Pack"
               price="$199"
               description="Everything to walk into court and win. Filing instructions, scripts, documents."
+              imageSrc="/brand/product-screenshot.png"
             />
           </div>
         </div>
@@ -365,11 +365,12 @@ export default function Home() {
       {/* Founder */}
       <section className="px-4 sm:px-6 py-16 md:py-24" style={{ background: "#ffffff" }}>
         <div className="max-w-4xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center">
-          <div
-            className="rounded-2xl flex items-center justify-center w-full aspect-[4/5] shrink-0"
-            style={{ background: SURFACE, border: "1px solid #E2E8F0" }}
-          >
-            <span className="text-base font-medium" style={{ color: "#64748B" }}>Finn — Founder</span>
+          <div className="flex flex-col items-center md:items-start gap-3 shrink-0">
+            <div
+              className="rounded-2xl w-48 md:w-56"
+              style={{ background: SURFACE, border: "1px solid #E2E8F0", aspectRatio: "3/4" }}
+            />
+            <span className="text-sm" style={{ color: "#64748B" }}>Finn Varette — Founder</span>
           </div>
           <div className="flex flex-col gap-6">
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight leading-tight" style={{ color: NAVY }}>
@@ -449,7 +450,7 @@ export default function Home() {
             <div className="flex flex-col gap-3 sm:col-span-2 lg:col-span-1">
               <RuledLogo size="sm" variant="light" />
               <p className="text-sm font-medium text-white/80">
-                Fight back. Get what you&apos;re owed.
+                Win without a lawyer.
               </p>
             </div>
             <div className="flex flex-col gap-3">
@@ -491,7 +492,7 @@ export default function Home() {
 function RuledLogo({ size = "lg", variant = "dark" }: { size?: "lg" | "sm"; variant?: "dark" | "light" }) {
   const textSize = size === "lg" ? "text-4xl md:text-5xl" : "text-xl";
   const ruledColor = variant === "light" ? "#ffffff" : NAVY;
-  const caColor = variant === "light" ? "#93C5FD" : BLUE;
+  const caColor = variant === "light" ? "#ffffff" : BLUE;
   return (
     <span
       className={`${textSize} font-bold tracking-tight`}
@@ -503,10 +504,10 @@ function RuledLogo({ size = "lg", variant = "dark" }: { size?: "lg" | "sm"; vari
   );
 }
 
-function WhatYouGetCard({ title, price, description }: { title: string; price: string | null; description: string }) {
+function WhatYouGetCard({ title, price, description, imageSrc }: { title: string; price: string | null; description: string; imageSrc?: string }) {
   return (
     <div
-      className="rounded-2xl p-7 flex flex-col gap-4 h-full"
+      className="rounded-2xl p-7 flex flex-col gap-4"
       style={{
         background: "#ffffff",
         border: "1px solid #E2E8F0",
@@ -520,7 +521,19 @@ function WhatYouGetCard({ title, price, description }: { title: string; price: s
           <span className="text-sm font-semibold" style={{ color: BLUE }}>{price}</span>
         )}
       </div>
-      <p className="text-sm leading-relaxed flex-1" style={{ color: SUBTEXT }}>{description}</p>
+      <p className="text-sm leading-relaxed" style={{ color: SUBTEXT }}>{description}</p>
+      {imageSrc && (
+        <div className="mt-2 overflow-hidden rounded-xl" style={{ boxShadow: "0 4px 12px rgba(0,0,0,0.10)" }}>
+          <Image
+            src={imageSrc}
+            alt=""
+            width={800}
+            height={500}
+            className="w-full h-auto block"
+            style={{ maxHeight: "200px", objectFit: "cover", objectPosition: "top" }}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -553,14 +566,36 @@ function RedCheckIcon() {
   );
 }
 
+const STEP_ICONS: Record<1 | 2 | 3, React.ReactNode> = {
+  1: (
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={NAVY} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+      <line x1="9" y1="9" x2="15" y2="9" />
+      <line x1="9" y1="13" x2="13" y2="13" />
+    </svg>
+  ),
+  2: (
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={NAVY} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <polyline points="14 2 14 8 20 8" />
+      <circle cx="11" cy="15" r="2.5" />
+      <line x1="13.5" y1="17.5" x2="16" y2="20" />
+    </svg>
+  ),
+  3: (
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={NAVY} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="7 12.5 10.5 16 17 9" />
+    </svg>
+  ),
+};
+
 function StepCard({
   step,
-  iconIndex,
   title,
   description,
 }: {
-  step: number;
-  iconIndex: 0 | 1 | 2;
+  step: 1 | 2 | 3;
   title: string;
   description: string;
 }) {
@@ -569,16 +604,7 @@ function StepCard({
       className="flex flex-col gap-5 rounded-2xl p-7 lg:p-8 h-full"
       style={{ background: "#ffffff", boxShadow: "0 2px 8px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.06)", border: "1px solid #E2E8F0" }}
     >
-      <div className="relative w-20 h-20 overflow-hidden rounded-xl shrink-0 border border-[#E2E8F0] bg-white">
-        <Image
-          src="/brand/steps_illustration.png"
-          alt=""
-          width={720}
-          height={280}
-          className="absolute max-w-none"
-          style={{ width: "300%", height: "auto", left: `-${iconIndex * 100}%`, top: "50%", transform: "translateY(-50%)" }}
-        />
-      </div>
+      <div className="shrink-0">{STEP_ICONS[step]}</div>
       <div
         className="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold shrink-0"
         style={{ background: "rgba(200,57,43,0.10)", color: BLUE }}

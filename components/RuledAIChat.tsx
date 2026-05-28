@@ -285,12 +285,11 @@ export function RuledAIChat() {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className={`fixed right-4 md:right-6 z-[55] flex items-center gap-2 rounded-full px-4 py-3 text-sm font-semibold shadow-lg cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98] ${launcherPosition}`}
+          className={`fixed right-4 md:right-6 z-[55] flex items-center justify-center w-14 h-14 rounded-full shadow-lg cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98] ${launcherPosition}`}
           style={{ background: NAVY, color: "#ffffff" }}
           aria-label="Open Ruled AI chat"
         >
-          <ChatIcon stroke={AMBER} />
-          <span>Ask Ruled AI</span>
+          <ChatIcon stroke="#ffffff" />
         </button>
       )}
 
