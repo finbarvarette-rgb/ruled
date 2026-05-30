@@ -342,7 +342,7 @@ export default function Home() {
                   </div>
                 </div>
                 <Image
-                  src="/brand/product-screenshot.png"
+                  src="/brand/product-screenshot.png.PNG"
                   alt="Ruled.ca product interface"
                   width={1753}
                   height={1271}
