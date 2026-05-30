@@ -967,23 +967,32 @@ export default function Home() {
           >
             {/* Founder video */}
             <div style={{ position: "relative" }}>
-              <video
-                ref={videoRef}
-                src="/brand/founder-video.mp4.mp4"
-                muted
-                playsInline
-                loop
-                controls
+              <div
                 style={{
                   width: "100%",
-                  aspectRatio: "3/4",
-                  objectFit: "cover",
-                  display: "block",
+                  aspectRatio: "9/16",
                   border: `1px solid ${BORDER}`,
                   borderRadius: "4px",
+                  overflow: "hidden",
                   background: "rgba(255,255,255,0.04)",
+                  position: "relative",
                 }}
-              />
+              >
+                <iframe
+                  src="https://www.youtube.com/embed/k-9cIk3b1dM"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    width: "100%",
+                    height: "100%",
+                    border: "none",
+                    display: "block",
+                  }}
+                />
+              </div>
               <div style={{ textAlign: "center", marginTop: "12px" }}>
                 <div style={{ fontFamily: PF, fontSize: "18px", fontWeight: 700, color: "#ffffff" }}>Finn Varette</div>
                 <div style={{ fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase", color: GOLD, marginTop: "4px" }}>Founder</div>
