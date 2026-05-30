@@ -529,7 +529,7 @@ export default function Home() {
                     (e.currentTarget as HTMLElement).style.background = "transparent";
                   }}
                 >
-                  <div style={{ fontFamily: PF, fontSize: "72px", fontWeight: 900, color: "rgba(212,168,83,0.15)", lineHeight: 1, marginBottom: "24px", letterSpacing: "-3px" }}>
+                  <div style={{ fontFamily: PF, fontSize: "72px", fontWeight: 900, color: "rgba(212,168,83,0.2)", lineHeight: 1, marginBottom: "24px", letterSpacing: "-3px" }}>
                     {card.num}
                   </div>
                   <h3 style={{ fontFamily: PF, fontSize: "22px", fontWeight: 700, marginBottom: "14px", color: "#ffffff" }}>
@@ -679,93 +679,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Bottom row — full-width questionnaire form */}
-            <div data-fade data-delay="200" style={{ ...fade(200), background: "rgba(255,255,255,0.02)", border: `1px solid ${BORDER}`, padding: "32px", borderRadius: "8px" }}>
-              <div style={{ fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase", color: GOLD, marginBottom: "20px" }}>
-                Try it now — it is free
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto auto", gap: "16px", alignItems: "end" }}>
-                <div>
-                  <label style={{ display: "block", fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase", color: GOLD, marginBottom: "8px" }}>
-                    What happened in your own words
-                  </label>
-                  <textarea
-                    rows={2}
-                    placeholder="e.g. A contractor took my deposit and never completed the work..."
-                    style={{
-                      width: "100%", background: "rgba(255,255,255,0.05)", border: `1px solid ${BORDER}`,
-                      borderRadius: "8px", padding: "12px 16px", color: "#ffffff",
-                      fontFamily: "inherit", fontSize: "14px", resize: "none", outline: "none",
-                      transition: "border-color 0.2s",
-                    }}
-                    onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(212,168,83,0.5)")}
-                    onBlur={(e) => (e.currentTarget.style.borderColor = BORDER)}
-                  />
-                </div>
-                <div style={{ minWidth: "160px" }}>
-                  <label style={{ display: "block", fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase", color: GOLD, marginBottom: "8px" }}>
-                    Amount owed
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. $3,500"
-                    style={{
-                      width: "100%", background: "rgba(255,255,255,0.05)", border: `1px solid ${BORDER}`,
-                      borderRadius: "8px", padding: "12px 16px", color: "#ffffff",
-                      fontFamily: "inherit", fontSize: "14px", outline: "none",
-                      transition: "border-color 0.2s",
-                    }}
-                    onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(212,168,83,0.5)")}
-                    onBlur={(e) => (e.currentTarget.style.borderColor = BORDER)}
-                  />
-                </div>
-                <div style={{ minWidth: "180px" }}>
-                  <label style={{ display: "block", fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase", color: GOLD, marginBottom: "8px" }}>
-                    Province
-                  </label>
-                  <select
-                    style={{
-                      width: "100%", background: "rgba(255,255,255,0.05)", border: `1px solid ${BORDER}`,
-                      borderRadius: "8px", padding: "12px 16px", color: "#ffffff",
-                      fontFamily: "inherit", fontSize: "14px", outline: "none",
-                      appearance: "none", cursor: "pointer",
-                    }}
-                  >
-                    <option value="" style={{ background: "#111827" }}>Select...</option>
-                    {PROVINCES.map((p) => (
-                      <option key={p} value={p} style={{ background: "#111827" }}>{p}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <button
-                    type="button"
-                    onClick={() => router.push("/onboarding")}
-                    style={{
-                      background: GOLD, color: NAVY, border: "none", borderRadius: "8px",
-                      padding: "12px 24px", fontFamily: "inherit", fontSize: "13px", fontWeight: 700,
-                      letterSpacing: "1.5px", textTransform: "uppercase", cursor: "pointer",
-                      whiteSpace: "nowrap", transition: "transform 0.2s, box-shadow 0.2s",
-                    }}
-                    onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)";
-                      (e.currentTarget as HTMLElement).style.boxShadow = "0 8px 24px rgba(212,168,83,0.3)";
-                    }}
-                    onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLElement).style.transform = "";
-                      (e.currentTarget as HTMLElement).style.boxShadow = "";
-                    }}
-                  >
-                    Get My Case Strength Score →
-                  </button>
-                </div>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", fontSize: "11px", color: MUTED, marginTop: "16px" }}>
-                <span style={{ flex: 1, height: "1px", background: BORDER }} />
-                Free · No account required · Results in 60 seconds
-                <span style={{ flex: 1, height: "1px", background: BORDER }} />
-              </div>
-            </div>
           </div>
         </section>
 

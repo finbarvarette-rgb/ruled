@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useMemo } from "react";
-import { createBrowserClient } from "@supabase/ssr";
+import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 
 const NAVY = "#0A0F1E";
 const NAVY2 = "#0D1220";
@@ -83,16 +82,11 @@ export function DashboardShell({
   };
 }) {
   const pathname = usePathname();
-  const router = useRouter();
 
-  const supabase = useMemo(
-    () =>
-      createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      ),
-    []
-  );
+  useEffect(() => {
+    document.body.style.borderTop = "none";
+    return () => { document.body.style.removeProperty("border-top"); };
+  }, []);
 
   const activeKey: NavKey =
     pathname === "/dashboard"
@@ -110,14 +104,6 @@ export function DashboardShell({
     [user.firstName, user.lastName].filter(Boolean).join(" ") ||
     user.email?.split("@")[0] ||
     "User";
-
-  async function handleSignOut() {
-    try {
-      await supabase.auth.signOut();
-    } finally {
-      router.push("/");
-    }
-  }
 
   return (
     <div style={{ minHeight: "100vh", background: NAVY, color: WHITE }}>
@@ -197,24 +183,16 @@ export function DashboardShell({
             })}
           </nav>
 
-          {/* Bottom user info */}
-          <button
-            type="button"
-            onClick={handleSignOut}
-            title="Sign out"
+          {/* Bottom user info — links to account */}
+          <Link
+            href="/dashboard/account"
             style={{
               padding: "16px 24px",
               borderTop: `1px solid ${BORDER}`,
-              borderRight: "none",
-              borderBottom: "none",
-              borderLeft: "none",
               display: "flex",
               alignItems: "center",
               gap: 12,
-              background: "none",
-              cursor: "pointer",
-              width: "100%",
-              textAlign: "left",
+              textDecoration: "none",
             }}
           >
             <div
@@ -259,7 +237,7 @@ export function DashboardShell({
                 {user.email}
               </div>
             </div>
-          </button>
+          </Link>
         </aside>
 
         {/* Main content */}

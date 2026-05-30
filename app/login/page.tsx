@@ -5,14 +5,23 @@ import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { Spinner } from "@/components/Spinner";
-import {
-  m,
-  marketingBtnPrimary,
-  marketingCard,
-  marketingInput,
-  marketingPageMain,
-  ruledLogoSuffixStyle,
-} from "@/lib/marketing-theme";
+
+const NAVY = "#0A0F1E";
+const CARD = "#151C2E";
+const CARD2 = "#0D1220";
+const GOLD = "#D4A853";
+const BORDER = "rgba(255,255,255,0.07)";
+const BORDER_GOLD = "rgba(212,168,83,0.25)";
+const MUTED = "rgba(255,255,255,0.5)";
+const WHITE = "#FFFFFF";
+const RED = "#C8392B";
+const PF = "'Playfair Display', Georgia, serif";
+
+const inputStyle = {
+  background: CARD2,
+  color: WHITE,
+  border: `1px solid ${BORDER}`,
+};
 
 function LoginForm() {
   const router = useRouter();
@@ -57,48 +66,71 @@ function LoginForm() {
 
   return (
     <main
-      className="flex flex-col flex-1 min-h-screen px-4 sm:px-6 py-12 md:py-16"
-      style={marketingPageMain}
+      style={{
+        background: NAVY,
+        color: WHITE,
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "48px 24px",
+      }}
     >
-      <div className="max-w-md mx-auto w-full flex flex-col gap-8 items-center text-center">
-        <Link
-          href="/"
-          className="text-4xl font-bold tracking-tight"
-          style={{ fontFamily: "Georgia, 'Times New Roman', serif", color: m.text }}
-        >
-          ruled<span style={ruledLogoSuffixStyle()}>.ca</span>
+      <div style={{ width: "100%", maxWidth: 400, display: "flex", flexDirection: "column", gap: 32, alignItems: "center" }}>
+        {/* Logo */}
+        <Link href="/" style={{ textDecoration: "none" }}>
+          <span style={{ fontFamily: PF, fontSize: 28, fontWeight: 700 }}>
+            <span style={{ color: WHITE }}>ruled</span>
+            <span style={{ color: GOLD }}>.ca</span>
+          </span>
         </Link>
 
+        {/* Card */}
         <div
-          className="w-full rounded-xl p-6 sm:p-8 flex flex-col gap-6 items-center text-center"
-          style={marketingCard}
+          style={{
+            width: "100%",
+            background: CARD,
+            border: `1px solid ${BORDER}`,
+            borderRadius: 16,
+            padding: "32px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 24,
+          }}
         >
-          <div className="flex flex-col gap-3 w-full">
-            <h1 className="text-2xl font-semibold tracking-tight" style={{ color: m.text }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <h1 style={{ fontFamily: PF, fontSize: 28, fontWeight: 700, color: WHITE, margin: 0 }}>
               Sign in
             </h1>
-            <p className="text-sm leading-relaxed" style={{ color: m.subtext }}>
+            <p style={{ fontSize: 14, color: MUTED, margin: 0 }}>
               Enter your email and password to access your cases.
             </p>
           </div>
 
           {authError && (
-            <p className="text-sm w-full text-left" style={{ color: m.blue }}>
+            <p style={{ fontSize: 13, color: RED }}>
               Session expired or link invalid. Please sign in again.
             </p>
           )}
 
-          <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4">
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Email address"
-              className="w-full rounded-lg px-4 py-3 text-sm outline-none"
-              style={marketingInput}
-              onFocus={(e) => (e.currentTarget.style.borderColor = m.blue)}
-              onBlur={(e) => (e.currentTarget.style.borderColor = m.border)}
+              style={{
+                ...inputStyle,
+                borderRadius: 8,
+                padding: "12px 16px",
+                fontSize: 14,
+                outline: "none",
+                width: "100%",
+              }}
+              onFocus={(e) => (e.currentTarget.style.borderColor = GOLD)}
+              onBlur={(e) => (e.currentTarget.style.borderColor = BORDER)}
             />
             <input
               type="password"
@@ -106,38 +138,57 @@ function LoginForm() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password"
-              className="w-full rounded-lg px-4 py-3 text-sm outline-none"
-              style={marketingInput}
-              onFocus={(e) => (e.currentTarget.style.borderColor = m.blue)}
-              onBlur={(e) => (e.currentTarget.style.borderColor = m.border)}
+              style={{
+                ...inputStyle,
+                borderRadius: 8,
+                padding: "12px 16px",
+                fontSize: 14,
+                outline: "none",
+                width: "100%",
+              }}
+              onFocus={(e) => (e.currentTarget.style.borderColor = GOLD)}
+              onBlur={(e) => (e.currentTarget.style.borderColor = BORDER)}
             />
             {error && (
-              <p className="text-sm text-left" style={{ color: m.blue }}>
-                {error}
-              </p>
+              <p style={{ fontSize: 13, color: RED }}>{error}</p>
             )}
             <button
               type="submit"
               disabled={loading}
-              className="w-full min-h-12 rounded-full px-6 py-4 text-sm font-semibold disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2"
-              style={marketingBtnPrimary}
+              style={{
+                background: GOLD,
+                color: NAVY,
+                border: "none",
+                borderRadius: 8,
+                padding: "13px 24px",
+                fontSize: 14,
+                fontWeight: 700,
+                letterSpacing: "0.5px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                opacity: loading ? 0.7 : 1,
+                marginTop: 4,
+              }}
             >
               {loading && <Spinner />}
               {loading ? "Signing in…" : "Sign In"}
             </button>
           </form>
 
-          <div className="flex flex-col gap-3 w-full items-center text-sm">
-            <Link href="/onboarding" style={{ color: m.blue }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, alignItems: "center", fontSize: 13 }}>
+            <Link href="/onboarding" style={{ color: GOLD, textDecoration: "none" }}>
               Don&apos;t have an account? Start free &rarr;
             </Link>
-            <Link href="/forgot-password" style={{ color: m.muted }}>
+            <Link href="/forgot-password" style={{ color: MUTED, textDecoration: "none" }}>
               Forgot your password?
             </Link>
           </div>
         </div>
 
-        <Link href="/" className="text-sm" style={{ color: m.muted }}>
+        <Link href="/" style={{ fontSize: 13, color: MUTED, textDecoration: "none" }}>
           &larr; Back to home
         </Link>
       </div>
@@ -149,10 +200,7 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <main
-          className="flex flex-1 items-center justify-center min-h-screen"
-          style={marketingPageMain}
-        >
+        <main style={{ background: NAVY, minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <Spinner className="w-10 h-10" />
         </main>
       }

@@ -4,7 +4,6 @@ import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
-import { OnboardingProgress } from "@/components/OnboardingProgress";
 import { Spinner } from "@/components/Spinner";
 import {
   PROVINCES,
@@ -12,16 +11,29 @@ import {
   ONBOARDING_PROVINCE_KEY,
   ONBOARDING_EMAIL_KEY,
 } from "@/lib/constants";
-import {
-  m,
-  marketingCard,
-  marketingBtnPrimary,
-  marketingBtnSecondary,
-  marketingInput,
-  marketingPageMain,
-} from "@/lib/marketing-theme";
 
-const inputStyle = marketingInput;
+const NAVY = "#0A0F1E";
+const CARD = "#151C2E";
+const CARD2 = "#0D1220";
+const GOLD = "#D4A853";
+const BORDER = "rgba(255,255,255,0.07)";
+const BORDER_GOLD = "rgba(212,168,83,0.25)";
+const MUTED = "rgba(255,255,255,0.5)";
+const WHITE = "#FFFFFF";
+const GREEN = "#10B981";
+const RED = "#C8392B";
+const PF = "'Playfair Display', Georgia, serif";
+
+const inputStyle = {
+  background: CARD2,
+  color: WHITE,
+  border: `1px solid ${BORDER}`,
+} as const;
+
+const btnPrimary = {
+  background: GOLD,
+  color: NAVY,
+} as const;
 
 const DISPUTE_TYPES = [
   "Contractor/trades",
@@ -132,9 +144,9 @@ function OptionPills({
           onClick={() => onChange(opt)}
           className="rounded-full px-4 py-2 text-sm font-medium cursor-pointer transition-colors"
           style={{
-            background: value === opt ? m.blue : m.white,
-            color: value === opt ? m.white : m.text,
-            border: `1.5px solid ${value === opt ? m.blue : m.border}`,
+            background: value === opt ? GOLD : "transparent",
+            color: value === opt ? NAVY : MUTED,
+            border: `1.5px solid ${value === opt ? GOLD : BORDER_GOLD}`,
           }}
         >
           {opt}
@@ -198,22 +210,21 @@ function OnboardingContent() {
   useEffect(() => {
     async function init() {
       if (step === 2) {
-        // Check auth first — handles return from Google OAuth
         const signedIn = await checkSignedIn();
         const storedIntake = sessionStorage.getItem(ONBOARDING_INTAKE_KEY);
         const storedProvince = sessionStorage.getItem(ONBOARDING_PROVINCE_KEY);
 
         if (signedIn) {
           if (storedIntake?.trim() && storedProvince) {
-            proceedToProcessing(); // has pending data → submit assessment
+            proceedToProcessing();
           } else {
-            router.replace("/dashboard"); // signed in but no pending data
+            router.replace("/dashboard");
           }
           return;
         }
 
         if (!storedIntake?.trim() || !storedProvince) {
-          router.replace("/onboarding"); // not signed in, no data → restart
+          router.replace("/onboarding");
           return;
         }
 
@@ -311,14 +322,8 @@ function OnboardingContent() {
   async function handleSignIn(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    if (!email.trim()) {
-      setError("Please enter your email address.");
-      return;
-    }
-    if (!password) {
-      setError("Please enter your password.");
-      return;
-    }
+    if (!email.trim()) { setError("Please enter your email address."); return; }
+    if (!password) { setError("Please enter your password."); return; }
     setLoading(true);
     try {
       const res = await fetch("/api/auth/login", {
@@ -340,18 +345,9 @@ function OnboardingContent() {
   async function handleSignUp(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    if (!email.trim()) {
-      setError("Please enter your email address.");
-      return;
-    }
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters.");
-      return;
-    }
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
+    if (!email.trim()) { setError("Please enter your email address."); return; }
+    if (password.length < 8) { setError("Password must be at least 8 characters."); return; }
+    if (password !== confirmPassword) { setError("Passwords do not match."); return; }
     setLoading(true);
     try {
       const res = await fetch("/api/auth/signup", {
@@ -380,7 +376,7 @@ function OnboardingContent() {
 
   if (checkingAuth && step === 2) {
     return (
-      <main className="flex flex-1 items-center justify-center min-h-screen">
+      <main style={{ background: NAVY, minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
         <Spinner className="w-10 h-10" />
       </main>
     );
@@ -388,26 +384,20 @@ function OnboardingContent() {
 
   if (needsVerification) {
     return (
-      <main
-        className="flex flex-col flex-1 min-h-screen px-4 sm:px-6 py-12 md:py-16"
-        style={marketingPageMain}
-      >
-        <div className="max-w-xl mx-auto w-full flex flex-col gap-8">
-          <div className="flex flex-col gap-3">
-            <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
-              Check your inbox
-            </h1>
-            <p className="text-sm leading-relaxed" style={{ color: m.subtext }}>
-              We sent a verification link to{" "}
-              <span style={{ color: m.text }}>{email}</span>. Click it to verify
-              your account and see your case assessment.
-            </p>
-            <p className="text-sm leading-relaxed" style={{ color: m.subtext }}>
-              Your case details have been saved — they will be waiting when you
-              come back.
-            </p>
-          </div>
-          <Link href="/login" className="text-sm w-fit" style={{ color: m.blue }}>
+      <main style={{ background: NAVY, color: WHITE, minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 24px" }}>
+        <div style={{ maxWidth: 520, width: "100%", display: "flex", flexDirection: "column", gap: 20 }}>
+          <h1 style={{ fontFamily: PF, fontSize: 28, fontWeight: 700, color: WHITE }}>
+            Check your inbox
+          </h1>
+          <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.7 }}>
+            We sent a verification link to{" "}
+            <span style={{ color: WHITE }}>{email}</span>. Click it to verify
+            your account and see your case assessment.
+          </p>
+          <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.7 }}>
+            Your case details have been saved — they will be waiting when you come back.
+          </p>
+          <Link href="/login" style={{ fontSize: 13, color: GOLD, textDecoration: "none" }}>
             Already verified? Sign in &rarr;
           </Link>
         </div>
@@ -416,14 +406,12 @@ function OnboardingContent() {
   }
 
   return (
-    <main
-      className="flex flex-col flex-1 min-h-screen px-4 sm:px-6 py-12 md:py-16"
-      style={marketingPageMain}
-    >
-      <div className="max-w-xl mx-auto w-full flex flex-col gap-8">
+    <main style={{ background: NAVY, color: WHITE, minHeight: "100vh", display: "flex", flexDirection: "column", padding: "48px 24px 80px" }}>
+      <div style={{ maxWidth: 560, margin: "0 auto", width: "100%", display: "flex", flexDirection: "column", gap: 28 }}>
 
+        {/* Back navigation */}
         {step === 1 && qStep === 1 && (
-          <Link href="/" className="text-sm w-fit" style={{ color: m.subtext }}>
+          <Link href="/" style={{ fontSize: 13, color: MUTED, textDecoration: "none" }}>
             &larr; Back to home
           </Link>
         )}
@@ -431,22 +419,38 @@ function OnboardingContent() {
           <button
             type="button"
             onClick={() => { setError(""); setQStep((prev) => (prev - 1) as 1 | 2 | 3 | 4); }}
-            className="text-sm w-fit cursor-pointer"
-            style={{ color: m.subtext, background: "none", border: "none", padding: 0 }}
+            style={{ fontSize: 13, color: MUTED, background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "left" }}
           >
             &larr; Back
           </button>
         )}
 
-        <OnboardingProgress step={step === 1 ? 1 : 2} />
-
         {step === 1 ? (
           <>
-            <div className="flex flex-col gap-1">
-              <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: m.blue }}>
+            {/* Step indicator */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {/* Progress dots */}
+              <div style={{ display: "flex", gap: 6 }}>
+                {[1, 2, 3, 4].map((s) => (
+                  <div
+                    key={s}
+                    style={{
+                      width: s === qStep ? 24 : 8,
+                      height: 8,
+                      borderRadius: 4,
+                      background: s <= qStep ? GOLD : BORDER,
+                      transition: "all 0.3s ease",
+                    }}
+                  />
+                ))}
+              </div>
+              <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "2px", textTransform: "uppercase", color: GOLD }}>
                 Step {qStep} of 4 — {Q_STEP_TITLES[qStep - 1]}
               </p>
-              <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              <h1 style={{ fontFamily: PF, fontSize: 28, fontWeight: 700, color: WHITE, margin: 0 }}>
                 {qStep === 1 && "Let's start with the basics."}
                 {qStep === 2 && "Tell us what happened."}
                 {qStep === 3 && "What evidence do you have?"}
@@ -454,155 +458,111 @@ function OnboardingContent() {
               </h1>
             </div>
 
-            <form onSubmit={handleQNext} className="flex flex-col gap-5">
+            <form onSubmit={handleQNext} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
               {qStep === 1 && (
                 <>
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-medium" style={{ color: m.text }}>
-                      Who owes you money?
-                    </label>
+                  <Field label="Who owes you money?">
                     <input
                       type="text"
                       value={intakeData.whoOwes}
                       onChange={(e) => set("whoOwes", e.target.value)}
                       placeholder="Person or business name"
-                      className="w-full rounded-lg px-4 py-3.5 text-base sm:text-sm outline-none min-h-12"
-                      style={inputStyle}
-                      onFocus={(e) => (e.currentTarget.style.borderColor = m.blue)}
-                      onBlur={(e) => (e.currentTarget.style.borderColor = m.border)}
+                      style={{ ...inputStyle, borderRadius: 8, padding: "12px 16px", fontSize: 14, outline: "none", width: "100%" }}
+                      onFocus={(e) => (e.currentTarget.style.borderColor = GOLD)}
+                      onBlur={(e) => (e.currentTarget.style.borderColor = BORDER)}
                     />
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-medium" style={{ color: m.text }}>
-                      Approximate amount owed ($)
-                    </label>
+                  </Field>
+                  <Field label="Approximate amount owed ($)">
                     <input
                       type="number"
                       min="1"
                       value={intakeData.amountOwed}
                       onChange={(e) => set("amountOwed", e.target.value)}
                       placeholder="e.g. 2500"
-                      className="w-full rounded-lg px-4 py-3.5 text-base sm:text-sm outline-none min-h-12"
-                      style={inputStyle}
-                      onFocus={(e) => (e.currentTarget.style.borderColor = m.blue)}
-                      onBlur={(e) => (e.currentTarget.style.borderColor = m.border)}
+                      style={{ ...inputStyle, borderRadius: 8, padding: "12px 16px", fontSize: 14, outline: "none", width: "100%" }}
+                      onFocus={(e) => (e.currentTarget.style.borderColor = GOLD)}
+                      onBlur={(e) => (e.currentTarget.style.borderColor = BORDER)}
                     />
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-medium" style={{ color: m.text }}>
-                      Which province are you in?
-                    </label>
+                  </Field>
+                  <Field label="Which province are you in?">
                     <select
                       value={intakeData.province}
                       onChange={(e) => set("province", e.target.value)}
-                      className="w-full rounded-lg px-4 py-3.5 text-base sm:text-sm outline-none appearance-none cursor-pointer min-h-12"
-                      style={{ ...inputStyle, color: intakeData.province ? m.text : m.subtext }}
+                      style={{ ...inputStyle, borderRadius: 8, padding: "12px 16px", fontSize: 14, outline: "none", appearance: "none", cursor: "pointer", width: "100%", color: intakeData.province ? WHITE : MUTED }}
                     >
-                      <option value="" disabled>Select your province</option>
+                      <option value="" disabled style={{ background: CARD2 }}>Select your province</option>
                       {PROVINCES.map((p) => (
-                        <option key={p} value={p}>{p}</option>
+                        <option key={p} value={p} style={{ background: CARD2 }}>{p}</option>
                       ))}
                     </select>
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-medium" style={{ color: m.text }}>
-                      What type of dispute is this?
-                    </label>
+                  </Field>
+                  <Field label="What type of dispute is this?">
                     <select
                       value={intakeData.disputeType}
                       onChange={(e) => set("disputeType", e.target.value)}
-                      className="w-full rounded-lg px-4 py-3.5 text-base sm:text-sm outline-none appearance-none cursor-pointer min-h-12"
-                      style={{ ...inputStyle, color: intakeData.disputeType ? m.text : m.subtext }}
+                      style={{ ...inputStyle, borderRadius: 8, padding: "12px 16px", fontSize: 14, outline: "none", appearance: "none", cursor: "pointer", width: "100%", color: intakeData.disputeType ? WHITE : MUTED }}
                     >
-                      <option value="" disabled>Select dispute type</option>
+                      <option value="" disabled style={{ background: CARD2 }}>Select dispute type</option>
                       {DISPUTE_TYPES.map((d) => (
-                        <option key={d} value={d}>{d}</option>
+                        <option key={d} value={d} style={{ background: CARD2 }}>{d}</option>
                       ))}
                     </select>
-                  </div>
+                  </Field>
                 </>
               )}
 
               {qStep === 2 && (
                 <>
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-medium" style={{ color: m.text }}>
-                      Describe what happened in your own words
-                    </label>
+                  <Field label="Describe what happened in your own words">
                     <textarea
                       value={intakeData.whatHappened}
                       onChange={(e) => set("whatHappened", e.target.value)}
                       rows={7}
                       placeholder="Tell us what happened. The more detail you give, the better your assessment will be..."
-                      className="w-full rounded-xl px-4 py-4 text-base sm:text-sm leading-relaxed resize-none outline-none min-h-[10rem]"
-                      style={inputStyle}
-                      onFocus={(e) => (e.currentTarget.style.borderColor = m.blue)}
-                      onBlur={(e) => (e.currentTarget.style.borderColor = m.border)}
+                      style={{ ...inputStyle, borderRadius: 8, padding: "12px 16px", fontSize: 14, outline: "none", resize: "none", width: "100%" }}
+                      onFocus={(e) => (e.currentTarget.style.borderColor = GOLD)}
+                      onBlur={(e) => (e.currentTarget.style.borderColor = BORDER)}
                     />
-                    <p
-                      className="text-xs"
-                      style={{
-                        color: wordCount(intakeData.whatHappened) >= 50 ? "#10B981" : m.subtext,
-                      }}
-                    >
+                    <p style={{ fontSize: 12, color: wordCount(intakeData.whatHappened) >= 50 ? GREEN : MUTED }}>
                       {wordCount(intakeData.whatHappened)} words
                       {wordCount(intakeData.whatHappened) < 50 && " (50 required)"}
                     </p>
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-medium" style={{ color: m.text }}>
-                      When did this happen?
-                    </label>
+                  </Field>
+                  <Field label="When did this happen?">
                     <input
                       type="text"
                       value={intakeData.whenHappened}
                       onChange={(e) => set("whenHappened", e.target.value)}
                       placeholder="e.g. March 2025 or about 6 months ago"
-                      className="w-full rounded-lg px-4 py-3.5 text-base sm:text-sm outline-none min-h-12"
-                      style={inputStyle}
-                      onFocus={(e) => (e.currentTarget.style.borderColor = m.blue)}
-                      onBlur={(e) => (e.currentTarget.style.borderColor = m.border)}
+                      style={{ ...inputStyle, borderRadius: 8, padding: "12px 16px", fontSize: 14, outline: "none", width: "100%" }}
+                      onFocus={(e) => (e.currentTarget.style.borderColor = GOLD)}
+                      onBlur={(e) => (e.currentTarget.style.borderColor = BORDER)}
                     />
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <label className="text-sm font-medium" style={{ color: m.text }}>
-                      Did you have a written agreement or contract?
-                    </label>
-                    <OptionPills
-                      options={["Yes", "No", "Verbal only"]}
-                      value={intakeData.hadContract}
-                      onChange={(v) => set("hadContract", v)}
-                    />
-                  </div>
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-sm font-medium" style={{ color: m.text }}>
-                      What was supposed to happen that didn&apos;t?{" "}
-                      <span style={{ color: m.subtext }}>(optional)</span>
-                    </label>
+                  </Field>
+                  <Field label="Did you have a written agreement or contract?">
+                    <OptionPills options={["Yes", "No", "Verbal only"]} value={intakeData.hadContract} onChange={(v) => set("hadContract", v)} />
+                  </Field>
+                  <Field label={<>What was supposed to happen that didn&apos;t? <span style={{ color: MUTED, fontWeight: 400 }}>(optional)</span></>}>
                     <textarea
                       value={intakeData.whatWasSupposed}
                       onChange={(e) => set("whatWasSupposed", e.target.value)}
                       rows={3}
                       placeholder="e.g. They were supposed to complete the renovation by April..."
-                      className="w-full rounded-xl px-4 py-3.5 text-base sm:text-sm leading-relaxed resize-none outline-none"
-                      style={inputStyle}
-                      onFocus={(e) => (e.currentTarget.style.borderColor = m.blue)}
-                      onBlur={(e) => (e.currentTarget.style.borderColor = m.border)}
+                      style={{ ...inputStyle, borderRadius: 8, padding: "12px 16px", fontSize: 14, outline: "none", resize: "none", width: "100%" }}
+                      onFocus={(e) => (e.currentTarget.style.borderColor = GOLD)}
+                      onBlur={(e) => (e.currentTarget.style.borderColor = BORDER)}
                     />
-                  </div>
+                  </Field>
                 </>
               )}
 
               {qStep === 3 && (
                 <>
-                  <div className="flex flex-col gap-2">
-                    <label className="text-sm font-medium" style={{ color: m.text }}>
-                      Do you have any of the following? (check all that apply)
-                    </label>
-                    <div className="flex flex-col gap-3">
+                  <Field label="Do you have any of the following? (check all that apply)">
+                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                       {EVIDENCE_OPTIONS.map((item) => (
-                        <label key={item} className="flex items-center gap-3 cursor-pointer">
+                        <label key={item} style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}>
                           <input
                             type="checkbox"
                             checked={intakeData.evidence.includes(item)}
@@ -616,54 +576,41 @@ function OnboardingContent() {
                                 set("evidence", next);
                               }
                             }}
-                            className="w-4 h-4 cursor-pointer flex-shrink-0"
-                            style={{ accentColor: m.blue }}
+                            style={{ width: 16, height: 16, cursor: "pointer", accentColor: GOLD, flexShrink: 0 }}
                           />
-                          <span className="text-sm" style={{ color: m.text }}>{item}</span>
+                          <span style={{ fontSize: 14, color: WHITE }}>{item}</span>
                         </label>
                       ))}
                     </div>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <label className="text-sm font-medium" style={{ color: m.text }}>
-                      Have you already tried to resolve this?
-                    </label>
-                    <OptionPills
-                      options={["Yes", "No"]}
-                      value={intakeData.triedToResolve}
-                      onChange={(v) => set("triedToResolve", v)}
-                    />
-                  </div>
+                  </Field>
+                  <Field label="Have you already tried to resolve this?">
+                    <OptionPills options={["Yes", "No"]} value={intakeData.triedToResolve} onChange={(v) => set("triedToResolve", v)} />
+                  </Field>
                   {intakeData.triedToResolve === "Yes" && (
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-sm font-medium" style={{ color: m.text }}>
-                        What happened when you tried?{" "}
-                        <span style={{ color: m.subtext }}>(optional)</span>
-                      </label>
+                    <Field label={<>What happened when you tried? <span style={{ color: MUTED, fontWeight: 400 }}>(optional)</span></>}>
                       <textarea
                         value={intakeData.resolveAttemptDetails}
                         onChange={(e) => set("resolveAttemptDetails", e.target.value)}
                         rows={3}
                         placeholder="e.g. I emailed them twice and they ignored me..."
-                        className="w-full rounded-xl px-4 py-3.5 text-base sm:text-sm leading-relaxed resize-none outline-none"
-                        style={inputStyle}
-                        onFocus={(e) => (e.currentTarget.style.borderColor = m.blue)}
-                        onBlur={(e) => (e.currentTarget.style.borderColor = m.border)}
+                        style={{ ...inputStyle, borderRadius: 8, padding: "12px 16px", fontSize: 14, outline: "none", resize: "none", width: "100%" }}
+                        onFocus={(e) => (e.currentTarget.style.borderColor = GOLD)}
+                        onBlur={(e) => (e.currentTarget.style.borderColor = BORDER)}
                       />
-                    </div>
+                    </Field>
                   )}
 
                   {/* File upload */}
-                  <div className="flex flex-col gap-2">
-                    <label className="text-sm font-medium" style={{ color: m.text }}>
-                      Upload your evidence{" "}
-                      <span style={{ color: m.subtext }}>(optional)</span>
-                    </label>
+                  <Field label={<>Upload your evidence <span style={{ color: MUTED, fontWeight: 400 }}>(optional)</span></>}>
                     <div
-                      className="rounded-xl border-2 border-dashed p-6 text-center cursor-pointer transition-colors"
                       style={{
-                        borderColor: dragOver ? m.blue : m.border,
-                        background: dragOver ? "rgba(200,57,43,0.04)" : m.white,
+                        border: `2px dashed ${dragOver ? GOLD : BORDER_GOLD}`,
+                        borderRadius: 12,
+                        padding: "24px",
+                        textAlign: "center",
+                        cursor: "pointer",
+                        background: dragOver ? "rgba(212,168,83,0.05)" : "rgba(212,168,83,0.04)",
+                        transition: "all 0.2s",
                       }}
                       onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
                       onDragLeave={() => setDragOver(false)}
@@ -679,7 +626,7 @@ function OnboardingContent() {
                         type="file"
                         multiple
                         accept=".jpg,.jpeg,.png,.pdf,.txt"
-                        className="hidden"
+                        style={{ display: "none" }}
                         onChange={(e) => {
                           if (e.target.files) {
                             addFiles(e.target.files);
@@ -687,28 +634,36 @@ function OnboardingContent() {
                           }
                         }}
                       />
-                      <p className="text-sm" style={{ color: m.subtext }}>
+                      <p style={{ fontSize: 13, color: MUTED }}>
                         Drag files here or{" "}
-                        <span style={{ color: m.blue }}>click to browse</span>
+                        <span style={{ color: GOLD }}>click to browse</span>
                       </p>
-                      <p className="text-xs mt-1" style={{ color: m.muted }}>
+                      <p style={{ fontSize: 11, color: MUTED, marginTop: 4 }}>
                         JPG, PNG, PDF, TXT · Max 5MB each · Up to 10 files
                       </p>
                     </div>
                     {uploadedFiles.length > 0 && (
-                      <ul className="flex flex-col gap-1.5">
+                      <ul style={{ display: "flex", flexDirection: "column", gap: 6, listStyle: "none", padding: 0 }}>
                         {uploadedFiles.map((file, i) => (
                           <li
                             key={i}
-                            className="flex items-center justify-between gap-3 rounded-lg px-4 py-2.5 text-sm"
-                            style={{ background: m.surface, border: `1px solid ${m.border}` }}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              gap: 12,
+                              borderRadius: 8,
+                              padding: "10px 14px",
+                              fontSize: 13,
+                              background: CARD,
+                              border: `1px solid ${BORDER}`,
+                            }}
                           >
-                            <span className="truncate" style={{ color: m.text }}>{file.name}</span>
+                            <span style={{ color: WHITE, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{file.name}</span>
                             <button
                               type="button"
                               onClick={(e) => { e.stopPropagation(); removeFile(i); }}
-                              className="shrink-0 text-xs cursor-pointer hover:opacity-70"
-                              style={{ color: m.subtext }}
+                              style={{ fontSize: 12, color: MUTED, background: "none", border: "none", cursor: "pointer", flexShrink: 0 }}
                             >
                               Remove
                             </button>
@@ -716,83 +671,74 @@ function OnboardingContent() {
                         ))}
                       </ul>
                     )}
-                  </div>
+                  </Field>
                 </>
               )}
 
               {qStep === 4 && (
                 <>
-                  <div className="flex flex-col gap-2">
-                    <label className="text-sm font-medium" style={{ color: m.text }}>
-                      Have they given any reason for not paying or delivering?
-                    </label>
-                    <OptionPills
-                      options={["Yes", "No"]}
-                      value={intakeData.theirReason}
-                      onChange={(v) => set("theirReason", v)}
-                    />
-                  </div>
+                  <Field label="Have they given any reason for not paying or delivering?">
+                    <OptionPills options={["Yes", "No"]} value={intakeData.theirReason} onChange={(v) => set("theirReason", v)} />
+                  </Field>
                   {intakeData.theirReason === "Yes" && (
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-sm font-medium" style={{ color: m.text }}>
-                        What reason did they give?{" "}
-                        <span style={{ color: m.subtext }}>(optional)</span>
-                      </label>
+                    <Field label={<>What reason did they give? <span style={{ color: MUTED, fontWeight: 400 }}>(optional)</span></>}>
                       <textarea
                         value={intakeData.theirReasonDetails}
                         onChange={(e) => set("theirReasonDetails", e.target.value)}
                         rows={3}
                         placeholder="e.g. They said the work wasn't up to their standards..."
-                        className="w-full rounded-xl px-4 py-3.5 text-base sm:text-sm leading-relaxed resize-none outline-none"
-                        style={inputStyle}
-                        onFocus={(e) => (e.currentTarget.style.borderColor = m.blue)}
-                        onBlur={(e) => (e.currentTarget.style.borderColor = m.border)}
+                        style={{ ...inputStyle, borderRadius: 8, padding: "12px 16px", fontSize: 14, outline: "none", resize: "none", width: "100%" }}
+                        onFocus={(e) => (e.currentTarget.style.borderColor = GOLD)}
+                        onBlur={(e) => (e.currentTarget.style.borderColor = BORDER)}
                       />
-                    </div>
+                    </Field>
                   )}
-                  <div className="flex flex-col gap-2">
-                    <label className="text-sm font-medium" style={{ color: m.text }}>
-                      Have they responded to any of your attempts to contact them?
-                    </label>
-                    <OptionPills
-                      options={["Yes", "No", "Never contacted them"]}
-                      value={intakeData.theirResponse}
-                      onChange={(v) => set("theirResponse", v)}
-                    />
-                  </div>
+                  <Field label="Have they responded to any of your attempts to contact them?">
+                    <OptionPills options={["Yes", "No", "Never contacted them"]} value={intakeData.theirResponse} onChange={(v) => set("theirResponse", v)} />
+                  </Field>
                 </>
               )}
 
               {error && (
-                <p className="text-sm" style={{ color: m.blue }}>
-                  {error}
-                </p>
+                <p style={{ fontSize: 13, color: RED }}>{error}</p>
               )}
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full min-h-12 rounded-full px-6 py-4 text-base sm:text-sm font-semibold disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2"
-                style={marketingBtnPrimary}
+                style={{
+                  ...btnPrimary,
+                  border: "none",
+                  borderRadius: 8,
+                  padding: "14px 24px",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  opacity: loading ? 0.7 : 1,
+                  width: "100%",
+                }}
               >
                 {loading && <Spinner />}
-                {loading
-                  ? "Continuing…"
-                  : qStep < 4
-                    ? "Next →"
-                    : "See My Assessment →"}
+                {loading ? "Continuing…" : qStep < 4 ? "Next →" : "See My Assessment →"}
               </button>
             </form>
           </>
         ) : (
+          /* Step 2 — Account creation */
           <>
-            <div className="flex flex-col gap-2">
-              <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "2px", textTransform: "uppercase", color: GOLD }}>
+                Step 2 of 2 — Create Account
+              </p>
+              <h1 style={{ fontFamily: PF, fontSize: 28, fontWeight: 700, color: WHITE, margin: 0 }}>
                 Create a free account to save your assessment
               </h1>
-              <p className="text-sm leading-relaxed" style={{ color: m.subtext }}>
-                Your case details are saved. Create an account so your assessment
-                and next steps stay in your dashboard.
+              <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, margin: 0 }}>
+                Your case details are saved. Create an account so your assessment and next steps stay in your dashboard.
               </p>
             </div>
 
@@ -800,62 +746,72 @@ function OnboardingContent() {
               type="button"
               disabled={loading}
               onClick={handleGoogleSignIn}
-              className="w-full min-h-12 rounded-full px-6 py-3.5 text-sm font-semibold disabled:opacity-60 cursor-pointer flex items-center justify-center gap-3"
-              style={{ ...marketingBtnSecondary, background: m.white }}
+              style={{
+                background: WHITE,
+                color: "#0F172A",
+                border: `1px solid ${BORDER}`,
+                borderRadius: 8,
+                padding: "13px 24px",
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 12,
+                opacity: loading ? 0.7 : 1,
+                width: "100%",
+              }}
             >
               <GoogleIcon />
               Continue with Google
             </button>
 
-            <p className="text-sm text-center" style={{ color: m.subtext }}>
+            <p style={{ fontSize: 13, textAlign: "center", color: MUTED }}>
               Already have an account?{" "}
               <button
                 type="button"
                 onClick={() => { setAuthMode("signin"); setError(""); }}
-                className="font-semibold cursor-pointer hover:opacity-70"
-                style={{ color: m.blue, background: "none", border: "none", padding: 0 }}
+                style={{ color: GOLD, background: "none", border: "none", padding: 0, cursor: "pointer", fontWeight: 600, fontSize: 13 }}
               >
                 Sign in →
               </button>
             </p>
 
-            <div className="flex items-center gap-3">
-              <div className="flex-1 h-px" style={{ background: m.border }} />
-              <span className="text-xs" style={{ color: m.subtext }}>or</span>
-              <div className="flex-1 h-px" style={{ background: m.border }} />
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ flex: 1, height: 1, background: BORDER }} />
+              <span style={{ fontSize: 12, color: MUTED }}>or</span>
+              <div style={{ flex: 1, height: 1, background: BORDER }} />
             </div>
 
-            <div
-              className="flex rounded-lg p-1 gap-1"
-              style={{ ...marketingCard, padding: "4px" }}
-            >
-              <button
-                type="button"
-                onClick={() => { setAuthMode("signup"); setError(""); }}
-                className="flex-1 rounded-md px-3 py-2.5 min-h-10 text-xs font-semibold cursor-pointer"
-                style={{
-                  background: authMode === "signup" ? m.blue : "transparent",
-                  color: authMode === "signup" ? m.white : m.subtext,
-                }}
-              >
-                Create account
-              </button>
-              <button
-                type="button"
-                onClick={() => { setAuthMode("signin"); setError(""); }}
-                className="flex-1 rounded-md px-3 py-2.5 min-h-10 text-xs font-semibold cursor-pointer"
-                style={{
-                  background: authMode === "signin" ? m.blue : "transparent",
-                  color: authMode === "signin" ? m.white : m.subtext,
-                }}
-              >
-                Sign in
-              </button>
+            {/* Tab toggle */}
+            <div style={{ display: "flex", background: CARD, border: `1px solid ${BORDER}`, borderRadius: 8, padding: 4, gap: 4 }}>
+              {(["signup", "signin"] as const).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => { setAuthMode(mode); setError(""); }}
+                  style={{
+                    flex: 1,
+                    borderRadius: 6,
+                    padding: "10px 12px",
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    border: "none",
+                    background: authMode === mode ? GOLD : "transparent",
+                    color: authMode === mode ? NAVY : MUTED,
+                    transition: "all 0.2s",
+                  }}
+                >
+                  {mode === "signup" ? "Create account" : "Sign in"}
+                </button>
+              ))}
             </div>
 
             <form
               onSubmit={authMode === "signup" ? handleSignUp : handleSignIn}
-              className="flex flex-col gap-4"
+              style={{ display: "flex", flexDirection: "column", gap: 12 }}
             >
               <input
                 type="email"
@@ -864,10 +820,9 @@ function OnboardingContent() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Email address"
                 autoComplete="email"
-                className="w-full rounded-lg px-4 py-3.5 text-base sm:text-sm outline-none min-h-12"
-                style={inputStyle}
-                onFocus={(e) => (e.currentTarget.style.borderColor = m.blue)}
-                onBlur={(e) => (e.currentTarget.style.borderColor = m.border)}
+                style={{ ...inputStyle, borderRadius: 8, padding: "12px 16px", fontSize: 14, outline: "none", width: "100%" }}
+                onFocus={(e) => (e.currentTarget.style.borderColor = GOLD)}
+                onBlur={(e) => (e.currentTarget.style.borderColor = BORDER)}
               />
               <input
                 type="password"
@@ -876,10 +831,9 @@ function OnboardingContent() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder={authMode === "signup" ? "Password (min. 8 characters)" : "Password"}
                 autoComplete={authMode === "signup" ? "new-password" : "current-password"}
-                className="w-full rounded-lg px-4 py-3.5 text-base sm:text-sm outline-none min-h-12"
-                style={inputStyle}
-                onFocus={(e) => (e.currentTarget.style.borderColor = m.blue)}
-                onBlur={(e) => (e.currentTarget.style.borderColor = m.border)}
+                style={{ ...inputStyle, borderRadius: 8, padding: "12px 16px", fontSize: 14, outline: "none", width: "100%" }}
+                onFocus={(e) => (e.currentTarget.style.borderColor = GOLD)}
+                onBlur={(e) => (e.currentTarget.style.borderColor = BORDER)}
               />
               {authMode === "signup" && (
                 <input
@@ -889,22 +843,33 @@ function OnboardingContent() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirm password"
                   autoComplete="new-password"
-                  className="w-full rounded-lg px-4 py-3.5 text-base sm:text-sm outline-none min-h-12"
-                  style={inputStyle}
-                  onFocus={(e) => (e.currentTarget.style.borderColor = m.blue)}
-                  onBlur={(e) => (e.currentTarget.style.borderColor = m.border)}
+                  style={{ ...inputStyle, borderRadius: 8, padding: "12px 16px", fontSize: 14, outline: "none", width: "100%" }}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = GOLD)}
+                  onBlur={(e) => (e.currentTarget.style.borderColor = BORDER)}
                 />
               )}
               {error && (
-                <p className="text-sm" style={{ color: m.blue }}>
-                  {error}
-                </p>
+                <p style={{ fontSize: 13, color: RED }}>{error}</p>
               )}
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full min-h-12 rounded-full px-6 py-4 text-base sm:text-sm font-semibold disabled:opacity-60 cursor-pointer flex items-center justify-center gap-2"
-                style={marketingBtnPrimary}
+                style={{
+                  ...btnPrimary,
+                  border: "none",
+                  borderRadius: 8,
+                  padding: "14px 24px",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  opacity: loading ? 0.7 : 1,
+                  width: "100%",
+                  marginTop: 4,
+                }}
               >
                 {loading && <Spinner />}
                 {loading
@@ -913,11 +878,11 @@ function OnboardingContent() {
               </button>
             </form>
 
-            <p className="text-xs text-center leading-relaxed" style={{ color: m.muted }}>
+            <p style={{ fontSize: 12, textAlign: "center", color: MUTED, lineHeight: 1.6 }}>
               By continuing you agree to our{" "}
-              <Link href="/terms" className="underline">Terms of Service</Link>{" "}
+              <Link href="/terms" style={{ color: MUTED, textDecoration: "underline" }}>Terms of Service</Link>{" "}
               and{" "}
-              <Link href="/privacy" className="underline">Privacy Policy</Link>.
+              <Link href="/privacy" style={{ color: MUTED, textDecoration: "underline" }}>Privacy Policy</Link>.
             </p>
           </>
         )}
@@ -926,25 +891,22 @@ function OnboardingContent() {
   );
 }
 
+function Field({ label, children }: { label: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <label style={{ fontSize: 13, fontWeight: 500, color: WHITE }}>{label}</label>
+      {children}
+    </div>
+  );
+}
+
 function GoogleIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
-      <path
-        fill="#4285F4"
-        d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"
-      />
-      <path
-        fill="#34A853"
-        d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"
-      />
-      <path
-        fill="#FBBC05"
-        d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"
-      />
-      <path
-        fill="#EA4335"
-        d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"
-      />
+      <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" />
+      <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" />
+      <path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" />
+      <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" />
     </svg>
   );
 }
@@ -953,7 +915,7 @@ export default function OnboardingPage() {
   return (
     <Suspense
       fallback={
-        <main className="flex flex-1 items-center justify-center min-h-screen">
+        <main style={{ background: NAVY, minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <Spinner className="w-10 h-10" />
         </main>
       }

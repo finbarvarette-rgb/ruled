@@ -459,11 +459,11 @@ function ReturningPackDelivery({
 
         <p className="text-sm text-center">
           <Link
-            href="/dashboard/documents"
+            href="/dashboard/case-assessments"
             className="font-medium underline-offset-2 hover:underline"
             style={{ color: BRAND_BLUE }}
           >
-            Back to all documents in your dashboard
+            Back to My Cases
           </Link>
         </p>
       </div>
@@ -833,11 +833,11 @@ function FullCasePackDeliveryContent() {
           {error}
         </p>
         <Link
-          href="/dashboard/documents"
+          href="/dashboard/case-assessments"
           className="mt-6 text-sm font-medium"
           style={{ color: BRAND_BLUE }}
         >
-          Back to documents
+          Back to My Cases
         </Link>
       </main>
     );
