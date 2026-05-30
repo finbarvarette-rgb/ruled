@@ -11,10 +11,19 @@ export const metadata: Metadata = {
   description:
     "AI-powered small claims court preparation for Canadians. No lawyer required.",
   openGraph: {
-    title: "Ruled — Fight Back. Get What You're Owed.",
+    title: "Ruled.ca — Win Without a Lawyer",
     description:
-      "AI-powered small claims court preparation for Canadians. No lawyer required.",
-    images: ["/og-image.png"],
+      "AI-powered demand letters and small claims court prep. Free case assessment. Flat fee. No lawyer needed.",
+    images: ["/brand/product-screenshot.png"],
+    url: "https://ruled.ca",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Ruled.ca — Win Without a Lawyer",
+    description:
+      "AI-powered demand letters and small claims court prep. Free case assessment. Flat fee. No lawyer needed.",
+    images: ["/brand/product-screenshot.png"],
   },
   icons: {
     icon: "/brand/logo_icon.png",
