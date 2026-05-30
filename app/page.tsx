@@ -2,862 +2,1184 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 
-const NAVY = "#0F172A";
-const BLUE = "#C8392B";
-const SUBTEXT = "#4B5563";
-const SURFACE = "#F1F5F9";
+const NAVY = "#0A0F1E";
+const NAVY2 = "#0D1220";
+const GOLD = "#D4A853";
+const GOLD_LIGHT = "#E8C47A";
+const MUTED = "rgba(255,255,255,0.55)";
+const BORDER = "rgba(255,255,255,0.08)";
 const GREEN = "#10B981";
-const AMBER = "#F59E0B";
-const CARD_SHADOW = "0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06)";
+const PF = "var(--font-playfair), 'Playfair Display', serif";
 
-const PRICING_TIERS = [
-  {
-    subtitle: "Case Assessment",
-    price: "Free",
-    popular: false,
-    trustLine: "No account required to start",
-    features: [
-      "AI analysis of your case strength",
-      "Evidence checklist",
-      "Recommended next step",
-      "Province-specific filing information",
-    ],
-    cta: "Start Free Assessment",
-    href: "/onboarding",
-  },
-  {
-    subtitle: "Demand Letter",
-    price: "$49",
-    popular: false,
-    trustLine: "Delivered in minutes after payment",
-    features: [
-      "Everything in Free",
-      "Professional demand letter drafted to your case",
-      "14-day payment demand with legal language",
-      "Ready to send within minutes",
-      "Resolves 40% of cases before court",
-    ],
-    cta: "Start Free — Upgrade After →",
-    href: "/onboarding",
-  },
-  {
-    subtitle: "Full Case Pack",
-    price: "$199",
-    popular: true,
-    trustLine: "Everything you need to walk into court ready",
-    features: [
-      "Everything in Demand Letter",
-      "Province-specific court filing documents",
-      "Step-by-step filing instructions",
-      "Complete hearing preparation script",
-      "Word-for-word opening and closing statements",
-      "Anticipated defence arguments and rebuttals",
-      "Unlimited AI Q&A about your case",
-      "Download all documents",
-    ],
-    cta: "Start Free — Upgrade After →",
-    href: "/onboarding",
-  },
-] as const;
+const PROVINCES = [
+  "Ontario", "British Columbia", "Alberta", "Quebec",
+  "Nova Scotia", "New Brunswick", "Manitoba",
+  "Saskatchewan", "Prince Edward Island", "Newfoundland and Labrador",
+];
 
 const FAQ_ITEMS = [
   {
-    question: "Is this legal advice?",
-    answer:
-      "No. Ruled provides legal information, not legal advice. We are not a law firm and do not represent you in court.",
+    q: "Is this legal advice?",
+    a: "No. Ruled provides legal information, not legal advice. We are not a law firm.",
   },
   {
-    question: "How long does it take?",
-    answer:
-      "Your free case assessment takes about 60 seconds. Paid products are delivered within minutes of payment.",
+    q: "What if I lose in court?",
+    a: "In small claims court each party generally pays their own costs. You will not be on the hook for the other side's legal fees in most cases.",
   },
   {
-    question: "What if the other person doesn't respond to the demand letter?",
-    answer:
-      "If they don't pay or respond within 14 days, your next step is filing in small claims court. Your free assessment already analyzed your case — the Full Case Pack ($199) gives you court documents, filing instructions, and hearing prep so you're ready.",
+    q: "How long does it take?",
+    a: "Your free case assessment takes about 3 minutes. Your demand letter is ready within minutes of purchase.",
   },
   {
-    question: "How long does the whole process take?",
-    answer:
-      "Many cases resolve within 2–6 weeks after sending a demand letter. If you need to go to court, hearings are often scheduled a few months after filing, depending on your province and courthouse backlog.",
+    q: "Which provinces are supported?",
+    a: "All 10 Canadian provinces. Every document is tailored to your province's rules, limits, and filing process.",
   },
   {
-    question: "What if I lose?",
-    answer:
-      "We cannot guarantee outcomes. Small claims court decisions depend on your facts, evidence, and how the judge applies the law.",
+    q: "What if they do not respond to the demand letter?",
+    a: "You move to file in small claims court. Our Full Case Pack gives you everything you need — filing instructions, court documents, and hearing prep.",
   },
   {
-    question: "Which provinces are supported?",
-    answer:
-      "All Canadian provinces. Guidance is tailored to your province's small claims rules and procedures.",
+    q: "Is my information private?",
+    a: "Yes. Your case details are stored securely and never shared. Only you can access your assessments through your account.",
   },
   {
-    question: "Can businesses use Ruled?",
-    answer:
-      "Yes. Contractors, landlords, and small businesses use Ruled for unpaid invoices, deposits, and contract disputes.",
+    q: "Do I need a lawyer?",
+    a: "No. Small claims court is designed for self-represented parties. Ruled gives you everything a lawyer would prepare at a fraction of the cost.",
   },
   {
-    question: "Is my information private?",
-    answer:
-      "Yes. Your case details are stored securely. See our privacy policy for full details.",
+    q: "How long does the whole process take?",
+    a: "A demand letter gives 14 days to respond. Small claims hearings are typically scheduled within 3 to 6 months of filing.",
   },
-] as const;
+];
+
+function FaqItem({ q, a }: { q: string; a: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div
+      onClick={() => setOpen(!open)}
+      style={{
+        padding: "28px 32px",
+        border: `1px solid ${BORDER}`,
+        cursor: "pointer",
+        background: open ? "rgba(255,255,255,0.03)" : "transparent",
+        transition: "background 0.2s, border-color 0.2s",
+      }}
+      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "rgba(212,168,83,0.2)"; }}
+      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = BORDER; }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "16px" }}>
+        <span style={{ fontSize: "15px", fontWeight: 500, color: "#ffffff", lineHeight: 1.5 }}>{q}</span>
+        <span style={{
+          color: GOLD,
+          fontSize: "20px",
+          lineHeight: 1,
+          flexShrink: 0,
+          transition: "transform 0.2s",
+          transform: open ? "rotate(45deg)" : "none",
+          userSelect: "none",
+        }}>+</span>
+      </div>
+      {open && (
+        <p style={{ fontSize: "13px", color: MUTED, lineHeight: 1.7, marginTop: "12px" }}>{a}</p>
+      )}
+    </div>
+  );
+}
+
+function SectionEyebrow({ label, lines = false, align = "center" }: { label: string; lines?: boolean; align?: "center" | "left" }) {
+  return (
+    <div style={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: align === "center" ? "center" : "flex-start",
+      gap: "16px",
+      marginBottom: "20px",
+    }}>
+      {lines && <span style={{ display: "block", width: "40px", height: "1px", background: GOLD, opacity: 0.5 }} />}
+      <span style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "3px", textTransform: "uppercase", color: GOLD }}>
+        {label}
+      </span>
+      {lines && <span style={{ display: "block", width: "40px", height: "1px", background: GOLD, opacity: 0.5 }} />}
+    </div>
+  );
+}
 
 export default function Home() {
-  return (
-    <div className="flex flex-col flex-1" style={{ background: "#ffffff", color: NAVY }}>
+  const scoreCircleRef = useRef<SVGCircleElement>(null);
+  const scoreNumRef = useRef<HTMLDivElement>(null);
+  const scoreSectionRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
-      {/* Hero — white background */}
-      <section
-        className="relative flex flex-col justify-center px-4 sm:px-6 py-16 md:py-24 overflow-hidden"
-        style={{ background: "#ffffff" }}
-      >
-        <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-12 lg:gap-16 items-center">
-          <div className="flex flex-col gap-8 order-2 lg:order-1">
-            <div className="flex flex-col gap-2">
-              <h1
-                className="font-bold tracking-tight leading-[1.05]"
-                style={{ fontSize: "clamp(40px, 5.5vw, 80px)", color: NAVY }}
-              >
-                We give you the tools to get your money back. Fast.
-              </h1>
-              <p
-                className="font-bold tracking-tight leading-[1.05]"
-                style={{ fontSize: "clamp(40px, 5.5vw, 80px)", color: BLUE }}
-              >
-                Win without a lawyer.
+  // Fade-up observer for general sections
+  useEffect(() => {
+    const els = document.querySelectorAll<HTMLElement>("[data-fade]");
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            const el = e.target as HTMLElement;
+            const delay = el.dataset.delay ?? "0";
+            el.style.transition = `opacity 0.8s ease ${delay}ms, transform 0.8s ease ${delay}ms`;
+            el.style.opacity = "1";
+            el.style.transform = "translateY(0)";
+            observer.unobserve(el);
+          }
+        });
+      },
+      { threshold: 0.15 }
+    );
+    els.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
+  // Education panels — fade in and out
+  useEffect(() => {
+    const panels = document.querySelectorAll<HTMLElement>("[data-edu]");
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          const el = e.target as HTMLElement;
+          if (e.isIntersecting) {
+            el.style.opacity = "1";
+            el.style.transform = "translateY(0)";
+          } else {
+            el.style.opacity = "0";
+            el.style.transform = "translateY(30px)";
+          }
+        });
+      },
+      { threshold: 0.3 }
+    );
+    panels.forEach((p) => observer.observe(p));
+    return () => observer.disconnect();
+  }, []);
+
+  // Step cards with stagger
+  useEffect(() => {
+    const cards = document.querySelectorAll<HTMLElement>("[data-step]");
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            const el = e.target as HTMLElement;
+            const delay = el.dataset.stepDelay ?? "0";
+            el.style.transition = `opacity 0.7s cubic-bezier(0.4,0,0.2,1) ${delay}ms, transform 0.7s cubic-bezier(0.4,0,0.2,1) ${delay}ms`;
+            el.style.opacity = "1";
+            el.style.transform = "translateY(0)";
+            observer.unobserve(el);
+          }
+        });
+      },
+      { threshold: 0.2 }
+    );
+    cards.forEach((c) => observer.observe(c));
+    return () => observer.disconnect();
+  }, []);
+
+  // Score meter animation
+  useEffect(() => {
+    const el = scoreSectionRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          if (scoreCircleRef.current) {
+            scoreCircleRef.current.style.transition = "stroke-dashoffset 1.5s cubic-bezier(0.4,0,0.2,1)";
+            scoreCircleRef.current.style.strokeDashoffset = "73";
+          }
+          let count = 0;
+          const interval = setInterval(() => {
+            count += 2;
+            if (count >= 82) { count = 82; clearInterval(interval); }
+            if (scoreNumRef.current) scoreNumRef.current.textContent = String(count);
+          }, 20);
+          observer.unobserve(el);
+        }
+      },
+      { threshold: 0.3 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const fade = (delay?: number): React.CSSProperties => ({
+    opacity: 0,
+    transform: "translateY(32px)",
+    ...(delay !== undefined ? { "--delay": `${delay}ms` } as React.CSSProperties : {}),
+  });
+
+  const stepInit: React.CSSProperties = { opacity: 0, transform: "translateY(40px)" };
+
+  return (
+    <>
+      <style>{`
+        @keyframes pulse-down {
+          0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.4; }
+          50% { transform: translateX(-50%) translateY(6px); opacity: 0.7; }
+        }
+        html { scroll-behavior: smooth; }
+      `}</style>
+
+      <div style={{ background: NAVY, color: "#ffffff", overflowX: "hidden" }}>
+
+        {/* ── HERO ── */}
+        <section style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          padding: "120px 48px 80px",
+          position: "relative",
+          overflow: "hidden",
+          background: NAVY,
+        }}>
+          {/* Glow */}
+          <div style={{
+            position: "absolute", inset: 0, pointerEvents: "none",
+            background: "radial-gradient(ellipse 60% 50% at 70% 50%, rgba(212,168,83,0.07) 0%, transparent 70%)",
+          }} />
+
+          <div style={{
+            maxWidth: "1200px", margin: "0 auto", width: "100%",
+            display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px",
+            alignItems: "center", position: "relative",
+          }}>
+            {/* Left */}
+            <div>
+              {/* Eyebrow */}
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "28px" }}>
+                <span style={{ display: "block", width: "32px", height: "1px", background: GOLD }} />
+                <span style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "3px", textTransform: "uppercase", color: GOLD }}>
+                  Canadian Small Claims Platform
+                </span>
+              </div>
+
+              {/* Headline */}
+              <div style={{ marginBottom: "28px" }}>
+                <h1 style={{
+                  fontFamily: PF, fontSize: "clamp(52px, 7vw, 88px)",
+                  fontWeight: 900, lineHeight: 1.0, letterSpacing: "-2px",
+                  color: "#ffffff", margin: 0,
+                }}>
+                  You have rights.
+                </h1>
+                <h1 style={{
+                  fontFamily: PF, fontSize: "clamp(52px, 7vw, 88px)",
+                  fontWeight: 900, lineHeight: 1.0, letterSpacing: "-2px",
+                  color: GOLD, fontStyle: "italic", margin: 0,
+                }}>
+                  Use them.
+                </h1>
+              </div>
+
+              {/* Subtext */}
+              <p style={{
+                fontSize: "17px", fontWeight: 300, color: "rgba(255,255,255,0.65)",
+                lineHeight: 1.65, maxWidth: "520px", marginBottom: "44px",
+              }}>
+                We give you the tools and confidence to get your money back — without paying $400 an hour for a lawyer. AI-powered case assessment, demand letters, and full court prep. Flat fee.
               </p>
+
+              {/* CTAs */}
+              <div style={{ display: "flex", alignItems: "center", gap: "28px", flexWrap: "wrap" }}>
+                <Link
+                  href="/onboarding"
+                  style={{
+                    background: GOLD, color: NAVY, fontSize: "13px", fontWeight: 700,
+                    letterSpacing: "1.8px", textTransform: "uppercase",
+                    padding: "16px 36px", borderRadius: "6px", textDecoration: "none",
+                    display: "inline-flex", alignItems: "center", gap: "10px",
+                    transition: "transform 0.25s cubic-bezier(0.4,0,0.2,1), box-shadow 0.25s cubic-bezier(0.4,0,0.2,1), background 0.2s",
+                  }}
+                  onMouseEnter={(e) => {
+                    const el = e.currentTarget as HTMLElement;
+                    el.style.transform = "translateY(-3px)";
+                    el.style.boxShadow = "0 12px 32px rgba(212,168,83,0.35)";
+                    el.style.background = GOLD_LIGHT;
+                  }}
+                  onMouseLeave={(e) => {
+                    const el = e.currentTarget as HTMLElement;
+                    el.style.transform = "";
+                    el.style.boxShadow = "";
+                    el.style.background = GOLD;
+                  }}
+                >
+                  Assess My Case Free
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </Link>
+                <a
+                  href="#how-it-works"
+                  onClick={(e) => { e.preventDefault(); document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" }); }}
+                  style={{ color: MUTED, fontSize: "14px", textDecoration: "none", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", transition: "color 0.2s" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = "#ffffff")}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = MUTED)}
+                >
+                  See how it works
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+                </a>
+              </div>
             </div>
-            <p className="text-lg leading-relaxed max-w-lg" style={{ color: SUBTEXT }}>
-              Tell us what happened. Our AI builds your case, drafts your demand letter, and prepares you for court — in minutes.
-            </p>
-            <p className="text-xs font-medium whitespace-nowrap overflow-hidden text-ellipsis" style={{ color: SUBTEXT }}>
-              ⭐⭐⭐⭐⭐ Trusted across all 10 provinces · Free to start · No credit card required
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Link
-                href="/onboarding"
-                className="min-h-12 rounded-full px-7 py-3.5 text-base font-semibold text-center flex items-center justify-center whitespace-nowrap"
-                style={{ background: BLUE, color: "#ffffff" }}
-              >
-                Free Case Assessment →
-              </Link>
-              <Link
-                href="#how-it-works"
-                className="min-h-12 rounded-full px-7 py-3.5 text-base font-semibold text-center flex items-center justify-center whitespace-nowrap"
-                style={{ color: NAVY, border: `1.5px solid ${NAVY}`, background: "transparent" }}
-              >
-                See How It Works
-              </Link>
+
+            {/* Right — browser mockup */}
+            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+              <div style={{
+                width: "100%", maxWidth: "540px",
+                transform: "rotate(-1.5deg) translateY(10px)",
+                borderRadius: "12px", overflow: "hidden",
+                boxShadow: "0 30px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06)",
+                background: "#1E293B",
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 14px", background: "#0F172A", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                  <div style={{ display: "flex", gap: "5px" }}>
+                    <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#EF4444", display: "block" }} />
+                    <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#F59E0B", display: "block" }} />
+                    <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#10B981", display: "block" }} />
+                  </div>
+                  <div style={{ flex: 1, background: "#1E293B", borderRadius: "6px", padding: "3px 10px", fontSize: "11px", color: "rgba(255,255,255,0.35)", fontFamily: "monospace" }}>
+                    ruled.ca
+                  </div>
+                </div>
+                <Image
+                  src="/brand/product-screenshot.png"
+                  alt="Ruled.ca product interface"
+                  width={1753}
+                  height={1271}
+                  className="w-full h-auto block"
+                  priority
+                />
+              </div>
             </div>
           </div>
 
-          <div className="order-1 lg:order-2 flex justify-center lg:justify-end">
+          {/* Scroll indicator */}
+          <div style={{
+            position: "absolute", bottom: "36px", left: "50%",
+            animation: "pulse-down 2s ease-in-out infinite",
+          }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M12 5v14M5 12l7 7 7-7"/>
+            </svg>
+          </div>
+        </section>
+
+        {/* ── EDUCATION STATS — sticky scroll ── */}
+        <section style={{ position: "relative" }}>
+          {[
+            {
+              bg: NAVY,
+              num: "180,000+",
+              numStyle: {},
+              label: (<>small claims court cases are filed in Canada <strong>every single year.</strong></>),
+              detail: "From contractors who disappear to landlords who keep deposits — Canadians are owed money every day. The system exists to help you get it back.",
+            },
+            {
+              bg: NAVY2,
+              num: "70%",
+              numStyle: {},
+              label: (<>of people who are owed money <strong>never do anything about it.</strong></>),
+              detail: "Not because they do not have a case. Because the process feels complicated, expensive, and overwhelming. Most people do not even know where to start — and that is exactly the position I was in when I built this.",
+            },
+            {
+              bg: NAVY,
+              num: "What is a demand letter?",
+              numStyle: { fontSize: "clamp(32px,5vw,56px)", letterSpacing: "-1px", marginBottom: "28px" },
+              label: (<>A <strong>demand letter</strong> is a formal legal document you send to whoever owes you money. It clearly states what they owe, why they need to pay, and that you will be filing in small claims court if they do not respond within a set timeline.</>),
+              detail: "It is your first move. It is professional. And it works more often than you would think.",
+            },
+            {
+              bg: NAVY2,
+              num: "40%",
+              numStyle: {},
+              label: (<>of cases are resolved by a demand letter alone — <strong>before ever going to court.</strong></>),
+              detail: "One letter. That is often all it takes. Ruled builds it for you in minutes — personalized to your case, province-specific, and ready to send.",
+            },
+          ].map((panel, i) => (
             <div
-              className="w-full"
+              key={i}
+              data-edu="true"
               style={{
-                maxWidth: "540px",
-                transform: "rotate(-1.5deg) translateY(10px)",
-                borderRadius: "12px",
-                overflow: "hidden",
-                boxShadow: "0 30px 60px rgba(0,0,0,0.18), 0 0 0 1px rgba(15,23,42,0.08)",
-                background: "#1E293B",
+                minHeight: "100vh",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "100px 48px",
+                background: panel.bg,
+                position: "sticky",
+                top: 0,
+                opacity: 0,
+                transform: "translateY(30px)",
+                transition: "opacity 0.8s ease, transform 0.8s ease",
               }}
             >
-              <div style={{
-                display: "flex", alignItems: "center", gap: "8px",
-                padding: "10px 14px",
-                background: "#0F172A",
-                borderBottom: "1px solid rgba(255,255,255,0.06)",
-              }}>
-                <div style={{ display: "flex", gap: "5px", flexShrink: 0 }}>
-                  <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#EF4444", display: "block" }} />
-                  <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#F59E0B", display: "block" }} />
-                  <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#10B981", display: "block" }} />
-                </div>
+              <div style={{ maxWidth: "780px", textAlign: "center" }}>
                 <div style={{
-                  flex: 1, background: "#1E293B", borderRadius: "6px",
-                  padding: "3px 10px", fontSize: "11px",
-                  color: "rgba(255,255,255,0.35)", fontFamily: "monospace",
+                  fontFamily: PF,
+                  fontSize: "clamp(72px,12vw,140px)",
+                  fontWeight: 900,
+                  lineHeight: 1,
+                  color: GOLD,
+                  letterSpacing: "-4px",
+                  marginBottom: "20px",
+                  ...panel.numStyle,
                 }}>
-                  ruled.ca
+                  {panel.num}
+                </div>
+                <p style={{ fontSize: "clamp(18px,2.5vw,26px)", fontWeight: 300, color: "#ffffff", lineHeight: 1.4, maxWidth: "600px", margin: "0 auto 0" }}>
+                  {panel.label}
+                </p>
+                <div style={{ width: "48px", height: "2px", background: GOLD, margin: "32px auto", opacity: 0.5 }} />
+                <p style={{ fontSize: "15px", color: MUTED, lineHeight: 1.7, maxWidth: "500px", margin: "0 auto" }}>
+                  {panel.detail}
+                </p>
+              </div>
+            </div>
+          ))}
+        </section>
+
+        {/* ── THREE STEPS ── */}
+        <section id="how-it-works" style={{ padding: "120px 48px", background: NAVY, scrollMarginTop: "68px" }}>
+          <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+            <SectionEyebrow label="The Process" lines />
+            <h2
+              data-fade
+              data-delay="0"
+              style={{
+                ...fade(0),
+                fontFamily: PF, fontSize: "clamp(36px,4vw,52px)", fontWeight: 700,
+                textAlign: "center", marginBottom: "16px", lineHeight: 1.15,
+              }}
+            >
+              Three steps to fighting back.
+            </h2>
+            <p
+              data-fade
+              data-delay="100"
+              style={{
+                ...fade(100),
+                textAlign: "center", color: MUTED, fontSize: "16px",
+                maxWidth: "480px", margin: "0 auto 72px", lineHeight: 1.6,
+              }}
+            >
+              No legal jargon. No confusing forms. Just a clear path from frustrated to paid.
+            </p>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "2px" }}>
+              {[
+                {
+                  num: "01",
+                  title: "Tell us what happened.",
+                  desc: "Answer a few straightforward questions about your situation. Who owes you money, what happened, what evidence you have. No legal knowledge required — just the facts.",
+                  badge: "Free, takes 3 minutes",
+                  delay: "0",
+                },
+                {
+                  num: "02",
+                  title: "Get your case strength score.",
+                  desc: "Our AI analyzes your situation and gives you an instant case strength score. Know exactly where you stand, what evidence strengthens your position, and what risks to expect — before spending a cent.",
+                  badge: "Instant results",
+                  delay: "150",
+                },
+                {
+                  num: "03",
+                  title: "Send the demand letter.",
+                  desc: "Get a professionally drafted, province-specific demand letter built around your case. Download it, send it. If they do not respond, we prep you for court — filing instructions, scripts, everything.",
+                  badge: "From $49",
+                  delay: "300",
+                },
+              ].map((card) => (
+                <div
+                  key={card.num}
+                  data-step
+                  data-step-delay={card.delay}
+                  style={{
+                    ...stepInit,
+                    padding: "48px 40px",
+                    border: `1px solid ${BORDER}`,
+                    position: "relative",
+                    cursor: "default",
+                    transition: "border-color 0.3s, background 0.3s",
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLElement).style.borderColor = "rgba(212,168,83,0.3)";
+                    (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.04)";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLElement).style.borderColor = BORDER;
+                    (e.currentTarget as HTMLElement).style.background = "transparent";
+                  }}
+                >
+                  <div style={{ fontFamily: PF, fontSize: "72px", fontWeight: 900, color: "rgba(212,168,83,0.12)", lineHeight: 1, marginBottom: "24px", letterSpacing: "-3px" }}>
+                    {card.num}
+                  </div>
+                  <h3 style={{ fontFamily: PF, fontSize: "22px", fontWeight: 700, marginBottom: "14px", color: "#ffffff" }}>
+                    {card.title}
+                  </h3>
+                  <p style={{ fontSize: "14px", color: MUTED, lineHeight: 1.75, marginBottom: "20px" }}>
+                    {card.desc}
+                  </p>
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "11px", fontWeight: 600, letterSpacing: "1px", textTransform: "uppercase", color: GOLD }}>
+                    <span style={{ display: "block", width: "16px", height: "1px", background: GOLD }} />
+                    {card.badge}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── CASE STRENGTH PREVIEW ── */}
+        <section id="strength-preview" style={{ padding: "120px 48px", background: NAVY2, position: "relative", overflow: "hidden", scrollMarginTop: "68px" }}>
+          {/* Gold glow top right */}
+          <div style={{ position: "absolute", top: "-200px", right: "-200px", width: "600px", height: "600px", background: "radial-gradient(circle, rgba(212,168,83,0.06) 0%, transparent 70%)", pointerEvents: "none" }} />
+
+          <div style={{ maxWidth: "1100px", margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "center", position: "relative" }}>
+
+            {/* Left */}
+            <div data-fade style={fade(0)}>
+              <SectionEyebrow label="Free Assessment" align="left" />
+              <h2 style={{ fontFamily: PF, fontSize: "clamp(32px,3.5vw,46px)", fontWeight: 700, marginBottom: "20px", lineHeight: 1.2 }}>
+                See your case strength instantly.
+              </h2>
+              <p style={{ color: MUTED, fontSize: "15px", lineHeight: 1.75, marginBottom: "32px" }}>
+                Know exactly where you stand before spending a cent. Our AI reads your situation, weighs your evidence, and gives you a real score — not vague advice.
+              </p>
+              <ul style={{ listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: "14px", marginBottom: "36px" }}>
+                {[
+                  "Province-specific legal analysis",
+                  "Strengths, weaknesses, and realistic outcome",
+                  "Clear next steps with no legal jargon",
+                  "Completely free — no account required to start",
+                ].map((item) => (
+                  <li key={item} style={{ display: "flex", gap: "14px", alignItems: "flex-start", fontSize: "14px", color: "rgba(255,255,255,0.75)" }}>
+                    <span style={{ color: GOLD, marginTop: "2px", flexShrink: 0 }}>—</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                href="/onboarding"
+                style={{
+                  background: GOLD, color: NAVY, fontSize: "13px", fontWeight: 700,
+                  letterSpacing: "1.8px", textTransform: "uppercase",
+                  padding: "16px 36px", borderRadius: "6px", textDecoration: "none",
+                  display: "inline-flex", alignItems: "center", gap: "10px",
+                  transition: "transform 0.25s, box-shadow 0.25s, background 0.2s",
+                }}
+                onMouseEnter={(e) => {
+                  const el = e.currentTarget as HTMLElement;
+                  el.style.transform = "translateY(-3px)";
+                  el.style.boxShadow = "0 12px 32px rgba(212,168,83,0.35)";
+                  el.style.background = GOLD_LIGHT;
+                }}
+                onMouseLeave={(e) => {
+                  const el = e.currentTarget as HTMLElement;
+                  el.style.transform = "";
+                  el.style.boxShadow = "";
+                  el.style.background = GOLD;
+                }}
+              >
+                Start My Free Assessment
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </Link>
+            </div>
+
+            {/* Right — score + questionnaire */}
+            <div data-fade data-delay="150" style={{ ...fade(150), display: "flex", flexDirection: "column", gap: "16px" }} ref={scoreSectionRef}>
+
+              {/* Score card */}
+              <div style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${BORDER}`, borderRadius: "16px", padding: "40px", position: "relative", overflow: "hidden" }}>
+                {/* Top accent */}
+                <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "2px", background: `linear-gradient(90deg, transparent, ${GOLD}, transparent)` }} />
+
+                {/* Score meter */}
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "32px" }}>
+                  <div style={{ position: "relative", width: "160px", height: "160px", marginBottom: "16px" }}>
+                    <svg width="160" height="160" viewBox="0 0 160 160" style={{ transform: "rotate(-90deg)" }}>
+                      <circle cx="80" cy="80" r="65" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="8" />
+                      <circle
+                        ref={scoreCircleRef}
+                        cx="80" cy="80" r="65"
+                        fill="none"
+                        stroke={GREEN}
+                        strokeWidth="8"
+                        strokeLinecap="round"
+                        strokeDasharray="408"
+                        strokeDashoffset="408"
+                        style={{ filter: "drop-shadow(0 0 8px rgba(16,185,129,0.5))" }}
+                      />
+                    </svg>
+                    <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", textAlign: "center" }}>
+                      <div ref={scoreNumRef} style={{ fontFamily: PF, fontSize: "42px", fontWeight: 900, color: "#ffffff", lineHeight: 1 }}>
+                        0
+                      </div>
+                      <div style={{ fontSize: "10px", letterSpacing: "1.5px", textTransform: "uppercase", color: MUTED, marginTop: "4px" }}>
+                        Case Strength
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: "14px", color: GREEN, fontWeight: 600, letterSpacing: "1px", textTransform: "uppercase" }}>
+                    Strong Case
+                  </div>
+                </div>
+
+                {/* Assessment preview */}
+                <div style={{ borderTop: `1px solid ${BORDER}`, paddingTop: "24px" }}>
+                  <div style={{ fontSize: "10px", letterSpacing: "2px", textTransform: "uppercase", color: GOLD, marginBottom: "12px" }}>
+                    Summary
+                  </div>
+                  <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.7)", lineHeight: 1.6, marginBottom: "10px" }}>
+                    You hired a contractor to repair and repaint your deck for $2,400. You paid a $1,200 deposit. They abandoned the job without explanation and stopped responding...
+                  </p>
+                  <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.7)", lineHeight: 1.6, filter: "blur(4px)", userSelect: "none", pointerEvents: "none" }}>
+                    Alberta law requires contractors to complete work as agreed. Your evidence of payment combined with documented abandonment gives you a strong foundation. The written estimate strengthens your position significantly...
+                  </p>
+                  <div style={{ marginTop: "20px", textAlign: "center" }}>
+                    <p style={{ fontSize: "12px", color: MUTED, marginBottom: "12px" }}>
+                      Complete your free assessment to unlock your full analysis
+                    </p>
+                    <Link
+                      href="/onboarding"
+                      style={{
+                        background: GOLD, color: NAVY, fontSize: "11px", fontWeight: 700,
+                        letterSpacing: "1.5px", textTransform: "uppercase",
+                        padding: "12px 24px", borderRadius: "6px", textDecoration: "none",
+                        display: "inline-flex", alignItems: "center", gap: "8px",
+                        transition: "transform 0.2s, background 0.2s",
+                      }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = GOLD_LIGHT; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = GOLD; }}
+                    >
+                      Get My Full Assessment Free
+                    </Link>
+                  </div>
                 </div>
               </div>
-              <Image
-                src="/brand/product-screenshot.png.PNG"
-                alt="Ruled.ca product interface"
-                width={1753}
-                height={1271}
-                className="w-full h-auto block"
-                priority
-              />
+
+              {/* Questionnaire */}
+              <div style={{ background: "rgba(255,255,255,0.02)", border: `1px solid ${BORDER}`, padding: "28px", borderRadius: "8px" }}>
+                <div style={{ fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase", color: GOLD, marginBottom: "20px" }}>
+                  Try it now — it is free
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                  <div>
+                    <label style={{ display: "block", fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase", color: GOLD, marginBottom: "8px" }}>
+                      What happened in your own words
+                    </label>
+                    <textarea
+                      rows={3}
+                      placeholder="e.g. A contractor took my deposit and never completed the work..."
+                      style={{
+                        width: "100%", background: "rgba(255,255,255,0.05)", border: `1px solid ${BORDER}`,
+                        borderRadius: "8px", padding: "14px 16px", color: "#ffffff",
+                        fontFamily: "inherit", fontSize: "14px", resize: "none", outline: "none",
+                        transition: "border-color 0.2s",
+                      }}
+                      onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(212,168,83,0.5)")}
+                      onBlur={(e) => (e.currentTarget.style.borderColor = BORDER)}
+                    />
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                    <div>
+                      <label style={{ display: "block", fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase", color: GOLD, marginBottom: "8px" }}>
+                        Amount owed
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. $3,500"
+                        style={{
+                          width: "100%", background: "rgba(255,255,255,0.05)", border: `1px solid ${BORDER}`,
+                          borderRadius: "8px", padding: "14px 16px", color: "#ffffff",
+                          fontFamily: "inherit", fontSize: "14px", outline: "none",
+                          transition: "border-color 0.2s",
+                        }}
+                        onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(212,168,83,0.5)")}
+                        onBlur={(e) => (e.currentTarget.style.borderColor = BORDER)}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: "block", fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase", color: GOLD, marginBottom: "8px" }}>
+                        Province
+                      </label>
+                      <select
+                        style={{
+                          width: "100%", background: "rgba(255,255,255,0.05)", border: `1px solid ${BORDER}`,
+                          borderRadius: "8px", padding: "14px 16px", color: "#ffffff",
+                          fontFamily: "inherit", fontSize: "14px", outline: "none",
+                          appearance: "none", cursor: "pointer",
+                        }}
+                      >
+                        <option value="" style={{ background: "#111827" }}>Select...</option>
+                        {PROVINCES.map((p) => (
+                          <option key={p} value={p} style={{ background: "#111827" }}>{p}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => router.push("/onboarding")}
+                    style={{
+                      background: GOLD, color: NAVY, border: "none", borderRadius: "8px",
+                      padding: "16px", fontFamily: "inherit", fontSize: "13px", fontWeight: 700,
+                      letterSpacing: "1.5px", textTransform: "uppercase", cursor: "pointer",
+                      width: "100%", transition: "transform 0.2s, box-shadow 0.2s",
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)";
+                      (e.currentTarget as HTMLElement).style.boxShadow = "0 8px 24px rgba(212,168,83,0.3)";
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLElement).style.transform = "";
+                      (e.currentTarget as HTMLElement).style.boxShadow = "";
+                    }}
+                  >
+                    Get My Case Strength Score →
+                  </button>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", fontSize: "11px", color: MUTED }}>
+                    <span style={{ flex: 1, height: "1px", background: BORDER }} />
+                    Free · No account required · Results in 60 seconds
+                    <span style={{ flex: 1, height: "1px", background: BORDER }} />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Stats — dark navy with texture */}
-      <section
-        className="px-4 sm:px-6 py-16 md:py-20 relative overflow-hidden"
-        style={{
-          backgroundColor: NAVY,
-          backgroundImage: "url(/brand/stats_bg.png)",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      >
-        <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-6 text-center relative z-10">
-          <Stat icon="gavel" value="3M+" label="Canadians owed money every year who never see it back" />
-          <Stat icon="trophy" value="76%" label="of claimants win when properly prepared" />
-          <Stat icon="chart" value="40%" label="Resolve Before Court" />
-          <StatAlert value="67%" label="Give up without a fight. You don't have to." />
-        </div>
-      </section>
-
-      {/* Problem */}
-      <section className="px-4 sm:px-6 py-20 md:py-28" style={{ background: "#ffffff" }}>
-        <div className="max-w-3xl mx-auto w-full flex flex-col gap-8">
-          <h2
-            className="text-4xl md:text-5xl font-bold tracking-tight leading-tight"
-            style={{ color: NAVY }}
-          >
-            You got screwed. You&apos;re not alone.
-          </h2>
-          <p className="text-xl leading-relaxed" style={{ color: SUBTEXT }}>
-            Every year, millions of Canadians lose money to contractors who disappear, landlords who keep deposits, and businesses that don&apos;t deliver. Most do nothing — because the system feels too complicated, too expensive, and too intimidating. Ruled changes that.
-          </p>
-        </div>
-      </section>
-
-      {/* Comparison Table */}
-      <section className="px-4 sm:px-6 py-16 md:py-20" style={{ background: "#F8F7F4" }}>
-        <div className="max-w-4xl mx-auto w-full flex flex-col gap-10">
-          <h2 className="text-3xl md:text-4xl font-bold text-center tracking-tight" style={{ color: NAVY }}>
-            Why Ruled?
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="rounded-2xl p-7 flex flex-col gap-5" style={{ background: "#ffffff", border: "1px solid #E2E8F0" }}>
-              <h3 className="font-bold text-lg text-center pb-4" style={{ color: NAVY, borderBottom: "1px solid #E2E8F0" }}>
-                Traditional Lawyer
-              </h3>
-              <ul className="flex flex-col gap-4">
-                {[
-                  "$300–500/hour",
-                  "Weeks or months to get started",
-                  "Intimidating and confusing",
-                  "No guarantee of outcome",
-                  "Minimum $2,000–5,000 to start",
-                ].map((item) => (
-                  <li key={item} className="flex items-start gap-3 text-sm" style={{ color: SUBTEXT }}>
-                    <XMarkIcon />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="rounded-2xl p-7 flex flex-col gap-5" style={{ background: "#ffffff", border: `2px solid ${BLUE}` }}>
-              <h3 className="font-bold text-lg text-center pb-4" style={{ color: BLUE, borderBottom: "1px solid rgba(200,57,43,0.2)" }}>
-                Ruled
-              </h3>
-              <ul className="flex flex-col gap-4">
-                {[
-                  "Flat fee — $49 or $199",
-                  "Ready in minutes",
-                  "Plain language, step by step",
-                  "AI-powered and built for small claims",
-                  "Free to start, no commitment",
-                ].map((item) => (
-                  <li key={item} className="flex items-start gap-3 text-sm font-medium" style={{ color: NAVY }}>
-                    <RedCheckIcon />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-          <div className="flex justify-center">
-            <Link
-              href="/onboarding"
-              className="min-h-12 rounded-full px-8 py-3.5 text-base font-semibold inline-flex items-center justify-center"
-              style={{ background: BLUE, color: "#ffffff" }}
-            >
-              Start Free — See If You Have a Case
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works */}
-      <section
-        id="how-it-works"
-        className="px-4 sm:px-6 py-16 md:py-24 scroll-mt-16"
-        style={{ background: "#ffffff" }}
-      >
-        <div className="max-w-5xl mx-auto w-full flex flex-col gap-14">
-          <h2 className="text-3xl md:text-4xl font-bold text-center tracking-tight" style={{ color: NAVY }}>
-            How It Works
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-            <StepCard
-              step={1}
-              title="Tell Your Story"
-              description="Describe what happened in plain language. No legal jargon needed — just the facts."
-            />
-            <StepCard
-              step={2}
-              title="AI Analysis"
-              description="Our AI instantly analyzes your case strength, evidence, and next steps tailored to your province."
-            />
-            <StepCard
-              step={3}
-              title="Get Paid"
-              description="Send your demand letter or take it to court fully prepared. Get what you're owed."
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* What You Get */}
-      <section className="px-4 sm:px-6 py-16 md:py-20" style={{ background: "#ffffff" }}>
-        <div className="max-w-5xl mx-auto w-full flex flex-col gap-10">
-          <h2 className="text-3xl md:text-4xl font-bold text-center tracking-tight" style={{ color: NAVY }}>
-            Everything you need. Nothing you don&apos;t.
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <WhatYouGetCard
-              title="Free Case Assessment"
-              price={null}
-              description="AI analyzes your situation and tells you exactly where you stand. No fluff."
-              imageSrc="/brand/product-screenshot.png"
-            />
-            <WhatYouGetCard
-              title="Demand Letter"
-              price="$49"
-              description="A legally formatted letter that gets results. 40% of cases resolve here."
-              imageSrc="/brand/demand-preview-screenshot.png"
-            />
-            <WhatYouGetCard
-              title="Full Case Pack"
-              price="$199"
-              description="Everything to walk into court and win. Filing instructions, scripts, documents."
-              imageSrc="/brand/product-screenshot.png"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing */}
-      <section id="pricing" className="px-4 sm:px-6 py-16 md:py-24 scroll-mt-16" style={{ background: "#F8F7F4" }}>
-        <div className="max-w-5xl mx-auto w-full flex flex-col gap-10">
-          <h2 className="text-3xl md:text-4xl font-bold text-center tracking-tight" style={{ color: NAVY }}>
-            Simple Flat-Fee Pricing. No surprises.
-          </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-            {PRICING_TIERS.map((tier) => (
-              <PricingTierCard key={tier.subtitle} tier={tier} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Founder */}
-      <section className="px-4 sm:px-6 py-16 md:py-24" style={{ background: "#ffffff" }}>
-        <div className="max-w-4xl mx-auto w-full grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 items-center">
-          <div className="flex flex-col items-center md:items-start gap-3 shrink-0">
-            <div
-              className="rounded-2xl w-48 md:w-56"
-              style={{ background: SURFACE, border: "1px solid #E2E8F0", aspectRatio: "3/4" }}
-            />
-            <span className="text-sm" style={{ color: "#64748B" }}>Finn Varette — Founder</span>
-          </div>
-          <div className="flex flex-col gap-6">
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight leading-tight" style={{ color: NAVY }}>
-              Built from a bad experience.
+        {/* ── WHY RULED ── */}
+        <section id="vs" style={{ padding: "120px 48px", background: NAVY }}>
+          <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+            <SectionEyebrow label="Why Ruled" lines />
+            <h2 data-fade style={{ ...fade(0), fontFamily: PF, fontSize: "clamp(36px,4vw,52px)", fontWeight: 700, textAlign: "center", marginBottom: "16px" }}>
+              Why Ruled?
             </h2>
-            <p className="text-lg leading-relaxed" style={{ color: SUBTEXT }}>
-              I built Ruled because I got screwed out of money and had no idea what to do. I didn&apos;t know I could send a demand letter. I didn&apos;t know I could represent myself in court for a small filing fee. Most people don&apos;t. Ruled exists so that the next person who gets ripped off knows exactly what to do — and has the tools to fight back.
+            <p data-fade data-delay="100" style={{ ...fade(100), textAlign: "center", color: MUTED, fontSize: "16px", maxWidth: "480px", margin: "0 auto 60px", lineHeight: 1.6 }}>
+              The same outcome. A fraction of the cost.
+            </p>
+
+            <div data-fade data-delay="200" style={{ ...fade(200), display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2px", position: "relative" }}>
+              {/* Traditional Lawyer */}
+              <div style={{ padding: "40px", border: `1px solid ${BORDER}` }}>
+                <div style={{ fontFamily: PF, fontSize: "20px", fontWeight: 700, marginBottom: "28px", color: MUTED }}>
+                  Traditional Lawyer
+                </div>
+                {[
+                  "$300 to $500 per hour",
+                  "Weeks or months to get started",
+                  "Intimidating and confusing process",
+                  "Minimum $2,000 to $5,000 before anything happens",
+                  "No guarantee of outcome",
+                ].map((item) => (
+                  <div key={item} style={{ display: "flex", alignItems: "flex-start", gap: "14px", padding: "14px 0", borderBottom: `1px solid ${BORDER}`, fontSize: "14px", color: MUTED, lineHeight: 1.5 }}>
+                    <span style={{ color: "rgba(255,80,80,0.7)", fontSize: "16px", flexShrink: 0, marginTop: "1px" }}>✕</span>
+                    {item}
+                  </div>
+                ))}
+              </div>
+
+              {/* Ruled */}
+              <div style={{ padding: "40px", border: `1px solid rgba(212,168,83,0.5)`, background: "rgba(212,168,83,0.04)", position: "relative" }}>
+                <div style={{
+                  position: "absolute", top: "-12px", left: "50%", transform: "translateX(-50%)",
+                  background: GOLD, color: NAVY, fontSize: "10px", fontWeight: 700,
+                  letterSpacing: "2px", padding: "4px 14px", borderRadius: "2px",
+                }}>
+                  RULED
+                </div>
+                <div style={{ fontFamily: PF, fontSize: "20px", fontWeight: 700, marginBottom: "28px", color: "#ffffff" }}>
+                  Ruled
+                </div>
+                {[
+                  "Flat fee — free to start, $49 or $199",
+                  "Ready in minutes, not months",
+                  "Plain language, step by step",
+                  "No commitment until you are ready",
+                  "Built specifically for small claims court",
+                ].map((item) => (
+                  <div key={item} style={{ display: "flex", alignItems: "flex-start", gap: "14px", padding: "14px 0", borderBottom: `1px solid ${BORDER}`, fontSize: "14px", color: "#ffffff", lineHeight: 1.5 }}>
+                    <span style={{ color: GOLD, fontSize: "16px", flexShrink: 0, marginTop: "1px" }}>✓</span>
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "center", marginTop: "48px" }}>
+              <Link
+                href="/onboarding"
+                style={{
+                  background: GOLD, color: NAVY, fontSize: "13px", fontWeight: 700,
+                  letterSpacing: "1.8px", textTransform: "uppercase",
+                  padding: "16px 36px", borderRadius: "6px", textDecoration: "none",
+                  display: "inline-flex", alignItems: "center", gap: "10px",
+                  transition: "transform 0.25s, box-shadow 0.25s, background 0.2s",
+                }}
+                onMouseEnter={(e) => {
+                  const el = e.currentTarget as HTMLElement;
+                  el.style.transform = "translateY(-3px)";
+                  el.style.boxShadow = "0 12px 32px rgba(212,168,83,0.35)";
+                  el.style.background = GOLD_LIGHT;
+                }}
+                onMouseLeave={(e) => {
+                  const el = e.currentTarget as HTMLElement;
+                  el.style.transform = "";
+                  el.style.boxShadow = "";
+                  el.style.background = GOLD;
+                }}
+              >
+                Start Free — See If You Have a Case
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* ── PRICING ── */}
+        <section id="pricing" style={{ padding: "120px 48px", background: NAVY2, scrollMarginTop: "68px" }}>
+          <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+            <SectionEyebrow label="Pricing" lines />
+            <h2 data-fade style={{ ...fade(0), fontFamily: PF, fontSize: "clamp(36px,4vw,52px)", fontWeight: 700, textAlign: "center", marginBottom: "16px" }}>
+              Simple flat-fee pricing. No surprises.
+            </h2>
+            <p data-fade data-delay="100" style={{ ...fade(100), textAlign: "center", color: MUTED, fontSize: "16px", maxWidth: "480px", margin: "0 auto 60px", lineHeight: 1.6 }}>
+              Pay only for what you need. Start free — upgrade when you are ready.
+            </p>
+
+            <div data-fade data-delay="200" style={{ ...fade(200), display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "2px" }}>
+              {[
+                {
+                  tier: "FREE",
+                  price: "$0",
+                  desc: "Know where you stand before spending anything.",
+                  features: ["Full AI case analysis", "Case strength score", "Province-specific assessment", "Strengths and weaknesses", "Clear next steps"],
+                  btnLabel: "Start Free Assessment",
+                  btnStyle: "outline" as const,
+                  featured: false,
+                },
+                {
+                  tier: "DEMAND LETTER",
+                  price: "$49",
+                  desc: "A professionally drafted letter that resolves 40% of cases.",
+                  features: ["Everything in Free", "Province-specific demand letter", "Legal language and proper formatting", "14-day payment demand", "Step-by-step sending instructions", "Saved to your dashboard"],
+                  btnLabel: "Get Your Letter",
+                  btnStyle: "filled" as const,
+                  featured: true,
+                },
+                {
+                  tier: "FULL CASE PACK",
+                  price: "$199",
+                  desc: "Everything you need to walk into court prepared.",
+                  features: ["Everything in Demand Letter", "Province-specific filing instructions", "All court documents prepared", "Opening and closing hearing scripts", "Anticipated defence arguments", "Day of court checklist", "Unlimited AI case questions"],
+                  btnLabel: "Get Full Pack",
+                  btnStyle: "outline" as const,
+                  featured: false,
+                },
+              ].map((card) => (
+                <div
+                  key={card.tier}
+                  style={{
+                    padding: "40px 36px",
+                    border: card.featured ? `1px solid rgba(212,168,83,0.5)` : `1px solid ${BORDER}`,
+                    background: card.featured ? "rgba(212,168,83,0.05)" : "transparent",
+                    position: "relative",
+                    transition: "border-color 0.3s",
+                  }}
+                  onMouseEnter={(e) => { if (!card.featured) (e.currentTarget as HTMLElement).style.borderColor = "rgba(212,168,83,0.3)"; }}
+                  onMouseLeave={(e) => { if (!card.featured) (e.currentTarget as HTMLElement).style.borderColor = BORDER; }}
+                >
+                  {card.featured && (
+                    <div style={{
+                      position: "absolute", top: "-12px", left: "50%", transform: "translateX(-50%)",
+                      background: GOLD, color: NAVY, fontSize: "9px", fontWeight: 700,
+                      letterSpacing: "2px", padding: "4px 14px", textTransform: "uppercase",
+                    }}>
+                      Most Popular
+                    </div>
+                  )}
+                  <div style={{ fontSize: "11px", letterSpacing: "3px", textTransform: "uppercase", color: GOLD, marginBottom: "16px" }}>
+                    {card.tier}
+                  </div>
+                  <div style={{ fontFamily: PF, fontSize: "52px", fontWeight: 900, lineHeight: 1, marginBottom: "8px" }}>
+                    {card.price}
+                  </div>
+                  <p style={{ fontSize: "13px", color: MUTED, marginBottom: "28px", lineHeight: 1.5 }}>
+                    {card.desc}
+                  </p>
+                  <ul style={{ listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: "10px", marginBottom: "32px" }}>
+                    {card.features.map((f) => (
+                      <li key={f} style={{ fontSize: "13px", color: "rgba(255,255,255,0.7)", display: "flex", alignItems: "flex-start", gap: "10px", lineHeight: 1.4 }}>
+                        <span style={{ color: GOLD, flexShrink: 0, fontSize: "12px", marginTop: "1px" }}>—</span>
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                  <Link
+                    href="/onboarding"
+                    style={{
+                      display: "block", textAlign: "center", padding: "13px",
+                      borderRadius: "4px", fontSize: "12px", fontWeight: 600,
+                      letterSpacing: "1.5px", textTransform: "uppercase", textDecoration: "none",
+                      transition: "transform 0.2s, box-shadow 0.2s",
+                      ...(card.btnStyle === "filled"
+                        ? { background: GOLD, color: NAVY, boxShadow: "0 4px 16px rgba(212,168,83,0.2)" }
+                        : { border: `1px solid rgba(212,168,83,0.4)`, color: GOLD, background: "transparent" }),
+                    }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = ""; }}
+                  >
+                    {card.btnLabel}
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── FOUNDER ── */}
+        <section id="founder" style={{ padding: "120px 48px", background: NAVY }}>
+          <div
+            data-fade
+            style={{ ...fade(0), maxWidth: "1000px", margin: "0 auto", display: "grid", gridTemplateColumns: "380px 1fr", gap: "80px", alignItems: "center" }}
+          >
+            {/* Photo placeholder */}
+            <div style={{
+              aspectRatio: "3/4", background: "rgba(255,255,255,0.04)",
+              border: `1px solid ${BORDER}`, borderRadius: "4px",
+              display: "flex", alignItems: "flex-end", justifyContent: "center",
+              padding: "20px", position: "relative", overflow: "hidden",
+            }}>
+              <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", opacity: 0.15 }}>
+                <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.5">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+              </div>
+              <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "40%", background: "linear-gradient(to top, rgba(10,15,30,0.8), transparent)" }} />
+              <div style={{ position: "relative", textAlign: "center" }}>
+                <div style={{ fontFamily: PF, fontSize: "18px", fontWeight: 700, color: "#ffffff" }}>Finn Varette</div>
+                <div style={{ fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase", color: GOLD, marginTop: "4px" }}>Founder</div>
+              </div>
+            </div>
+
+            {/* Text */}
+            <div>
+              <SectionEyebrow label="The Story" align="left" />
+              <h2 style={{ fontFamily: PF, fontSize: "clamp(22px,2.5vw,30px)", fontWeight: 700, lineHeight: 1.45, color: "#ffffff", marginBottom: "24px", marginTop: "20px" }}>
+                Built from a bad experience.<br />
+                <em style={{ color: GOLD, fontStyle: "italic" }}>Designed so it does not happen to you.</em>
+              </h2>
+              <p style={{ fontSize: "15px", color: MUTED, lineHeight: 1.8, marginBottom: "20px" }}>
+                I built Ruled because I got screwed out of money and had <strong style={{ color: "#ffffff", fontWeight: 500 }}>no idea what to do.</strong> I did not know I could send a demand letter. I did not know I could represent myself in court for a small filing fee. Most people do not.
+              </p>
+              <p style={{ fontSize: "15px", color: MUTED, lineHeight: 1.8, marginBottom: "36px" }}>
+                Ruled exists so the next person who gets ripped off — by a contractor, a landlord, a business that did not deliver — <strong style={{ color: "#ffffff", fontWeight: 500 }}>knows exactly what to do and has the tools to fight back.</strong>
+              </p>
+              <Link
+                href="/onboarding"
+                style={{
+                  background: GOLD, color: NAVY, fontSize: "13px", fontWeight: 700,
+                  letterSpacing: "1.8px", textTransform: "uppercase",
+                  padding: "16px 36px", borderRadius: "6px", textDecoration: "none",
+                  display: "inline-flex", alignItems: "center", gap: "10px",
+                  transition: "transform 0.25s, box-shadow 0.25s, background 0.2s",
+                }}
+                onMouseEnter={(e) => {
+                  const el = e.currentTarget as HTMLElement;
+                  el.style.transform = "translateY(-3px)";
+                  el.style.boxShadow = "0 12px 32px rgba(212,168,83,0.35)";
+                  el.style.background = GOLD_LIGHT;
+                }}
+                onMouseLeave={(e) => {
+                  const el = e.currentTarget as HTMLElement;
+                  el.style.transform = "";
+                  el.style.boxShadow = "";
+                  el.style.background = GOLD;
+                }}
+              >
+                Start My Free Assessment
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* ── FAQ ── */}
+        <section id="faq" style={{ padding: "120px 48px", background: NAVY2 }}>
+          <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
+            <SectionEyebrow label="Questions" lines />
+            <h2 data-fade style={{ ...fade(0), fontFamily: PF, fontSize: "clamp(36px,4vw,52px)", fontWeight: 700, textAlign: "center", marginBottom: "60px" }}>
+              Common questions.
+            </h2>
+            <div data-fade data-delay="100" style={{ ...fade(100), display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2px" }}>
+              {FAQ_ITEMS.map((item) => (
+                <FaqItem key={item.q} q={item.q} a={item.a} />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── FINAL CTA ── */}
+        <section style={{ padding: "140px 48px", textAlign: "center", position: "relative", overflow: "hidden", background: NAVY }}>
+          <div style={{
+            position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)",
+            width: "700px", height: "700px",
+            background: "radial-gradient(circle, rgba(212,168,83,0.08) 0%, transparent 70%)",
+            pointerEvents: "none",
+          }} />
+          <div style={{ position: "relative" }}>
+            <h2
+              data-fade
+              style={{
+                ...fade(0),
+                fontFamily: PF, fontSize: "clamp(42px,5vw,68px)", fontWeight: 900,
+                lineHeight: 1.1, marginBottom: "20px",
+              }}
+            >
+              Ready to fight back?<br />
+              <em style={{ color: GOLD, fontStyle: "italic" }}>You do not need a lawyer.</em>
+            </h2>
+            <p data-fade data-delay="100" style={{ ...fade(100), fontSize: "17px", color: MUTED, maxWidth: "480px", margin: "0 auto 48px", lineHeight: 1.65 }}>
+              Get your free case assessment in 60 seconds. Know exactly where you stand before spending anything.
             </p>
             <Link
               href="/onboarding"
-              className="min-h-12 rounded-full px-7 py-3.5 text-base font-semibold inline-flex items-center justify-center self-start"
-              style={{ background: BLUE, color: "#ffffff" }}
+              data-fade
+              data-delay="200"
+              style={{
+                ...fade(200),
+                background: GOLD, color: NAVY, fontSize: "14px", fontWeight: 700,
+                letterSpacing: "1.8px", textTransform: "uppercase",
+                padding: "18px 44px", borderRadius: "6px", textDecoration: "none",
+                display: "inline-flex", alignItems: "center", gap: "10px",
+                transition: "transform 0.25s, box-shadow 0.25s, background 0.2s",
+              }}
+              onMouseEnter={(e) => {
+                const el = e.currentTarget as HTMLElement;
+                el.style.transform = "translateY(-3px)";
+                el.style.boxShadow = "0 12px 32px rgba(212,168,83,0.35)";
+                el.style.background = GOLD_LIGHT;
+              }}
+              onMouseLeave={(e) => {
+                const el = e.currentTarget as HTMLElement;
+                el.style.transform = "";
+                el.style.boxShadow = "";
+                el.style.background = GOLD;
+              }}
             >
-              Start Your Free Assessment →
+              Assess My Case Free
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section className="px-4 sm:px-6 py-16 md:py-20" style={{ background: "#ffffff" }}>
-        <div className="max-w-5xl mx-auto w-full flex flex-col gap-10">
-          <h2 className="text-3xl md:text-4xl font-bold text-center tracking-tight" style={{ color: NAVY }}>
-            Common questions
-          </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
-            <div className="flex flex-col gap-4">
-              {FAQ_ITEMS.slice(0, 4).map((item) => (
-                <FaqItem key={item.question} question={item.question} answer={item.answer} />
-              ))}
-            </div>
-            <div className="flex flex-col gap-4">
-              {FAQ_ITEMS.slice(4, 8).map((item) => (
-                <FaqItem key={item.question} question={item.question} answer={item.answer} />
-              ))}
+            <div
+              data-fade
+              data-delay="300"
+              style={{
+                ...fade(300),
+                display: "flex", alignItems: "center", justifyContent: "center",
+                gap: "32px", marginTop: "28px", fontSize: "12px", color: MUTED, letterSpacing: "0.5px",
+                flexWrap: "wrap",
+              }}
+            >
+              <span>✓ Free to start</span>
+              <span>✓ No credit card required</span>
+              <span>✓ All 10 provinces</span>
+              <span>✓ Results in 60 seconds</span>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Bottom CTA */}
-      <section
-        className="px-4 sm:px-6 py-16 md:py-20 text-center relative overflow-hidden"
-        style={{
-          backgroundColor: NAVY,
-          backgroundImage: "url(/brand/cta_bg.png)",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      >
-        <div
-          className="absolute inset-0"
-          style={{ background: "linear-gradient(to bottom, rgba(15, 23, 42, 0.72), rgba(15, 23, 42, 0.85))" }}
-          aria-hidden
-        />
-        <div className="max-w-2xl mx-auto flex flex-col gap-5 items-center relative z-10">
-          <h2 className="text-3xl md:text-4xl font-bold tracking-tight" style={{ color: "#ffffff" }}>
-            Ready to Fight Back?
-          </h2>
-          <p className="text-lg" style={{ color: "rgba(255, 255, 255, 0.92)" }}>
-            Get your free case assessment in 60 seconds. No credit card required.
-          </p>
-          <Link
-            href="/onboarding"
-            className="min-h-12 rounded-full px-8 py-4 text-base font-semibold inline-flex items-center justify-center"
-            style={{ background: BLUE, color: "#ffffff" }}
-          >
-            Start My Free Case Assessment
-          </Link>
-        </div>
-      </section>
+        {/* ── FOOTER ── */}
+        <footer style={{ padding: "60px 48px 40px", borderTop: `1px solid ${BORDER}`, background: NAVY }}>
+          <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: "48px", marginBottom: "48px" }}>
+              {/* Brand */}
+              <div>
+                <span style={{ fontFamily: PF, fontSize: "20px", fontWeight: 700, display: "block", marginBottom: "12px" }}>
+                  <span style={{ color: "#ffffff" }}>ruled</span>
+                  <span style={{ color: GOLD }}>.ca</span>
+                </span>
+                <p style={{ fontSize: "13px", color: MUTED, lineHeight: 1.65, maxWidth: "240px" }}>
+                  Win without a lawyer. AI-powered small claims court tools for everyday Canadians.
+                </p>
+              </div>
 
-      {/* Footer */}
-      <footer className="px-4 sm:px-6 py-12 md:py-14" style={{ background: NAVY, color: "#ffffff" }}>
-        <div className="max-w-5xl mx-auto flex flex-col gap-10">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="flex flex-col gap-3 sm:col-span-2 lg:col-span-1">
-              <RuledLogo size="sm" variant="light" />
-              <p className="text-sm font-medium text-white/80">
-                Win without a lawyer.
-              </p>
+              {/* Product */}
+              <div>
+                <h4 style={{ fontSize: "10px", letterSpacing: "2.5px", textTransform: "uppercase", color: GOLD, marginBottom: "18px" }}>
+                  Product
+                </h4>
+                <ul style={{ listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: "10px" }}>
+                  {[
+                    { label: "How It Works", href: "/#how-it-works" },
+                    { label: "Pricing", href: "/#pricing" },
+                    { label: "Demand Letter", href: "/demand-preview" },
+                    { label: "Full Case Pack", href: "/full-case-pack-preview" },
+                    { label: "Blog", href: "/blog" },
+                  ].map((l) => (
+                    <li key={l.label}>
+                      <Link href={l.href} style={{ fontSize: "13px", color: MUTED, textDecoration: "none", transition: "color 0.2s" }}
+                        onMouseEnter={(e) => (e.currentTarget.style.color = "#ffffff")}
+                        onMouseLeave={(e) => (e.currentTarget.style.color = MUTED)}>
+                        {l.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Company */}
+              <div>
+                <h4 style={{ fontSize: "10px", letterSpacing: "2.5px", textTransform: "uppercase", color: GOLD, marginBottom: "18px" }}>
+                  Company
+                </h4>
+                <ul style={{ listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: "10px" }}>
+                  {[
+                    { label: "About", href: "/about" },
+                    { label: "Contact", href: "/contact" },
+                    { label: "Sign In", href: "/login" },
+                  ].map((l) => (
+                    <li key={l.label}>
+                      <Link href={l.href} style={{ fontSize: "13px", color: MUTED, textDecoration: "none", transition: "color 0.2s" }}
+                        onMouseEnter={(e) => (e.currentTarget.style.color = "#ffffff")}
+                        onMouseLeave={(e) => (e.currentTarget.style.color = MUTED)}>
+                        {l.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Legal */}
+              <div>
+                <h4 style={{ fontSize: "10px", letterSpacing: "2.5px", textTransform: "uppercase", color: GOLD, marginBottom: "18px" }}>
+                  Legal
+                </h4>
+                <ul style={{ listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: "10px" }}>
+                  {[
+                    { label: "Privacy Policy", href: "/privacy" },
+                    { label: "Terms of Service", href: "/terms" },
+                  ].map((l) => (
+                    <li key={l.label}>
+                      <Link href={l.href} style={{ fontSize: "13px", color: MUTED, textDecoration: "none", transition: "color 0.2s" }}
+                        onMouseEnter={(e) => (e.currentTarget.style.color = "#ffffff")}
+                        onMouseLeave={(e) => (e.currentTarget.style.color = MUTED)}>
+                        {l.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
-            <div className="flex flex-col gap-3">
-              <p className="text-xs font-semibold uppercase tracking-wider text-white/60">Product</p>
-              <nav className="flex flex-col gap-2 text-sm">
-                <Link href="/#how-it-works" className="text-white/80 hover:text-white transition-colors">How It Works</Link>
-                <Link href="/#pricing" className="text-white/80 hover:text-white transition-colors">Pricing</Link>
-                <Link href="/demand-preview" className="text-white/80 hover:text-white transition-colors">Demand Letter</Link>
-                <Link href="/full-case-pack-preview" className="text-white/80 hover:text-white transition-colors">Full Case Pack</Link>
-                <Link href="/blog" className="text-white/80 hover:text-white transition-colors">Blog</Link>
-              </nav>
-            </div>
-            <div className="flex flex-col gap-3">
-              <p className="text-xs font-semibold uppercase tracking-wider text-white/60">Company</p>
-              <nav className="flex flex-col gap-2 text-sm">
-                <Link href="/login" className="text-white/80 hover:text-white transition-colors">Sign In</Link>
-                <Link href="/about" className="text-white/80 hover:text-white transition-colors">About</Link>
-                <Link href="/blog" className="text-white/80 hover:text-white transition-colors">Blog</Link>
-                <Link href="/contact" className="text-white/80 hover:text-white transition-colors">Contact</Link>
-              </nav>
-            </div>
-            <div className="flex flex-col gap-3">
-              <p className="text-xs font-semibold uppercase tracking-wider text-white/60">Legal</p>
-              <nav className="flex flex-col gap-2 text-sm">
-                <Link href="/privacy" className="text-white/80 hover:text-white transition-colors">Privacy Policy</Link>
-                <Link href="/terms" className="text-white/80 hover:text-white transition-colors">Terms of Service</Link>
-              </nav>
+
+            {/* Footer bottom */}
+            <div style={{ paddingTop: "28px", borderTop: `1px solid ${BORDER}`, display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "12px", color: "rgba(255,255,255,0.3)", flexWrap: "wrap", gap: "12px" }}>
+              <span>© 2026 Ruled Technologies Inc. All rights reserved.</span>
+              <span>Legal information, not legal advice.</span>
             </div>
           </div>
-          <p className="text-xs text-white/50 border-t border-white/10 pt-6">
-            &copy; 2026 ruled.ca. Ruled provides legal information, not legal advice. Not a law firm.
-          </p>
-        </div>
-      </footer>
-    </div>
-  );
-}
+        </footer>
 
-function RuledLogo({ size = "lg", variant = "dark" }: { size?: "lg" | "sm"; variant?: "dark" | "light" }) {
-  const textSize = size === "lg" ? "text-4xl md:text-5xl" : "text-xl";
-  const ruledColor = variant === "light" ? "#ffffff" : NAVY;
-  const caColor = variant === "light" ? "#ffffff" : BLUE;
-  return (
-    <span
-      className={`${textSize} font-bold tracking-tight`}
-      style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
-    >
-      <span style={{ color: ruledColor }}>ruled</span>
-      <span style={{ color: caColor }}>.ca</span>
-    </span>
-  );
-}
-
-function WhatYouGetCard({ title, price, description, imageSrc }: { title: string; price: string | null; description: string; imageSrc?: string }) {
-  return (
-    <div
-      className="rounded-2xl p-7 flex flex-col gap-4"
-      style={{
-        background: "#ffffff",
-        border: "1px solid #E2E8F0",
-        borderTop: `3px solid ${BLUE}`,
-        boxShadow: CARD_SHADOW,
-      }}
-    >
-      <div className="flex items-baseline gap-3 flex-wrap">
-        <h3 className="font-bold text-lg" style={{ color: NAVY }}>{title}</h3>
-        {price && (
-          <span className="text-sm font-semibold" style={{ color: BLUE }}>{price}</span>
-        )}
       </div>
-      <p className="text-sm leading-relaxed" style={{ color: SUBTEXT }}>{description}</p>
-      {imageSrc && (
-        <div className="mt-2 overflow-hidden rounded-xl" style={{ boxShadow: "0 4px 12px rgba(0,0,0,0.10)" }}>
-          <Image
-            src={imageSrc}
-            alt=""
-            width={800}
-            height={500}
-            className="w-full h-auto block"
-            style={{ maxHeight: "200px", objectFit: "cover", objectPosition: "top" }}
-          />
-        </div>
-      )}
-    </div>
-  );
-}
-
-function XMarkIcon() {
-  return (
-    <span
-      className="inline-flex shrink-0 w-5 h-5 rounded-full items-center justify-center mt-0.5"
-      style={{ background: "#E2E8F0" }}
-      aria-hidden
-    >
-      <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-        <path d="M2 2L8 8M8 2L2 8" stroke="#94A3B8" strokeWidth="1.75" strokeLinecap="round" />
-      </svg>
-    </span>
-  );
-}
-
-function RedCheckIcon() {
-  return (
-    <span
-      className="inline-flex shrink-0 w-5 h-5 rounded-full items-center justify-center mt-0.5"
-      style={{ background: BLUE }}
-      aria-hidden
-    >
-      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-        <path d="M2.5 6L5 8.5L9.5 3.5" stroke="#ffffff" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    </span>
-  );
-}
-
-const STEP_ICONS: Record<1 | 2 | 3, React.ReactNode> = {
-  1: (
-    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={NAVY} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-      <line x1="9" y1="9" x2="15" y2="9" />
-      <line x1="9" y1="13" x2="13" y2="13" />
-    </svg>
-  ),
-  2: (
-    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={NAVY} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-      <polyline points="14 2 14 8 20 8" />
-      <circle cx="11" cy="15" r="2.5" />
-      <line x1="13.5" y1="17.5" x2="16" y2="20" />
-    </svg>
-  ),
-  3: (
-    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={NAVY} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <circle cx="12" cy="12" r="10" />
-      <polyline points="7 12.5 10.5 16 17 9" />
-    </svg>
-  ),
-};
-
-function StepCard({
-  step,
-  title,
-  description,
-}: {
-  step: 1 | 2 | 3;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div
-      className="flex flex-col gap-5 rounded-2xl p-7 lg:p-8 h-full"
-      style={{ background: "#ffffff", boxShadow: "0 2px 8px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.06)", border: "1px solid #E2E8F0" }}
-    >
-      <div className="shrink-0">{STEP_ICONS[step]}</div>
-      <div
-        className="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold shrink-0"
-        style={{ background: "rgba(200,57,43,0.10)", color: BLUE }}
-      >
-        {step}
-      </div>
-      <div className="flex flex-col gap-2">
-        <h3 className="text-lg font-bold" style={{ color: NAVY }}>
-          {title}
-        </h3>
-        <p className="text-sm leading-relaxed" style={{ color: SUBTEXT }}>
-          {description}
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function Stat({
-  icon,
-  value,
-  label,
-}: {
-  icon: "gavel" | "trophy" | "chart" | "map";
-  value: string;
-  label: string;
-}) {
-  return (
-    <div className="flex flex-col items-center gap-3 px-2 text-white">
-      <StatIcon type={icon} />
-      <span
-        className="text-4xl md:text-5xl font-bold"
-        style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
-      >
-        {value}
-      </span>
-      <span className="text-sm opacity-90 leading-snug max-w-[14rem]">{label}</span>
-    </div>
-  );
-}
-
-function StatAlert({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="flex flex-col items-center gap-3 px-2 text-white">
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#93C5FD" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-        <line x1="12" y1="9" x2="12" y2="13" />
-        <line x1="12" y1="17" x2="12.01" y2="17" />
-      </svg>
-      <span
-        className="text-4xl md:text-5xl font-bold"
-        style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
-      >
-        {value}
-      </span>
-      <span className="text-sm opacity-90 leading-snug max-w-[14rem]">{label}</span>
-    </div>
-  );
-}
-
-function StatIcon({ type }: { type: "gavel" | "trophy" | "chart" | "map" }) {
-  const iconProps = {
-    width: 28,
-    height: 28,
-    viewBox: "0 0 24 24",
-    fill: "none",
-    stroke: "#93C5FD",
-    strokeWidth: 1.75,
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
-  };
-
-  if (type === "gavel") {
-    return (
-      <svg {...iconProps} aria-hidden>
-        <path d="M12 3v18" />
-        <path d="M5 8h14" />
-        <path d="M5 8 2.5 14h5L5 8z" />
-        <path d="M19 8l-2.5 6h5L19 8z" />
-      </svg>
-    );
-  }
-  if (type === "trophy") {
-    return (
-      <svg {...iconProps} aria-hidden>
-        <path d="M6 9H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-2" />
-        <path d="M6 5h12v2a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V5z" />
-        <path d="M10 15v2" />
-        <path d="M14 15v2" />
-        <path d="M8 21h8" />
-        <path d="M9 17h6v4H9z" />
-      </svg>
-    );
-  }
-  if (type === "chart") {
-    return (
-      <svg {...iconProps} aria-hidden>
-        <path d="M18 20V10" />
-        <path d="M12 20V4" />
-        <path d="M6 20v-6" />
-      </svg>
-    );
-  }
-  return (
-    <svg {...iconProps} aria-hidden>
-      <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
-      <line x1="8" y1="2" x2="8" y2="18" />
-      <line x1="16" y1="6" x2="16" y2="22" />
-    </svg>
-  );
-}
-
-function CheckIcon({ color, checkColor }: { color: string; checkColor: string }) {
-  return (
-    <span
-      className="inline-flex shrink-0 w-5 h-5 rounded-full items-center justify-center mt-0.5"
-      style={{ background: color }}
-      aria-hidden
-    >
-      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-        <path
-          d="M2.5 6L5 8.5L9.5 3.5"
-          stroke={checkColor}
-          strokeWidth="1.75"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    </span>
-  );
-}
-
-function FaqItem({ question, answer }: { question: string; answer: string }) {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <div
-      className="rounded-xl overflow-hidden"
-      style={{ background: "#ffffff", border: "1px solid #E2E8F0" }}
-    >
-      <button
-        type="button"
-        onClick={() => setOpen((prev) => !prev)}
-        className="w-full flex items-center justify-between gap-3 px-5 py-4 text-left cursor-pointer"
-        aria-expanded={open}
-      >
-        <span className="font-semibold text-sm break-words" style={{ color: NAVY }}>
-          {question}
-        </span>
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 16 16"
-          fill="none"
-          className="shrink-0"
-          style={{
-            transform: open ? "rotate(180deg)" : "none",
-            transition: "transform 0.2s ease",
-          }}
-          aria-hidden
-        >
-          <path
-            d="M4 6L8 10L12 6"
-            stroke={BLUE}
-            strokeWidth="1.75"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </button>
-      {open && (
-        <div className="px-5 pb-4 border-t" style={{ borderColor: "#E2E8F0" }}>
-          <p className="text-sm leading-relaxed break-words pt-3" style={{ color: SUBTEXT }}>
-            {answer}
-          </p>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function PricingTierCard({ tier }: { tier: (typeof PRICING_TIERS)[number] }) {
-  const isPopular = tier.popular;
-  const checkColor = isPopular ? AMBER : GREEN;
-
-  return (
-    <div
-      className="relative rounded-2xl p-7 flex flex-col gap-5 h-full"
-      style={
-        isPopular
-          ? {
-              background: BLUE,
-              border: `2px solid ${BLUE}`,
-              color: "#ffffff",
-              boxShadow: "0 8px 24px rgba(200, 57, 43, 0.28)",
-            }
-          : {
-              background: "#ffffff",
-              border: "1px solid #E2E8F0",
-              boxShadow: CARD_SHADOW,
-            }
-      }
-    >
-      {isPopular && (
-        <span
-          className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap"
-          style={{ background: AMBER, color: NAVY }}
-        >
-          Most Popular
-        </span>
-      )}
-      <div>
-        <p
-          className="text-3xl font-bold"
-          style={{
-            fontFamily: "Georgia, 'Times New Roman', serif",
-            color: isPopular ? "#ffffff" : NAVY,
-          }}
-        >
-          {tier.price}
-        </p>
-        <h3 className="text-base font-medium mt-1" style={{ color: isPopular ? "rgba(255,255,255,0.9)" : SUBTEXT }}>
-          {tier.subtitle}
-        </h3>
-        <p
-          className="text-xs mt-2 leading-relaxed"
-          style={{ color: isPopular ? "rgba(255,255,255,0.85)" : SUBTEXT }}
-        >
-          {tier.trustLine}
-        </p>
-      </div>
-      <ul className="flex flex-col gap-3 flex-1 text-sm">
-        {tier.features.map((feature) => (
-          <li key={feature} className="flex gap-2.5 leading-relaxed items-start">
-            <CheckIcon
-              color={checkColor}
-              checkColor={isPopular ? NAVY : "#ffffff"}
-            />
-            <span style={{ color: isPopular ? "rgba(255,255,255,0.95)" : SUBTEXT }}>{feature}</span>
-          </li>
-        ))}
-      </ul>
-      <Link
-        href={tier.href}
-        className="w-full min-h-12 rounded-full px-4 py-3 text-sm font-semibold text-center flex items-center justify-center"
-        style={
-          isPopular
-            ? { background: "#ffffff", color: BLUE }
-            : { background: SURFACE, color: NAVY, border: "1px solid #E2E8F0" }
-        }
-      >
-        {tier.cta}
-      </Link>
-    </div>
+    </>
   );
 }

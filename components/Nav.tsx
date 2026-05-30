@@ -5,105 +5,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
 
-const NAVY = "var(--color-navy)";
-const BLUE = "var(--color-blue)";
-const NAV_BORDER = "var(--color-nav-border)";
-const SURFACE = "var(--color-surface)";
-
-type DropdownItem = {
-  label: string;
-  href: string;
-  desc?: string;
-  scrollToId?: "how-it-works";
-};
-
-const NAV_ITEMS: { label: string; href?: string; dropdown?: DropdownItem[] }[] = [
-  {
-    label: "How It Works",
-    dropdown: [
-      {
-        label: "The Process",
-        href: "/",
-        desc: "Three steps to getting paid",
-        scrollToId: "how-it-works",
-      },
-      {
-        label: "Case Assessment",
-        href: "/how-it-works/case-assessment",
-        desc: "What the free assessment is and what you get",
-      },
-      {
-        label: "Small Claims Guide",
-        href: "/small-claims-guide",
-        desc: "How small claims works in Canada",
-      },
-    ],
-  },
-  {
-    label: "Products",
-    dropdown: [
-      { label: "Demand Letter — $49", href: "/demand-preview", desc: "Ready-to-send legal letter" },
-      { label: "Full Case Pack — $199", href: "/full-case-pack-preview", desc: "Everything you need to win" },
-    ],
-  },
-  { label: "Pricing", href: "/#pricing" },
-  { label: "About", href: "/about" },
-  { label: "Blog", href: "/blog" },
-];
-
-function Dropdown({
-  items,
-  onClose,
-  onScrollToHowItWorks,
-}: {
-  items: DropdownItem[];
-  onClose: () => void;
-  onScrollToHowItWorks: () => void;
-}) {
-  return (
-    <div
-      className="absolute top-full left-1/2 mt-2 w-64 rounded-xl overflow-hidden shadow-lg z-50"
-      style={{
-        transform: "translateX(-50%)",
-        background: "#ffffff",
-        border: `1px solid ${NAV_BORDER}`,
-      }}
-    >
-      {items.map((item) =>
-        item.scrollToId === "how-it-works" ? (
-          <button
-            key={item.label}
-            type="button"
-            onClick={() => {
-              onClose();
-              onScrollToHowItWorks();
-            }}
-            className="flex flex-col gap-0.5 px-4 py-3 transition-colors w-full text-left cursor-pointer"
-            style={{ borderBottom: `1px solid ${NAV_BORDER}` }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = SURFACE)}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-          >
-            <span className="text-sm font-medium" style={{ color: NAVY }}>{item.label}</span>
-            {item.desc && <span className="text-xs" style={{ color: "#64748b" }}>{item.desc}</span>}
-          </button>
-        ) : (
-          <Link
-            key={item.label}
-            href={item.href}
-            onClick={onClose}
-            className="flex flex-col gap-0.5 px-4 py-3 transition-colors"
-            style={{ borderBottom: `1px solid ${NAV_BORDER}` }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = SURFACE)}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-          >
-            <span className="text-sm font-medium" style={{ color: NAVY }}>{item.label}</span>
-            {item.desc && <span className="text-xs" style={{ color: "#64748b" }}>{item.desc}</span>}
-          </Link>
-        )
-      )}
-    </div>
-  );
-}
+const GOLD = "#D4A853";
+const GOLD_LIGHT = "#E8C47A";
+const NAVY = "#0A0F1E";
+const WHITE = "#FFFFFF";
+const MUTED = "rgba(255,255,255,0.75)";
+const BORDER = "rgba(255,255,255,0.08)";
 
 function UserMenu({
   initials,
@@ -124,7 +31,7 @@ function UserMenu({
         type="button"
         onClick={onToggle}
         className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0 cursor-pointer transition-opacity hover:opacity-90"
-        style={{ background: SURFACE, border: `1px solid ${NAV_BORDER}`, color: NAVY }}
+        style={{ background: "rgba(255,255,255,0.1)", border: `1px solid ${BORDER}`, color: WHITE }}
         aria-label="Account menu"
         aria-expanded={open}
       >
@@ -133,14 +40,14 @@ function UserMenu({
       {open && (
         <div
           className="absolute top-full right-0 mt-2 w-44 rounded-xl overflow-hidden shadow-lg z-50"
-          style={{ background: "#ffffff", border: `1px solid ${NAV_BORDER}` }}
+          style={{ background: "#111827", border: `1px solid ${BORDER}` }}
         >
           <Link
             href="/dashboard/account"
             onClick={onClose}
             className="block px-4 py-3 text-sm font-medium transition-colors"
-            style={{ color: NAVY, borderBottom: `1px solid ${NAV_BORDER}` }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = SURFACE)}
+            style={{ color: WHITE, borderBottom: `1px solid ${BORDER}` }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.06)")}
             onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
           >
             My Account
@@ -149,8 +56,8 @@ function UserMenu({
             type="button"
             onClick={() => { onClose(); onSignOut(); }}
             className="block w-full text-left px-4 py-3 text-sm font-medium transition-colors cursor-pointer"
-            style={{ color: NAVY }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = SURFACE)}
+            style={{ color: WHITE }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.06)")}
             onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
           >
             Sign Out
@@ -161,43 +68,20 @@ function UserMenu({
   );
 }
 
-function Logo() {
-  return (
-    <Link href="/" className="flex items-center gap-2.5 shrink-0">
-      <img
-        src="/brand/logo_icon.png"
-        alt=""
-        width={45}
-        height={45}
-        className="shrink-0 object-contain"
-      />
-      <span
-        className="text-xl sm:text-2xl font-bold tracking-tight"
-        style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
-      >
-        <span style={{ color: NAVY }}>ruled</span>
-        <span style={{ color: BLUE }}>.ca</span>
-      </span>
-    </Link>
-  );
-}
-
 export function Nav() {
   const pathname = usePathname();
   const router = useRouter();
+  const [scrolled, setScrolled] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
   const [userInitials, setUserInitials] = useState("U");
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const navRef = useRef<HTMLDivElement>(null);
+  const navRef = useRef<HTMLElement>(null);
 
-  const supabase = useMemo(() => {
-    return createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
-  }, []);
+  const supabase = useMemo(() => createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  ), []);
 
   async function refreshAuthState() {
     try {
@@ -238,7 +122,7 @@ export function Nav() {
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (navRef.current && !navRef.current.contains(e.target as Node)) {
-        setOpenDropdown(null); setMobileOpen(false); setUserMenuOpen(false);
+        setMobileOpen(false); setUserMenuOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClick);
@@ -246,7 +130,7 @@ export function Nav() {
   }, []);
 
   useEffect(() => {
-    setOpenDropdown(null); setMobileOpen(false); setUserMenuOpen(false);
+    setMobileOpen(false); setUserMenuOpen(false);
     refreshAuthState();
   }, [pathname]);
 
@@ -255,8 +139,17 @@ export function Nav() {
     function onVisibilityChange() { if (document.visibilityState === "visible") refreshAuthState(); }
     window.addEventListener("focus", onFocus);
     document.addEventListener("visibilitychange", onVisibilityChange);
-    return () => { window.removeEventListener("focus", onFocus); document.removeEventListener("visibilitychange", onVisibilityChange); };
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
   }, [supabase]);
+
+  useEffect(() => {
+    function onScroll() { setScrolled(window.scrollY > 50); }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   useEffect(() => {
     if (!mobileOpen) return;
@@ -265,13 +158,12 @@ export function Nav() {
     return () => { document.body.style.overflow = prev; };
   }, [mobileOpen]);
 
-  const showMarketingNav = !pathname.startsWith("/dashboard");
-
-  const scrollToHowItWorks = useCallback(() => {
+  const scrollTo = useCallback((id: string) => {
+    setMobileOpen(false);
     if (pathname === "/") {
-      document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
     } else {
-      try { sessionStorage.setItem("ruled_pending_scroll", "how-it-works"); } catch { /* ignore */ }
+      try { sessionStorage.setItem("ruled_pending_scroll", id); } catch { /* ignore */ }
       router.push("/");
     }
   }, [pathname, router]);
@@ -280,77 +172,129 @@ export function Nav() {
     if (pathname !== "/") return;
     let pending: string | null = null;
     try { pending = sessionStorage.getItem("ruled_pending_scroll"); } catch { return; }
-    if (pending !== "how-it-works") return;
+    if (!pending) return;
     try { sessionStorage.removeItem("ruled_pending_scroll"); } catch { /* ignore */ }
     const id = window.setTimeout(() => {
-      document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      document.getElementById(pending!)?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 100);
     return () => clearTimeout(id);
   }, [pathname]);
 
   if (pathname.startsWith("/dashboard")) return null;
 
-  function navLinkColor(active: boolean) { return active ? BLUE : NAVY; }
+  const navLinkStyle: React.CSSProperties = {
+    color: MUTED,
+    background: "none",
+    border: "none",
+    fontSize: "14px",
+    fontWeight: 400,
+    letterSpacing: "0.3px",
+    cursor: "pointer",
+    padding: 0,
+    transition: "color 0.2s",
+  };
 
   return (
     <header
       ref={navRef}
-      className="sticky top-0 z-50 w-full border-b"
-      style={{ background: "#ffffff", borderColor: NAV_BORDER }}
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 50,
+        height: "68px",
+        background: scrolled ? "rgba(10,15,30,0.92)" : "rgba(10,15,30,0.6)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        borderBottom: `1px solid ${BORDER}`,
+        transition: "background 0.3s ease",
+      }}
     >
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center min-w-0 relative">
-        <div className="shrink-0">
-          <Logo />
-        </div>
+      <div
+        className="max-w-6xl mx-auto px-6 md:px-12 h-full flex items-center justify-between"
+      >
+        {/* Logo — text only, no icon */}
+        <Link href="/" className="shrink-0" style={{ textDecoration: "none" }}>
+          <span
+            style={{
+              fontFamily: "var(--font-playfair), 'Playfair Display', serif",
+              fontSize: "22px",
+              fontWeight: 700,
+              letterSpacing: "-0.5px",
+            }}
+          >
+            <span style={{ color: WHITE }}>ruled</span>
+            <span style={{ color: GOLD }}>.ca</span>
+          </span>
+        </Link>
 
-        {showMarketingNav && (
-          <nav className="hidden md:flex items-center gap-1 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-            {NAV_ITEMS.map((item) => {
-              const isOpen = openDropdown === item.label;
-              return (
-                <div key={item.label} className="relative">
-                  {item.dropdown ? (
-                    <button
-                      type="button"
-                      onClick={() => { setUserMenuOpen(false); setOpenDropdown(isOpen ? null : item.label); }}
-                      className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer"
-                      style={{ color: navLinkColor(isOpen) }}
-                      onMouseEnter={(e) => (e.currentTarget.style.color = BLUE)}
-                      onMouseLeave={(e) => { e.currentTarget.style.color = navLinkColor(isOpen); }}
-                    >
-                      {item.label}
-                      <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"
-                        style={{ transform: isOpen ? "rotate(180deg)" : "none", transition: "transform 0.15s" }}>
-                        <path d="M6 8L1 3h10L6 8z" />
-                      </svg>
-                    </button>
-                  ) : (
-                    <Link
-                      href={item.href!}
-                      className="px-3 py-2 rounded-lg text-sm transition-colors"
-                      style={{ color: NAVY }}
-                      onMouseEnter={(e) => (e.currentTarget.style.color = BLUE)}
-                      onMouseLeave={(e) => (e.currentTarget.style.color = NAVY)}
-                    >
-                      {item.label}
-                    </Link>
-                  )}
-                  {item.dropdown && isOpen && (
-                    <Dropdown items={item.dropdown} onClose={() => setOpenDropdown(null)} onScrollToHowItWorks={scrollToHowItWorks} />
-                  )}
-                </div>
-              );
-            })}
-          </nav>
-        )}
+        {/* Center links — desktop */}
+        <nav className="hidden md:flex items-center gap-10">
+          <button
+            type="button"
+            style={navLinkStyle}
+            onClick={() => scrollTo("how-it-works")}
+            onMouseEnter={(e) => (e.currentTarget.style.color = WHITE)}
+            onMouseLeave={(e) => (e.currentTarget.style.color = MUTED)}
+          >
+            How It Works
+          </button>
+          <button
+            type="button"
+            style={navLinkStyle}
+            onClick={() => scrollTo("strength-preview")}
+            onMouseEnter={(e) => (e.currentTarget.style.color = WHITE)}
+            onMouseLeave={(e) => (e.currentTarget.style.color = MUTED)}
+          >
+            Case Assessment
+          </button>
+          <button
+            type="button"
+            style={navLinkStyle}
+            onClick={() => scrollTo("pricing")}
+            onMouseEnter={(e) => (e.currentTarget.style.color = WHITE)}
+            onMouseLeave={(e) => (e.currentTarget.style.color = MUTED)}
+          >
+            Pricing
+          </button>
+          <Link
+            href="/login"
+            style={{ color: MUTED, fontSize: "14px", textDecoration: "none", transition: "color 0.2s" }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = WHITE)}
+            onMouseLeave={(e) => (e.currentTarget.style.color = MUTED)}
+          >
+            Login
+          </Link>
+        </nav>
 
-        <div className="flex items-center gap-2 sm:gap-3 ml-auto shrink-0">
+        {/* Right side */}
+        <div className="flex items-center gap-3">
           {signedIn ? (
             <>
               <Link
                 href="/dashboard"
-                className="rounded-full px-4 sm:px-5 py-2.5 min-h-11 text-sm font-semibold transition-opacity hover:opacity-90 inline-flex items-center justify-center"
-                style={{ background: BLUE, color: "#ffffff" }}
+                className="hidden md:inline-flex items-center justify-center"
+                style={{
+                  background: GOLD,
+                  color: NAVY,
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  letterSpacing: "1.5px",
+                  textTransform: "uppercase",
+                  padding: "10px 24px",
+                  borderRadius: "4px",
+                  textDecoration: "none",
+                  transition: "background 0.2s, transform 0.2s",
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLElement).style.background = GOLD_LIGHT;
+                  (e.currentTarget as HTMLElement).style.transform = "translateY(-1px)";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.background = GOLD;
+                  (e.currentTarget as HTMLElement).style.transform = "";
+                }}
               >
                 Dashboard
               </Link>
@@ -358,7 +302,7 @@ export function Nav() {
                 <UserMenu
                   initials={userInitials}
                   open={userMenuOpen}
-                  onToggle={() => { setOpenDropdown(null); setUserMenuOpen(!userMenuOpen); }}
+                  onToggle={() => setUserMenuOpen(!userMenuOpen)}
                   onClose={() => setUserMenuOpen(false)}
                   onSignOut={handleSignOut}
                 />
@@ -366,103 +310,104 @@ export function Nav() {
             </>
           ) : (
             <Link
-              href="/#pricing"
-              className="rounded-full px-4 sm:px-5 py-2.5 min-h-11 text-sm font-semibold transition-opacity hover:opacity-80 inline-flex items-center justify-center whitespace-nowrap"
-              style={{ background: "transparent", color: NAVY, border: "1.5px solid #0F172A" }}
+              href="/onboarding"
+              className="hidden md:inline-flex items-center justify-center"
+              style={{
+                background: GOLD,
+                color: NAVY,
+                fontSize: "13px",
+                fontWeight: 600,
+                letterSpacing: "1.5px",
+                textTransform: "uppercase",
+                padding: "10px 24px",
+                borderRadius: "4px",
+                textDecoration: "none",
+                transition: "background 0.2s, transform 0.2s",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.background = GOLD_LIGHT;
+                (e.currentTarget as HTMLElement).style.transform = "translateY(-1px)";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.background = GOLD;
+                (e.currentTarget as HTMLElement).style.transform = "";
+              }}
             >
-              View Pricing →
+              Start Free
             </Link>
           )}
 
-          {showMarketingNav && (
-            <button
-              type="button"
-              onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden flex flex-col gap-1.5 items-center justify-center min-w-11 min-h-11 p-2 cursor-pointer -mr-1"
-              aria-label={mobileOpen ? "Close menu" : "Open menu"}
-              aria-expanded={mobileOpen}
-            >
-              {[0, 1, 2].map((i) => (
-                <span key={i} className="block w-5 h-0.5" style={{ background: NAVY }} />
-              ))}
-            </button>
-          )}
+          {/* Mobile hamburger */}
+          <button
+            type="button"
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="md:hidden flex flex-col gap-1.5 items-center justify-center w-11 h-11 cursor-pointer"
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileOpen}
+            style={{ background: "none", border: "none" }}
+          >
+            {[0, 1, 2].map((i) => (
+              <span key={i} className="block w-5 h-0.5" style={{ background: WHITE }} />
+            ))}
+          </button>
         </div>
       </div>
 
-      {showMarketingNav && mobileOpen && (
+      {/* Mobile menu */}
+      {mobileOpen && (
         <div
-          className="md:hidden border-t px-4 py-4 flex flex-col gap-1 max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain"
-          style={{ background: "#ffffff", borderColor: NAV_BORDER }}
+          className="md:hidden flex flex-col px-6 py-4 overflow-y-auto"
+          style={{
+            background: "rgba(10,15,30,0.97)",
+            borderTop: `1px solid ${BORDER}`,
+            maxHeight: "calc(100dvh - 68px)",
+          }}
         >
-          {NAV_ITEMS.map((item) =>
-            item.dropdown ? (
-              <div key={item.label}>
-                <p className="text-xs font-semibold tracking-widest uppercase px-2 py-2" style={{ color: BLUE }}>
-                  {item.label}
-                </p>
-                {item.dropdown.map((sub) =>
-                  sub.scrollToId === "how-it-works" ? (
-                    <button
-                      key={sub.label}
-                      type="button"
-                      className="block w-full text-left px-4 py-3 min-h-11 text-sm rounded-lg cursor-pointer"
-                      style={{ color: NAVY }}
-                      onClick={() => { setMobileOpen(false); scrollToHowItWorks(); }}
-                    >
-                      {sub.label}
-                    </button>
-                  ) : (
-                    <Link key={sub.href} href={sub.href}
-                      className="block px-4 py-3 min-h-11 text-sm rounded-lg flex items-center"
-                      style={{ color: NAVY }} onClick={() => setMobileOpen(false)}>
-                      {sub.label}
-                    </Link>
-                  )
-                )}
-              </div>
-            ) : (
-              <Link key={item.label} href={item.href!}
-                className="block px-2 py-3 min-h-11 text-sm rounded-lg flex items-center"
-                style={{ color: NAVY }} onClick={() => setMobileOpen(false)}>
-                {item.label}
-              </Link>
-            )
-          )}
-          <div className="mt-2 pt-4 flex flex-col gap-2" style={{ borderTop: `1px solid ${NAV_BORDER}` }}>
+          <button type="button" onClick={() => scrollTo("how-it-works")}
+            className="text-left py-3 text-sm border-b cursor-pointer" style={{ color: WHITE, borderColor: BORDER, background: "none", border: "none", borderBottom: `1px solid ${BORDER}` }}>
+            How It Works
+          </button>
+          <button type="button" onClick={() => scrollTo("strength-preview")}
+            className="text-left py-3 text-sm cursor-pointer" style={{ color: WHITE, background: "none", border: "none", borderBottom: `1px solid ${BORDER}` }}>
+            Case Assessment
+          </button>
+          <button type="button" onClick={() => scrollTo("pricing")}
+            className="text-left py-3 text-sm cursor-pointer" style={{ color: WHITE, background: "none", border: "none", borderBottom: `1px solid ${BORDER}` }}>
+            Pricing
+          </button>
+          <Link href="/login" className="block py-3 text-sm" style={{ color: WHITE, borderBottom: `1px solid ${BORDER}` }} onClick={() => setMobileOpen(false)}>
+            Login
+          </Link>
+          <div className="mt-4 pt-4 flex flex-col gap-3" style={{ borderTop: `1px solid ${BORDER}` }}>
             {signedIn ? (
               <>
                 <Link
                   href="/dashboard"
-                  className="block rounded-full px-4 py-3 min-h-12 text-sm font-semibold text-center flex items-center justify-center"
-                  style={{ background: BLUE, color: "#ffffff" }}
+                  className="block text-center rounded py-3 text-sm font-semibold"
+                  style={{ background: GOLD, color: NAVY, letterSpacing: "1.5px", textTransform: "uppercase" }}
                   onClick={() => setMobileOpen(false)}
                 >
                   Dashboard
                 </Link>
-                <div className="flex items-center gap-3 px-2 py-2 mt-1" style={{ borderTop: `1px solid ${NAV_BORDER}` }}>
-                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-                    style={{ background: SURFACE, border: `1px solid ${NAV_BORDER}`, color: NAVY }}>
+                <div className="flex items-center gap-3 py-2 mt-1" style={{ borderTop: `1px solid ${BORDER}` }}>
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold"
+                    style={{ background: "rgba(255,255,255,0.1)", border: `1px solid ${BORDER}`, color: WHITE }}>
                     {userInitials}
                   </div>
-                  <div className="flex flex-col gap-1 min-w-0">
-                    <Link href="/dashboard/account" className="text-sm font-medium" style={{ color: NAVY }} onClick={() => setMobileOpen(false)}>
-                      My Account
-                    </Link>
-                    <button type="button" onClick={handleSignOut} className="text-sm text-left cursor-pointer" style={{ color: NAVY }}>
-                      Sign Out
-                    </button>
+                  <div className="flex flex-col gap-1">
+                    <Link href="/dashboard/account" className="text-sm font-medium" style={{ color: WHITE }} onClick={() => setMobileOpen(false)}>My Account</Link>
+                    <button type="button" onClick={handleSignOut} className="text-sm text-left cursor-pointer" style={{ color: MUTED, background: "none", border: "none" }}>Sign Out</button>
                   </div>
                 </div>
               </>
             ) : (
               <Link
-                href="/#pricing"
-                className="block rounded-full px-4 py-3 min-h-12 text-sm font-semibold text-center flex items-center justify-center"
-                style={{ background: "transparent", color: NAVY, border: "1.5px solid #0F172A" }}
+                href="/onboarding"
+                className="block text-center rounded py-3 text-sm font-semibold"
+                style={{ background: GOLD, color: NAVY, letterSpacing: "1.5px", textTransform: "uppercase" }}
                 onClick={() => setMobileOpen(false)}
               >
-                View Pricing →
+                Start Free
               </Link>
             )}
           </div>
