@@ -1,6 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import { dash } from "../theme";
+import { generateCaseTitle } from "../case-utils";
+
+const CARD = "#151C2E";
+const GOLD = "#D4A853";
+const GREEN = "#10B981";
+const BORDER = "rgba(255,255,255,0.07)";
+const MUTED = "rgba(255,255,255,0.5)";
+const WHITE = "#FFFFFF";
 
 async function syncUserCases(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -8,24 +15,12 @@ async function syncUserCases(
   email: string | undefined
 ) {
   if (!email) return;
-
-  await supabase
-    .from("cases")
-    .update({ user_id: userId })
-    .eq("email", email)
-    .is("user_id", null);
-
-  await supabase
-    .from("cases")
-    .update({ email })
-    .eq("user_id", userId)
-    .is("email", null);
+  await supabase.from("cases").update({ user_id: userId }).eq("email", email).is("user_id", null);
+  await supabase.from("cases").update({ email }).eq("user_id", userId).is("email", null);
 }
 
 function displayAmount(cents: number | null, tier: string | null): string {
-  if (typeof cents === "number") {
-    return `$${(cents / 100).toFixed(2)}`;
-  }
+  if (typeof cents === "number") return `$${(cents / 100).toFixed(2)}`;
   if (tier === "full") return "$199.00";
   if (tier === "demand") return "$49.00";
   return "—";
@@ -51,7 +46,9 @@ export default async function BillingPage() {
 
   const { data: cases } = await supabase
     .from("cases")
-    .select("id, created_at, tier_purchased, paid, amount_paid_cents, receipt_url, purchased_at")
+    .select(
+      "id, created_at, tier_purchased, paid, amount_paid_cents, receipt_url, purchased_at, intake_text, case_assessment, province"
+    )
     .or(filter)
     .eq("paid", true)
     .order("purchased_at", { ascending: false, nullsFirst: false });
@@ -59,129 +56,194 @@ export default async function BillingPage() {
   const purchases = (cases ?? []).filter((c) => c.paid);
 
   return (
-    <main className="px-4 sm:px-6 py-8 md:py-10">
-      <div className="max-w-6xl mx-auto w-full flex flex-col gap-8">
-        <header className="flex flex-col gap-2">
-          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Billing</h1>
-          <p className="text-sm" style={{ color: dash.mainMuted }}>
-            Past purchases and receipts.
-          </p>
-        </header>
-
-        {purchases.length === 0 ? (
-          <div
-            className="rounded-2xl p-6 text-sm"
-            style={{ ...dash.panel, color: dash.mainMuted }}
-          >
-            No purchases yet.
-          </div>
-        ) : (
-          <div className="rounded-2xl overflow-hidden" style={{ ...dash.panel }}>
-            <div
-              className="hidden md:grid grid-cols-12 px-5 py-3 text-xs font-semibold"
-              style={{ color: dash.mainMuted, borderBottom: `1px solid ${dash.rowDivider}` }}
-            >
-              <div className="col-span-4">Date</div>
-              <div className="col-span-4">Product</div>
-              <div className="col-span-2">Amount</div>
-              <div className="col-span-2 text-right">Receipt</div>
-            </div>
-            {purchases.map((p) => {
-              const date = new Date(p.purchased_at ?? p.created_at).toLocaleDateString("en-CA", {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-              });
-              const amount = displayAmount(p.amount_paid_cents ?? null, p.tier_purchased ?? null);
-              const product = productName(p.tier_purchased);
-              return (
-                <div key={p.id} style={{ borderBottom: `1px solid ${dash.rowDivider}` }}>
-                  <div
-                    className="md:hidden px-4 py-4 flex flex-col gap-3 text-sm"
-                    style={{ color: dash.mainText }}
-                  >
-                    <div className="flex justify-between gap-3">
-                      <span className="text-xs font-semibold shrink-0" style={{ color: dash.mainMuted }}>
-                        Date
-                      </span>
-                      <span className="text-right">{date}</span>
-                    </div>
-                    <div className="flex justify-between gap-3">
-                      <span className="text-xs font-semibold shrink-0" style={{ color: dash.mainMuted }}>
-                        Product
-                      </span>
-                      <span className="text-right">{product}</span>
-                    </div>
-                    <div className="flex justify-between gap-3">
-                      <span className="text-xs font-semibold shrink-0" style={{ color: dash.mainMuted }}>
-                        Amount
-                      </span>
-                      <span className="text-right">{amount}</span>
-                    </div>
-                    <div className="flex justify-between gap-3 items-center">
-                      <span className="text-xs font-semibold shrink-0" style={{ color: dash.mainMuted }}>
-                        Receipt
-                      </span>
-                      {p.receipt_url ? (
-                        <a
-                          href={p.receipt_url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-xs font-semibold min-h-11 inline-flex items-center px-2"
-                          style={{ color: dash.blue }}
-                        >
-                          Download
-                        </a>
-                      ) : (
-                        <span className="text-xs" style={{ color: dash.mainMuted }}>
-                          —
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="hidden md:grid grid-cols-12 px-5 py-4 text-sm items-center">
-                    <div className="col-span-4" style={{ color: dash.mainText }}>
-                      {date}
-                    </div>
-                    <div className="col-span-4" style={{ color: dash.mainText }}>
-                      {product}
-                    </div>
-                    <div className="col-span-2" style={{ color: dash.mainText }}>
-                      {amount}
-                    </div>
-                    <div className="col-span-2 text-right">
-                      {p.receipt_url ? (
-                        <a
-                          href={p.receipt_url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-xs font-semibold"
-                          style={{ color: dash.blue }}
-                        >
-                          Download
-                        </a>
-                      ) : (
-                        <span className="text-xs" style={{ color: dash.mainMuted }}>
-                          —
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        <p className="text-sm" style={{ color: dash.mainMuted }}>
-          Need help? Email{" "}
-          <Link href="/contact" style={{ color: dash.blue }}>
-            support
-          </Link>
-          .
+    <main style={{ padding: "32px", maxWidth: 1100, margin: "0 auto" }}>
+      {/* Header */}
+      <div style={{ marginBottom: 32 }}>
+        <h1
+          style={{
+            fontFamily: "'Playfair Display', Georgia, serif",
+            fontSize: 32,
+            color: WHITE,
+            marginBottom: 4,
+          }}
+        >
+          Billing
+        </h1>
+        <p style={{ color: MUTED, fontSize: 14 }}>
+          Your purchase history and receipts.
         </p>
       </div>
+
+      {purchases.length === 0 ? (
+        <div
+          style={{
+            background: CARD,
+            border: `1px solid ${BORDER}`,
+            borderRadius: 12,
+            padding: 32,
+            textAlign: "center",
+            color: MUTED,
+            fontSize: 14,
+          }}
+        >
+          No purchases yet.
+        </div>
+      ) : (
+        <div
+          style={{
+            background: CARD,
+            border: `1px solid ${BORDER}`,
+            borderRadius: 12,
+            overflow: "hidden",
+          }}
+        >
+          {/* Table header */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1.5fr 2fr 1fr 1fr",
+              padding: "10px 16px",
+              borderBottom: `1px solid ${BORDER}`,
+            }}
+            className="hidden md:grid"
+          >
+            {["Date", "Description", "Case", "Amount", "Receipt"].map((h) => (
+              <div
+                key={h}
+                style={{
+                  fontSize: 11,
+                  letterSpacing: 1,
+                  textTransform: "uppercase",
+                  color: MUTED,
+                  fontWeight: 500,
+                }}
+              >
+                {h}
+              </div>
+            ))}
+          </div>
+
+          {/* Rows */}
+          {purchases.map((p, i) => {
+            const date = new Date(
+              (p as any).purchased_at ?? p.created_at
+            ).toLocaleDateString("en-CA", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+            });
+            const amount = displayAmount(
+              (p as any).amount_paid_cents ?? null,
+              p.tier_purchased ?? null
+            );
+            const product = productName(p.tier_purchased);
+            const caseTitle = generateCaseTitle(p as any);
+            const isLast = i === purchases.length - 1;
+
+            return (
+              <div
+                key={p.id}
+                style={{
+                  borderBottom: isLast ? "none" : `1px solid ${BORDER}`,
+                }}
+              >
+                {/* Desktop row */}
+                <div
+                  className="hidden md:grid"
+                  style={{
+                    gridTemplateColumns: "1fr 1.5fr 2fr 1fr 1fr",
+                    padding: "14px 16px",
+                    fontSize: 13,
+                    alignItems: "center",
+                  }}
+                >
+                  <div style={{ color: MUTED }}>{date}</div>
+                  <div style={{ color: WHITE }}>{product}</div>
+                  <div
+                    style={{
+                      color: MUTED,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {caseTitle}
+                  </div>
+                  <div style={{ color: GOLD, fontWeight: 600 }}>{amount}</div>
+                  <div>
+                    {(p as any).receipt_url ? (
+                      <a
+                        href={(p as any).receipt_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{
+                          fontSize: 12,
+                          color: GOLD,
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          textDecoration: "none",
+                          fontWeight: 500,
+                        }}
+                      >
+                        Download PDF ↓
+                      </a>
+                    ) : (
+                      <span style={{ fontSize: 12, color: MUTED }}>—</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Mobile row */}
+                <div
+                  className="md:hidden"
+                  style={{ padding: "16px", display: "flex", flexDirection: "column", gap: 8 }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "flex-start",
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: WHITE }}>
+                        {product}
+                      </div>
+                      <div style={{ fontSize: 12, color: MUTED, marginTop: 2 }}>{date}</div>
+                    </div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: GOLD }}>{amount}</div>
+                  </div>
+                  <div style={{ fontSize: 12, color: MUTED }}>{caseTitle}</div>
+                  {(p as any).receipt_url && (
+                    <a
+                      href={(p as any).receipt_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{
+                        fontSize: 12,
+                        color: GOLD,
+                        textDecoration: "none",
+                        fontWeight: 500,
+                      }}
+                    >
+                      Download PDF ↓
+                    </a>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <p style={{ marginTop: 24, fontSize: 13, color: MUTED }}>
+        Need help?{" "}
+        <Link href="/contact" style={{ color: GOLD, textDecoration: "none" }}>
+          Contact support
+        </Link>
+        .
+      </p>
     </main>
   );
 }
-

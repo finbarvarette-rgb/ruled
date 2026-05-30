@@ -1,70 +1,34 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { createBrowserClient } from "@supabase/ssr";
 import type { Case } from "@/lib/supabase";
-import { startCheckout } from "@/lib/checkout";
-import { Spinner } from "@/components/Spinner";
-import { extractClaimAmount, generateCaseTitle, getCaseMeta, getNextStep } from "../case-utils";
-import { saveCaseToSession } from "../components/dashboard-session";
-import { dash } from "../theme";
-import {
-  buildAssessmentSections,
-  downloadAssessmentPdf,
-} from "@/lib/pdf-generator";
+import { extractClaimAmount, generateCaseTitle, getCaseMeta, inferDisputeType } from "../case-utils";
 
-const NAVY = "#0F172A";
-const BODY_TEXT = "#0F172A";
-const SECTION_BORDER = "#E2E8F0";
+const NAVY = "#0A0F1E";
+const CARD = "#151C2E";
+const GOLD = "#D4A853";
+const GREEN = "#10B981";
+const BORDER = "rgba(255,255,255,0.07)";
+const BORDER_GOLD = "rgba(212,168,83,0.25)";
+const MUTED = "rgba(255,255,255,0.5)";
+const GOLD_DIM = "rgba(212,168,83,0.12)";
+const WHITE = "#FFFFFF";
 
 export function CaseAssessmentsClient({ cases: initialCases }: { cases: Case[] }) {
-  const router = useRouter();
   const [caseList, setCaseList] = useState<Case[]>(initialCases);
-  const [openCase, setOpenCase] = useState<Case | null>(null);
-  const [checkoutLoading, setCheckoutLoading] = useState<"demand" | "full" | null>(null);
-  const [filingId, setFilingId] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  const supabase = useMemo(() => createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  ), []);
-
-  const sorted = useMemo(() => caseList, [caseList]);
-
-  useEffect(() => {
-    const target = sessionStorage.getItem("dashboard_open_case_id");
-    if (!target) return;
-    sessionStorage.removeItem("dashboard_open_case_id");
-    const match = caseList.find((c) => c.id === target);
-    if (match) {
-      setOpenCase(match);
-    }
-  }, [caseList]);
-
-  async function handleMarkFiled(caseId: string) {
-    if (!window.confirm("Mark this case as Filed in Court?\n\nOnly do this after you have actually submitted your claim to the courthouse.")) return;
-    setFilingId(caseId);
-    try {
-      await supabase.from("cases").update({ outcome: "filed" }).eq("id", caseId);
-      router.refresh();
-    } finally {
-      setFilingId(null);
-    }
-  }
-
-  async function handleCheckout(tier: "demand" | "full", c: Case) {
-    setCheckoutLoading(tier);
-    saveCaseToSession(c);
-    try {
-      await startCheckout(tier, c.id, c.email);
-    } catch {
-      setCheckoutLoading(null);
-    }
-  }
+  const supabase = useMemo(
+    () =>
+      createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      ),
+    []
+  );
 
   async function handleDeleteConfirmed() {
     if (!deleteConfirmId) return;
@@ -85,198 +49,267 @@ export function CaseAssessmentsClient({ cases: initialCases }: { cases: Case[] }
   }
 
   return (
-    <main className="px-4 sm:px-6 py-8 md:py-10">
-      <div className="max-w-6xl mx-auto w-full flex flex-col gap-8">
-        <header className="flex flex-col gap-2">
-          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">Case Assessments</h1>
-          <p className="text-sm" style={{ color: dash.mainMuted }}>
-            Your assessments, progress, and next steps.
-          </p>
-        </header>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          {sorted.map((c) => {
-            const meta = getCaseMeta(c);
-            const next = getNextStep(c, meta);
-            const amount = extractClaimAmount(c.case_assessment, c.intake_text);
-            const title = generateCaseTitle(c);
-            return (
-              <article
-                key={c.id}
-                className="rounded-2xl p-6 flex flex-col gap-5"
-                style={{ ...dash.panel }}
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0 flex flex-col gap-2">
-                    <h2 className="text-base font-semibold leading-snug truncate">
-                      {title}
-                    </h2>
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs" style={{ color: dash.mainMuted }}>
-                      <span>{c.province}</span>
-                      <span style={{ color: dash.rowDivider }}>•</span>
-                      <span>{amount ? `$${Number(amount).toLocaleString("en-CA")}` : "—"}</span>
-                      <span style={{ color: dash.rowDivider }}>•</span>
-                      <span>
-                        {new Date(c.created_at).toLocaleDateString("en-CA", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })}
-                      </span>
-                    </div>
-                  </div>
-                  <span
-                    className="text-xs font-semibold px-2.5 py-1 rounded-full shrink-0"
-                    style={dash.statusBadge}
-                  >
-                    {meta.statusBadge}
-                  </span>
-                </div>
-
-                <Pipeline currentIndex={meta.pipelineIndex} />
-
-                {next && (
-                  <div
-                    className="rounded-xl px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
-                    style={{
-                      background: dash.nested.background,
-                      border: dash.accentPanel.border,
-                    }}
-                  >
-                    <p className="text-sm font-medium leading-snug min-w-0" style={{ color: dash.mainText }}>
-                      {next.label}
-                    </p>
-                    {next.kind === "checkout" && (
-                      <button
-                        type="button"
-                        onClick={() => handleCheckout(next.tier, c)}
-                        disabled={!!checkoutLoading}
-                        className="rounded-lg px-4 py-2.5 min-h-11 text-xs font-semibold disabled:opacity-60 cursor-pointer shrink-0 inline-flex items-center justify-center gap-2 w-full sm:w-auto"
-                        style={dash.primaryBtn}
-                      >
-                        {checkoutLoading === next.tier && <Spinner />}
-                        {next.tier === "demand" ? "$49" : "$199"}
-                      </button>
-                    )}
-                    {next.kind === "link" && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          saveCaseToSession(c);
-                          window.location.href = next.href;
-                        }}
-                        className="rounded-lg px-4 py-2.5 min-h-11 text-xs font-semibold cursor-pointer shrink-0 w-full sm:w-auto inline-flex items-center justify-center"
-                        style={dash.primaryBtn}
-                      >
-                        Open
-                      </button>
-                    )}
-                  </div>
-                )}
-
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setOpenCase(c)}
-                    className="rounded-lg px-4 py-3 min-h-11 text-sm font-semibold cursor-pointer w-full sm:w-auto"
-                    style={dash.primaryBtn}
-                  >
-                    View Full Assessment
-                  </button>
-                  {meta.pipelineIndex === 1 && (
-                    <button
-                      type="button"
-                      onClick={() => handleMarkFiled(c.id)}
-                      disabled={filingId === c.id}
-                      className="rounded-lg px-4 py-3 min-h-11 text-sm font-semibold cursor-pointer w-full sm:w-auto inline-flex items-center justify-center gap-2 disabled:opacity-60"
-                      style={{ background: "transparent", color: dash.mainText, border: dash.chromeBorder }}
-                    >
-                      {filingId === c.id && <Spinner />}
-                      Mark as Filed in Court
-                    </button>
-                  )}
-                  {!meta.hasDemandTier && (
-                    <Link
-                      href={`/dashboard/demand-letter/${c.id}`}
-                      className="rounded-lg px-4 py-3 min-h-11 text-sm font-semibold inline-flex items-center justify-center w-full sm:w-auto"
-                      style={{
-                        background: "transparent",
-                        color: dash.mainText,
-                        border: dash.chromeBorder,
-                      }}
-                    >
-                      Get Demand Letter
-                    </Link>
-                  )}
-                  {!meta.hasFullTier && (
-                    <Link
-                      href={`/dashboard/full-case-pack/${c.id}`}
-                      className="rounded-lg px-4 py-3 min-h-11 text-sm font-semibold inline-flex items-center justify-center w-full sm:w-auto"
-                      style={{
-                        background: "transparent",
-                        color: dash.mainText,
-                        border: dash.chromeBorder,
-                      }}
-                    >
-                      Get Full Case Pack
-                    </Link>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => setDeleteConfirmId(c.id)}
-                    className="rounded-lg px-3 py-3 min-h-11 text-xs font-semibold cursor-pointer inline-flex items-center justify-center gap-1.5 w-full sm:w-auto"
-                    style={{
-                      background: "transparent",
-                      color: "#DC2626",
-                      border: "1px solid #DC2626",
-                    }}
-                  >
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                      <path d="M2 4h12M5 4V2h6v2M6 7v5M10 7v5M3 4l1 9a1 1 0 001 1h6a1 1 0 001-1l1-9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                    Delete case
-                  </button>
-                </div>
-              </article>
-            );
-          })}
-        </div>
+    <main style={{ padding: "32px", maxWidth: 1100, margin: "0 auto" }}>
+      {/* Header */}
+      <div style={{ marginBottom: 32 }}>
+        <h1
+          style={{
+            fontFamily: "'Playfair Display', Georgia, serif",
+            fontSize: 32,
+            color: WHITE,
+            marginBottom: 4,
+          }}
+        >
+          My Cases
+        </h1>
+        <p style={{ color: MUTED, fontSize: 14 }}>
+          Click a case to open it and manage your claim.
+        </p>
       </div>
 
-      {openCase && (
-        <AssessmentModal
-          caseRecord={openCase}
-          onClose={() => setOpenCase(null)}
-        />
-      )}
+      {/* Case list */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+        {caseList.map((c) => {
+          const meta = getCaseMeta(c);
+          const amount = extractClaimAmount(c.case_assessment, c.intake_text);
+          const title = generateCaseTitle(c);
+          const disputeType = inferDisputeType(c.intake_text);
+          const dateStr = new Date(c.created_at).toLocaleDateString("en-CA", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          });
+          const progress =
+            meta.pipelineIndex === 0 ? 33 : meta.pipelineIndex === 1 ? 66 : 100;
+          const progressColor = meta.pipelineIndex >= 1 ? GREEN : GOLD;
 
+          let badgeStyle: React.CSSProperties = {
+            fontSize: 11,
+            fontWeight: 600,
+            letterSpacing: "0.5px",
+            padding: "4px 10px",
+            borderRadius: 20,
+            textTransform: "uppercase",
+            whiteSpace: "nowrap",
+          };
+          if (meta.statusBadge === "Demand Letter Sent") {
+            badgeStyle = { ...badgeStyle, background: "rgba(16,185,129,0.15)", color: GREEN };
+          } else if (
+            meta.statusBadge === "Filed" ||
+            meta.statusBadge === "Hearing Scheduled"
+          ) {
+            badgeStyle = {
+              ...badgeStyle,
+              background: "rgba(200,57,43,0.15)",
+              color: "#C8392B",
+            };
+          } else {
+            badgeStyle = {
+              ...badgeStyle,
+              background: "rgba(212,168,83,0.15)",
+              color: GOLD,
+            };
+          }
+
+          return (
+            <div key={c.id} style={{ position: "relative", marginBottom: 12 }}>
+              <Link
+                href={`/dashboard/cases/${c.id}`}
+                style={{
+                  background: CARD,
+                  border: `1px solid ${BORDER}`,
+                  borderRadius: 12,
+                  padding: "20px 24px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 20,
+                  textDecoration: "none",
+                  color: WHITE,
+                  paddingRight: 56,
+                }}
+              >
+                {/* Icon */}
+                <div
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 10,
+                    background: GOLD_DIM,
+                    border: `1px solid ${BORDER_GOLD}`,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  <svg width="20" height="20" fill="none" stroke={GOLD} viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                </div>
+
+                {/* Info */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div
+                    style={{
+                      fontSize: 15,
+                      fontWeight: 600,
+                      marginBottom: 3,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {title}
+                  </div>
+                  <div style={{ fontSize: 12, color: MUTED }}>
+                    {disputeType} · {c.province}
+                    {amount ? ` · $${Number(amount).toLocaleString("en-CA")} at stake` : ""}
+                  </div>
+                </div>
+
+                {/* Stage */}
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-end",
+                    gap: 6,
+                    flexShrink: 0,
+                  }}
+                >
+                  <span style={badgeStyle}>{meta.statusBadge}</span>
+                  <div
+                    style={{
+                      width: 120,
+                      height: 4,
+                      background: "rgba(255,255,255,0.08)",
+                      borderRadius: 2,
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: `${progress}%`,
+                        height: 4,
+                        borderRadius: 2,
+                        background: progressColor,
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Amount */}
+                {amount && (
+                  <div
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: GOLD,
+                      flexShrink: 0,
+                    }}
+                  >
+                    ${Number(amount).toLocaleString("en-CA")}
+                  </div>
+                )}
+              </Link>
+
+              {/* Delete button */}
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmId(c.id)}
+                title="Delete case"
+                style={{
+                  position: "absolute",
+                  right: 16,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: MUTED,
+                  padding: 4,
+                  opacity: 0.6,
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M2 4h12M5 4V2h6v2M6 7v5M10 7v5M3 4l1 9a1 1 0 001 1h6a1 1 0 001-1l1-9" />
+                </svg>
+              </button>
+            </div>
+          );
+        })}
+
+        {/* Start new case CTA */}
+        <Link
+          href="/onboarding"
+          style={{
+            background: GOLD_DIM,
+            border: `1px dashed ${BORDER_GOLD}`,
+            borderRadius: 12,
+            padding: "20px 24px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 12,
+            textDecoration: "none",
+            color: GOLD,
+            fontSize: 14,
+            fontWeight: 600,
+            marginTop: 4,
+          }}
+        >
+          <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke={GOLD} strokeWidth="2.5" strokeLinecap="round">
+            <path d="M8 2v12M2 8h12" />
+          </svg>
+          Start a New Case
+        </Link>
+      </div>
+
+      {/* Delete confirmation modal */}
       {deleteConfirmId && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center px-4"
-          style={{ background: "rgba(15, 23, 42, 0.55)" }}
+          style={{ background: "rgba(0,0,0,0.7)" }}
           onClick={() => { if (!deleteLoading) setDeleteConfirmId(null); }}
           role="presentation"
         >
           <div
-            className="w-full max-w-sm rounded-2xl p-6 flex flex-col gap-5 shadow-2xl"
-            style={{ background: "#ffffff" }}
+            style={{
+              background: "#151C2E",
+              border: `1px solid ${BORDER}`,
+              borderRadius: 16,
+              padding: 24,
+              maxWidth: 380,
+              width: "100%",
+            }}
             onClick={(e) => e.stopPropagation()}
             role="dialog"
-            aria-labelledby="delete-modal-title"
           >
-            <h2 id="delete-modal-title" className="text-base font-semibold" style={{ color: NAVY }}>
+            <h2 style={{ fontSize: 16, fontWeight: 600, color: WHITE, marginBottom: 12 }}>
               Delete this case?
             </h2>
-            <p className="text-sm leading-relaxed" style={{ color: "#475569" }}>
-              Are you sure you want to delete this case? This will permanently delete your case assessment and all associated documents. This cannot be undone.
+            <p style={{ fontSize: 14, color: MUTED, lineHeight: 1.6, marginBottom: 20 }}>
+              This will permanently delete your case assessment and all associated documents. This cannot be undone.
             </p>
-            <div className="flex gap-3 justify-end">
+            <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
               <button
                 type="button"
                 onClick={() => setDeleteConfirmId(null)}
                 disabled={deleteLoading}
-                className="rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer disabled:opacity-60"
-                style={{ background: "transparent", color: NAVY, border: "1px solid #E2E8F0" }}
+                style={{
+                  borderRadius: 8,
+                  padding: "8px 16px",
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  background: "transparent",
+                  color: MUTED,
+                  border: `1px solid ${BORDER}`,
+                }}
               >
                 Cancel
               </button>
@@ -284,11 +317,19 @@ export function CaseAssessmentsClient({ cases: initialCases }: { cases: Case[] }
                 type="button"
                 onClick={handleDeleteConfirmed}
                 disabled={deleteLoading}
-                className="rounded-lg px-4 py-2.5 text-sm font-semibold cursor-pointer disabled:opacity-60 inline-flex items-center gap-2"
-                style={{ background: "#DC2626", color: "#ffffff", border: "none" }}
+                style={{
+                  borderRadius: 8,
+                  padding: "8px 16px",
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  background: "#C8392B",
+                  color: WHITE,
+                  border: "none",
+                  opacity: deleteLoading ? 0.6 : 1,
+                }}
               >
-                {deleteLoading && <Spinner />}
-                Delete permanently
+                {deleteLoading ? "Deleting…" : "Delete permanently"}
               </button>
             </div>
           </div>
@@ -297,188 +338,3 @@ export function CaseAssessmentsClient({ cases: initialCases }: { cases: Case[] }
     </main>
   );
 }
-
-function AssessmentModal({
-  caseRecord,
-  onClose,
-}: {
-  caseRecord: Case;
-  onClose: () => void;
-}) {
-  const sections = useMemo(
-    () =>
-      buildAssessmentSections(
-        caseRecord.case_assessment,
-        caseRecord.intake_text,
-        caseRecord.province
-      ),
-    [caseRecord]
-  );
-
-  const title = generateCaseTitle(caseRecord);
-
-  function handleDownloadPdf() {
-    downloadAssessmentPdf({
-      assessment: caseRecord.case_assessment,
-      intake: caseRecord.intake_text,
-      province: caseRecord.province,
-      filename: `ruled-assessment-${caseRecord.id.slice(0, 8)}.pdf`,
-    });
-  }
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:px-4 sm:py-6"
-      style={{ background: "rgba(15, 23, 42, 0.55)" }}
-      onClick={onClose}
-      role="presentation"
-    >
-      <div
-        className="w-full sm:max-w-3xl rounded-t-2xl sm:rounded-xl overflow-hidden max-h-[92dvh] flex flex-col shadow-2xl"
-        style={{ background: "#ffffff" }}
-        onClick={(e) => e.stopPropagation()}
-        role="dialog"
-        aria-labelledby="assessment-modal-title"
-      >
-        <div
-          className="px-5 sm:px-6 py-4 flex items-center justify-between gap-4 shrink-0"
-          style={{ background: NAVY }}
-        >
-          <div className="min-w-0 flex flex-col gap-0.5">
-            <h2
-              id="assessment-modal-title"
-              className="text-base sm:text-lg font-semibold text-white tracking-tight"
-            >
-              Your Case Assessment
-            </h2>
-            <p className="text-xs text-white/75 truncate">{title}</p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="shrink-0 min-h-10 min-w-10 rounded-lg flex items-center justify-center text-sm font-medium cursor-pointer transition-opacity hover:opacity-80"
-            style={{ color: "#ffffff", border: "1px solid rgba(255,255,255,0.25)" }}
-            aria-label="Close"
-          >
-            Close
-          </button>
-        </div>
-
-        <div className="overflow-y-auto flex-1 min-h-0 px-5 sm:px-6 py-6 bg-white">
-          <div className="flex flex-col">
-            {sections.map((section, index) => (
-              <article
-                key={section.title}
-                className="py-5 first:pt-0 last:pb-0"
-                style={
-                  index < sections.length - 1
-                    ? { borderBottom: `1px solid ${SECTION_BORDER}` }
-                    : undefined
-                }
-              >
-                <h3
-                  className="text-sm font-semibold tracking-tight mb-3"
-                  style={{
-                    color: NAVY,
-                    fontFamily: "Georgia, 'Times New Roman', serif",
-                  }}
-                >
-                  {section.title}
-                </h3>
-                <AssessmentSectionBody content={section.content} />
-              </article>
-            ))}
-          </div>
-        </div>
-
-        <div
-          className="shrink-0 px-5 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t bg-white"
-          style={{ borderColor: SECTION_BORDER }}
-        >
-          <p className="text-xs" style={{ color: "#64748B" }}>
-            {caseRecord.province}
-            <span className="mx-2" aria-hidden>
-              ·
-            </span>
-            Ruled provides legal information, not legal advice.
-          </p>
-          <button
-            type="button"
-            onClick={handleDownloadPdf}
-            className="w-full sm:w-auto rounded-full px-6 py-3 min-h-11 text-sm font-semibold cursor-pointer shrink-0"
-            style={dash.primaryBtn}
-          >
-            Download PDF
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function AssessmentSectionBody({ content }: { content: string }) {
-  const paragraphs = content
-    .replace(/\r\n/g, "\n")
-    .split(/\n\n+/)
-    .map((p) => p.trim())
-    .filter(Boolean);
-
-  return (
-    <div className="flex flex-col gap-3">
-      {paragraphs.map((para, i) => (
-        <p
-          key={i}
-          className="text-sm leading-relaxed whitespace-pre-wrap break-words"
-          style={{ color: BODY_TEXT }}
-        >
-          {para.split("\n").map((line, j, arr) => (
-            <span key={j}>
-              {line}
-              {j < arr.length - 1 && <br />}
-            </span>
-          ))}
-        </p>
-      ))}
-    </div>
-  );
-}
-
-function Pipeline({ currentIndex }: { currentIndex: number }) {
-  const steps = [
-    "Case Assessment",
-    "Demand Letter Sent",
-    "Filed in Court",
-    "Hearing Scheduled",
-    "Resolved",
-  ];
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-2">
-        {steps.map((s, i) => {
-          const active = i <= currentIndex;
-          return (
-            <div key={s} className="flex items-center flex-1 min-w-0">
-              <div
-                className="w-2.5 h-2.5 rounded-full shrink-0"
-                style={{ background: active ? dash.pipelineActive : dash.trackMuted }}
-                title={s}
-              />
-              {i < steps.length - 1 && (
-                <div
-                  className="h-0.5 flex-1 mx-2"
-                  style={{
-                    background: active ? dash.pipelineConnector : dash.trackMuted,
-                  }}
-                />
-              )}
-            </div>
-          );
-        })}
-      </div>
-      <p className="text-xs" style={{ color: dash.mainMuted }}>
-        {steps[Math.min(currentIndex, steps.length - 1)]}
-      </p>
-    </div>
-  );
-}
-

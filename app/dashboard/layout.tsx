@@ -34,6 +34,7 @@ export default async function DashboardLayout({
       user={{
         email: user.email ?? null,
         firstName,
+        lastName,
         initials,
       }}
     >

@@ -51,7 +51,7 @@ export function extractClaimAmount(
   return null;
 }
 
-function inferDisputeType(intake: string): string {
+export function inferDisputeType(intake: string): string {
   const lower = intake.toLowerCase();
   if (/contractor|renovation|trades|construction|plumber|electrician/.test(lower)) {
     return "Contractor dispute";
