@@ -969,7 +969,7 @@ export default function Home() {
             <div style={{ position: "relative" }}>
               <video
                 ref={videoRef}
-                src="/brand/founder-video.mp4"
+                src="/brand/founder-video.mp4.mp4"
                 muted
                 playsInline
                 loop
