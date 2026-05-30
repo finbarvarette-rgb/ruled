@@ -111,6 +111,7 @@ export default function Home() {
   const scoreCircleRef = useRef<SVGCircleElement>(null);
   const scoreNumRef = useRef<HTMLDivElement>(null);
   const scoreSectionRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const router = useRouter();
 
   // Fade-up observer for general sections
@@ -202,6 +203,24 @@ export default function Home() {
       { threshold: 0.3 }
     );
     observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  // Video autoplay on scroll into view
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
+      },
+      { threshold: 0.4 }
+    );
+    observer.observe(video);
     return () => observer.disconnect();
   }, []);
 
@@ -949,9 +968,12 @@ export default function Home() {
             {/* Founder video */}
             <div style={{ position: "relative" }}>
               <video
+                ref={videoRef}
                 src="/brand/founder-video.mp4"
-                controls
+                muted
                 playsInline
+                loop
+                controls
                 style={{
                   width: "100%",
                   aspectRatio: "3/4",
