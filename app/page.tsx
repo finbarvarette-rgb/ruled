@@ -252,7 +252,7 @@ export default function Home() {
               <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "28px" }}>
                 <span style={{ display: "block", width: "32px", height: "1px", background: GOLD }} />
                 <span style={{ fontSize: "11px", fontWeight: 600, letterSpacing: "3px", textTransform: "uppercase", color: GOLD }}>
-                  Canadian Small Claims Platform
+                  Canadian Small Claims Assistance Platform
                 </span>
               </div>
 
@@ -279,7 +279,7 @@ export default function Home() {
                 fontSize: "17px", fontWeight: 300, color: "rgba(255,255,255,0.65)",
                 lineHeight: 1.65, maxWidth: "520px", marginBottom: "44px",
               }}>
-                We give you the tools and confidence to get your money back — without paying $400 an hour for a lawyer. AI-powered case assessment, demand letters, and full court prep. Flat fee.
+                We give you <strong style={{ fontWeight: 700, color: "#ffffff" }}>the tools and confidence to get your money back</strong> — without paying $400 an hour for a lawyer. AI-powered case assessment, demand letters, and full court prep. Flat fee.
               </p>
 
               {/* CTAs */}
@@ -510,7 +510,7 @@ export default function Home() {
                     (e.currentTarget as HTMLElement).style.background = "transparent";
                   }}
                 >
-                  <div style={{ fontFamily: PF, fontSize: "72px", fontWeight: 900, color: "rgba(212,168,83,0.12)", lineHeight: 1, marginBottom: "24px", letterSpacing: "-3px" }}>
+                  <div style={{ fontFamily: PF, fontSize: "72px", fontWeight: 900, color: "rgba(212,168,83,0.15)", lineHeight: 1, marginBottom: "24px", letterSpacing: "-3px" }}>
                     {card.num}
                   </div>
                   <h3 style={{ fontFamily: PF, fontSize: "22px", fontWeight: 700, marginBottom: "14px", color: "#ffffff" }}>
@@ -534,197 +534,199 @@ export default function Home() {
           {/* Gold glow top right */}
           <div style={{ position: "absolute", top: "-200px", right: "-200px", width: "600px", height: "600px", background: "radial-gradient(circle, rgba(212,168,83,0.06) 0%, transparent 70%)", pointerEvents: "none" }} />
 
-          <div style={{ maxWidth: "1100px", margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "center", position: "relative" }}>
+          <div style={{ maxWidth: "1100px", margin: "0 auto", position: "relative" }}>
 
-            {/* Left */}
-            <div data-fade style={fade(0)}>
-              <SectionEyebrow label="Free Assessment" align="left" />
-              <h2 style={{ fontFamily: PF, fontSize: "clamp(32px,3.5vw,46px)", fontWeight: 700, marginBottom: "20px", lineHeight: 1.2 }}>
-                See your case strength instantly.
-              </h2>
-              <p style={{ color: MUTED, fontSize: "15px", lineHeight: 1.75, marginBottom: "32px" }}>
-                Know exactly where you stand before spending a cent. Our AI reads your situation, weighs your evidence, and gives you a real score — not vague advice.
-              </p>
-              <ul style={{ listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: "14px", marginBottom: "36px" }}>
-                {[
-                  "Province-specific legal analysis",
-                  "Strengths, weaknesses, and realistic outcome",
-                  "Clear next steps with no legal jargon",
-                  "Completely free — no account required to start",
-                ].map((item) => (
-                  <li key={item} style={{ display: "flex", gap: "14px", alignItems: "flex-start", fontSize: "14px", color: "rgba(255,255,255,0.75)" }}>
-                    <span style={{ color: GOLD, marginTop: "2px", flexShrink: 0 }}>—</span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href="/onboarding"
-                style={{
-                  background: GOLD, color: NAVY, fontSize: "13px", fontWeight: 700,
-                  letterSpacing: "1.8px", textTransform: "uppercase",
-                  padding: "16px 36px", borderRadius: "6px", textDecoration: "none",
-                  display: "inline-flex", alignItems: "center", gap: "10px",
-                  transition: "transform 0.25s, box-shadow 0.25s, background 0.2s",
-                }}
-                onMouseEnter={(e) => {
-                  const el = e.currentTarget as HTMLElement;
-                  el.style.transform = "translateY(-3px)";
-                  el.style.boxShadow = "0 12px 32px rgba(212,168,83,0.35)";
-                  el.style.background = GOLD_LIGHT;
-                }}
-                onMouseLeave={(e) => {
-                  const el = e.currentTarget as HTMLElement;
-                  el.style.transform = "";
-                  el.style.boxShadow = "";
-                  el.style.background = GOLD;
-                }}
-              >
-                Start My Free Assessment
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-              </Link>
-            </div>
+            {/* Top row — text left, score card right */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "64px", alignItems: "start", marginBottom: "32px" }}>
 
-            {/* Right — score + questionnaire */}
-            <div data-fade data-delay="150" style={{ ...fade(150), display: "flex", flexDirection: "column", gap: "16px" }} ref={scoreSectionRef}>
+              {/* Left — eyebrow, title, desc, bullets, CTA */}
+              <div data-fade style={fade(0)}>
+                <SectionEyebrow label="Free Assessment" align="left" />
+                <h2 style={{ fontFamily: PF, fontSize: "clamp(32px,3.5vw,46px)", fontWeight: 700, marginBottom: "20px", lineHeight: 1.2 }}>
+                  See your case strength instantly.
+                </h2>
+                <p style={{ color: MUTED, fontSize: "15px", lineHeight: 1.75, marginBottom: "32px" }}>
+                  Know exactly where you stand before spending a cent. Our AI reads your situation, weighs your evidence, and gives you a real score — not vague advice.
+                </p>
+                <ul style={{ listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: "14px", marginBottom: "36px" }}>
+                  {[
+                    "Province-specific legal analysis",
+                    "Strengths, weaknesses, and realistic outcome",
+                    "Clear next steps with no legal jargon",
+                    "Completely free — no account required to start",
+                  ].map((item) => (
+                    <li key={item} style={{ display: "flex", gap: "14px", alignItems: "flex-start", fontSize: "14px", color: "rgba(255,255,255,0.75)" }}>
+                      <span style={{ color: GOLD, marginTop: "2px", flexShrink: 0 }}>—</span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  href="/onboarding"
+                  style={{
+                    background: GOLD, color: NAVY, fontSize: "13px", fontWeight: 700,
+                    letterSpacing: "1.8px", textTransform: "uppercase",
+                    padding: "16px 36px", borderRadius: "6px", textDecoration: "none",
+                    display: "inline-flex", alignItems: "center", gap: "10px",
+                    transition: "transform 0.25s, box-shadow 0.25s, background 0.2s",
+                  }}
+                  onMouseEnter={(e) => {
+                    const el = e.currentTarget as HTMLElement;
+                    el.style.transform = "translateY(-3px)";
+                    el.style.boxShadow = "0 12px 32px rgba(212,168,83,0.35)";
+                    el.style.background = GOLD_LIGHT;
+                  }}
+                  onMouseLeave={(e) => {
+                    const el = e.currentTarget as HTMLElement;
+                    el.style.transform = "";
+                    el.style.boxShadow = "";
+                    el.style.background = GOLD;
+                  }}
+                >
+                  Start My Free Assessment
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </Link>
+              </div>
 
-              {/* Score card */}
-              <div style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${BORDER}`, borderRadius: "16px", padding: "40px", position: "relative", overflow: "hidden" }}>
-                {/* Top accent */}
-                <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "2px", background: `linear-gradient(90deg, transparent, ${GOLD}, transparent)` }} />
+              {/* Right — score card only */}
+              <div data-fade data-delay="150" style={fade(150)} ref={scoreSectionRef}>
+                <div style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${BORDER}`, borderRadius: "16px", padding: "40px", position: "relative", overflow: "hidden" }}>
+                  {/* Top accent */}
+                  <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "2px", background: `linear-gradient(90deg, transparent, ${GOLD}, transparent)` }} />
 
-                {/* Score meter */}
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "32px" }}>
-                  <div style={{ position: "relative", width: "160px", height: "160px", marginBottom: "16px" }}>
-                    <svg width="160" height="160" viewBox="0 0 160 160" style={{ transform: "rotate(-90deg)" }}>
-                      <circle cx="80" cy="80" r="65" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="8" />
-                      <circle
-                        ref={scoreCircleRef}
-                        cx="80" cy="80" r="65"
-                        fill="none"
-                        stroke={GREEN}
-                        strokeWidth="8"
-                        strokeLinecap="round"
-                        strokeDasharray="408"
-                        strokeDashoffset="408"
-                        style={{ filter: "drop-shadow(0 0 8px rgba(16,185,129,0.5))" }}
-                      />
-                    </svg>
-                    <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", textAlign: "center" }}>
-                      <div ref={scoreNumRef} style={{ fontFamily: PF, fontSize: "42px", fontWeight: 900, color: "#ffffff", lineHeight: 1 }}>
-                        0
-                      </div>
-                      <div style={{ fontSize: "10px", letterSpacing: "1.5px", textTransform: "uppercase", color: MUTED, marginTop: "4px" }}>
-                        Case Strength
+                  {/* Score meter */}
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: "32px" }}>
+                    <div style={{ position: "relative", width: "160px", height: "160px", marginBottom: "16px" }}>
+                      <svg width="160" height="160" viewBox="0 0 160 160" style={{ transform: "rotate(-90deg)" }}>
+                        <circle cx="80" cy="80" r="65" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="8" />
+                        <circle
+                          ref={scoreCircleRef}
+                          cx="80" cy="80" r="65"
+                          fill="none"
+                          stroke={GREEN}
+                          strokeWidth="8"
+                          strokeLinecap="round"
+                          strokeDasharray="408"
+                          strokeDashoffset="408"
+                          style={{ filter: "drop-shadow(0 0 8px rgba(16,185,129,0.5))" }}
+                        />
+                      </svg>
+                      <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", textAlign: "center" }}>
+                        <div ref={scoreNumRef} style={{ fontFamily: PF, fontSize: "42px", fontWeight: 900, color: "#ffffff", lineHeight: 1 }}>
+                          0
+                        </div>
+                        <div style={{ fontSize: "10px", letterSpacing: "1.5px", textTransform: "uppercase", color: MUTED, marginTop: "4px" }}>
+                          Case Strength
+                        </div>
                       </div>
                     </div>
+                    <div style={{ fontSize: "14px", color: GREEN, fontWeight: 600, letterSpacing: "1px", textTransform: "uppercase" }}>
+                      Strong Case
+                    </div>
                   </div>
-                  <div style={{ fontSize: "14px", color: GREEN, fontWeight: 600, letterSpacing: "1px", textTransform: "uppercase" }}>
-                    Strong Case
-                  </div>
-                </div>
 
-                {/* Assessment preview */}
-                <div style={{ borderTop: `1px solid ${BORDER}`, paddingTop: "24px" }}>
-                  <div style={{ fontSize: "10px", letterSpacing: "2px", textTransform: "uppercase", color: GOLD, marginBottom: "12px" }}>
-                    Summary
-                  </div>
-                  <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.7)", lineHeight: 1.6, marginBottom: "10px" }}>
-                    You hired a contractor to repair and repaint your deck for $2,400. You paid a $1,200 deposit. They abandoned the job without explanation and stopped responding...
-                  </p>
-                  <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.7)", lineHeight: 1.6, filter: "blur(4px)", userSelect: "none", pointerEvents: "none" }}>
-                    Alberta law requires contractors to complete work as agreed. Your evidence of payment combined with documented abandonment gives you a strong foundation. The written estimate strengthens your position significantly...
-                  </p>
-                  <div style={{ marginTop: "20px", textAlign: "center" }}>
-                    <p style={{ fontSize: "12px", color: MUTED, marginBottom: "12px" }}>
-                      Complete your free assessment to unlock your full analysis
+                  {/* Assessment preview */}
+                  <div style={{ borderTop: `1px solid ${BORDER}`, paddingTop: "24px" }}>
+                    <div style={{ fontSize: "10px", letterSpacing: "2px", textTransform: "uppercase", color: GOLD, marginBottom: "12px" }}>
+                      Summary
+                    </div>
+                    <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.7)", lineHeight: 1.6, marginBottom: "10px" }}>
+                      You hired a contractor to repair and repaint your deck for $2,400. You paid a $1,200 deposit. They abandoned the job without explanation and stopped responding...
                     </p>
-                    <Link
-                      href="/onboarding"
-                      style={{
-                        background: GOLD, color: NAVY, fontSize: "11px", fontWeight: 700,
-                        letterSpacing: "1.5px", textTransform: "uppercase",
-                        padding: "12px 24px", borderRadius: "6px", textDecoration: "none",
-                        display: "inline-flex", alignItems: "center", gap: "8px",
-                        transition: "transform 0.2s, background 0.2s",
-                      }}
-                      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = GOLD_LIGHT; }}
-                      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = GOLD; }}
-                    >
-                      Get My Full Assessment Free
-                    </Link>
+                    <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.7)", lineHeight: 1.6, filter: "blur(4px)", userSelect: "none", pointerEvents: "none" }}>
+                      Alberta law requires contractors to complete work as agreed. Your evidence of payment combined with documented abandonment gives you a strong foundation. The written estimate strengthens your position significantly...
+                    </p>
+                    <div style={{ marginTop: "20px", textAlign: "center" }}>
+                      <p style={{ fontSize: "12px", color: MUTED, marginBottom: "12px" }}>
+                        Complete your free assessment to unlock your full analysis
+                      </p>
+                      <Link
+                        href="/onboarding"
+                        style={{
+                          background: GOLD, color: NAVY, fontSize: "11px", fontWeight: 700,
+                          letterSpacing: "1.5px", textTransform: "uppercase",
+                          padding: "12px 24px", borderRadius: "6px", textDecoration: "none",
+                          display: "inline-flex", alignItems: "center", gap: "8px",
+                          transition: "transform 0.2s, background 0.2s",
+                        }}
+                        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = GOLD_LIGHT; }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = GOLD; }}
+                      >
+                        Get My Full Assessment Free
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>
+            </div>
 
-              {/* Questionnaire */}
-              <div style={{ background: "rgba(255,255,255,0.02)", border: `1px solid ${BORDER}`, padding: "28px", borderRadius: "8px" }}>
-                <div style={{ fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase", color: GOLD, marginBottom: "20px" }}>
-                  Try it now — it is free
+            {/* Bottom row — full-width questionnaire form */}
+            <div data-fade data-delay="200" style={{ ...fade(200), background: "rgba(255,255,255,0.02)", border: `1px solid ${BORDER}`, padding: "32px", borderRadius: "8px" }}>
+              <div style={{ fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase", color: GOLD, marginBottom: "20px" }}>
+                Try it now — it is free
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto auto", gap: "16px", alignItems: "end" }}>
+                <div>
+                  <label style={{ display: "block", fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase", color: GOLD, marginBottom: "8px" }}>
+                    What happened in your own words
+                  </label>
+                  <textarea
+                    rows={2}
+                    placeholder="e.g. A contractor took my deposit and never completed the work..."
+                    style={{
+                      width: "100%", background: "rgba(255,255,255,0.05)", border: `1px solid ${BORDER}`,
+                      borderRadius: "8px", padding: "12px 16px", color: "#ffffff",
+                      fontFamily: "inherit", fontSize: "14px", resize: "none", outline: "none",
+                      transition: "border-color 0.2s",
+                    }}
+                    onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(212,168,83,0.5)")}
+                    onBlur={(e) => (e.currentTarget.style.borderColor = BORDER)}
+                  />
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                  <div>
-                    <label style={{ display: "block", fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase", color: GOLD, marginBottom: "8px" }}>
-                      What happened in your own words
-                    </label>
-                    <textarea
-                      rows={3}
-                      placeholder="e.g. A contractor took my deposit and never completed the work..."
-                      style={{
-                        width: "100%", background: "rgba(255,255,255,0.05)", border: `1px solid ${BORDER}`,
-                        borderRadius: "8px", padding: "14px 16px", color: "#ffffff",
-                        fontFamily: "inherit", fontSize: "14px", resize: "none", outline: "none",
-                        transition: "border-color 0.2s",
-                      }}
-                      onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(212,168,83,0.5)")}
-                      onBlur={(e) => (e.currentTarget.style.borderColor = BORDER)}
-                    />
-                  </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                    <div>
-                      <label style={{ display: "block", fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase", color: GOLD, marginBottom: "8px" }}>
-                        Amount owed
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="e.g. $3,500"
-                        style={{
-                          width: "100%", background: "rgba(255,255,255,0.05)", border: `1px solid ${BORDER}`,
-                          borderRadius: "8px", padding: "14px 16px", color: "#ffffff",
-                          fontFamily: "inherit", fontSize: "14px", outline: "none",
-                          transition: "border-color 0.2s",
-                        }}
-                        onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(212,168,83,0.5)")}
-                        onBlur={(e) => (e.currentTarget.style.borderColor = BORDER)}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ display: "block", fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase", color: GOLD, marginBottom: "8px" }}>
-                        Province
-                      </label>
-                      <select
-                        style={{
-                          width: "100%", background: "rgba(255,255,255,0.05)", border: `1px solid ${BORDER}`,
-                          borderRadius: "8px", padding: "14px 16px", color: "#ffffff",
-                          fontFamily: "inherit", fontSize: "14px", outline: "none",
-                          appearance: "none", cursor: "pointer",
-                        }}
-                      >
-                        <option value="" style={{ background: "#111827" }}>Select...</option>
-                        {PROVINCES.map((p) => (
-                          <option key={p} value={p} style={{ background: "#111827" }}>{p}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
+                <div style={{ minWidth: "160px" }}>
+                  <label style={{ display: "block", fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase", color: GOLD, marginBottom: "8px" }}>
+                    Amount owed
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. $3,500"
+                    style={{
+                      width: "100%", background: "rgba(255,255,255,0.05)", border: `1px solid ${BORDER}`,
+                      borderRadius: "8px", padding: "12px 16px", color: "#ffffff",
+                      fontFamily: "inherit", fontSize: "14px", outline: "none",
+                      transition: "border-color 0.2s",
+                    }}
+                    onFocus={(e) => (e.currentTarget.style.borderColor = "rgba(212,168,83,0.5)")}
+                    onBlur={(e) => (e.currentTarget.style.borderColor = BORDER)}
+                  />
+                </div>
+                <div style={{ minWidth: "180px" }}>
+                  <label style={{ display: "block", fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase", color: GOLD, marginBottom: "8px" }}>
+                    Province
+                  </label>
+                  <select
+                    style={{
+                      width: "100%", background: "rgba(255,255,255,0.05)", border: `1px solid ${BORDER}`,
+                      borderRadius: "8px", padding: "12px 16px", color: "#ffffff",
+                      fontFamily: "inherit", fontSize: "14px", outline: "none",
+                      appearance: "none", cursor: "pointer",
+                    }}
+                  >
+                    <option value="" style={{ background: "#111827" }}>Select...</option>
+                    {PROVINCES.map((p) => (
+                      <option key={p} value={p} style={{ background: "#111827" }}>{p}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
                   <button
                     type="button"
                     onClick={() => router.push("/onboarding")}
                     style={{
                       background: GOLD, color: NAVY, border: "none", borderRadius: "8px",
-                      padding: "16px", fontFamily: "inherit", fontSize: "13px", fontWeight: 700,
+                      padding: "12px 24px", fontFamily: "inherit", fontSize: "13px", fontWeight: 700,
                       letterSpacing: "1.5px", textTransform: "uppercase", cursor: "pointer",
-                      width: "100%", transition: "transform 0.2s, box-shadow 0.2s",
+                      whiteSpace: "nowrap", transition: "transform 0.2s, box-shadow 0.2s",
                     }}
                     onMouseEnter={(e) => {
                       (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)";
@@ -737,12 +739,12 @@ export default function Home() {
                   >
                     Get My Case Strength Score →
                   </button>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", fontSize: "11px", color: MUTED }}>
-                    <span style={{ flex: 1, height: "1px", background: BORDER }} />
-                    Free · No account required · Results in 60 seconds
-                    <span style={{ flex: 1, height: "1px", background: BORDER }} />
-                  </div>
                 </div>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", fontSize: "11px", color: MUTED, marginTop: "16px" }}>
+                <span style={{ flex: 1, height: "1px", background: BORDER }} />
+                Free · No account required · Results in 60 seconds
+                <span style={{ flex: 1, height: "1px", background: BORDER }} />
               </div>
             </div>
           </div>
@@ -884,6 +886,8 @@ export default function Home() {
                     background: card.featured ? "rgba(212,168,83,0.05)" : "transparent",
                     position: "relative",
                     transition: "border-color 0.3s",
+                    display: "flex",
+                    flexDirection: "column",
                   }}
                   onMouseEnter={(e) => { if (!card.featured) (e.currentTarget as HTMLElement).style.borderColor = "rgba(212,168,83,0.3)"; }}
                   onMouseLeave={(e) => { if (!card.featured) (e.currentTarget as HTMLElement).style.borderColor = BORDER; }}
@@ -906,7 +910,7 @@ export default function Home() {
                   <p style={{ fontSize: "13px", color: MUTED, marginBottom: "28px", lineHeight: 1.5 }}>
                     {card.desc}
                   </p>
-                  <ul style={{ listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: "10px", marginBottom: "32px" }}>
+                  <ul style={{ listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: "10px", marginBottom: "32px", flex: 1 }}>
                     {card.features.map((f) => (
                       <li key={f} style={{ fontSize: "13px", color: "rgba(255,255,255,0.7)", display: "flex", alignItems: "flex-start", gap: "10px", lineHeight: 1.4 }}>
                         <span style={{ color: GOLD, flexShrink: 0, fontSize: "12px", marginTop: "1px" }}>—</span>
@@ -917,7 +921,7 @@ export default function Home() {
                   <Link
                     href="/onboarding"
                     style={{
-                      display: "block", textAlign: "center", padding: "13px",
+                      display: "block", textAlign: "center", padding: "13px", marginTop: "auto",
                       borderRadius: "4px", fontSize: "12px", fontWeight: 600,
                       letterSpacing: "1.5px", textTransform: "uppercase", textDecoration: "none",
                       transition: "transform 0.2s, box-shadow 0.2s",
@@ -942,21 +946,23 @@ export default function Home() {
             data-fade
             style={{ ...fade(0), maxWidth: "1000px", margin: "0 auto", display: "grid", gridTemplateColumns: "380px 1fr", gap: "80px", alignItems: "center" }}
           >
-            {/* Photo placeholder */}
-            <div style={{
-              aspectRatio: "3/4", background: "rgba(255,255,255,0.04)",
-              border: `1px solid ${BORDER}`, borderRadius: "4px",
-              display: "flex", alignItems: "flex-end", justifyContent: "center",
-              padding: "20px", position: "relative", overflow: "hidden",
-            }}>
-              <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", opacity: 0.15 }}>
-                <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.5">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                  <circle cx="12" cy="7" r="4"/>
-                </svg>
-              </div>
-              <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "40%", background: "linear-gradient(to top, rgba(10,15,30,0.8), transparent)" }} />
-              <div style={{ position: "relative", textAlign: "center" }}>
+            {/* Founder video */}
+            <div style={{ position: "relative" }}>
+              <video
+                src="/brand/founder-video.mp4"
+                controls
+                playsInline
+                style={{
+                  width: "100%",
+                  aspectRatio: "3/4",
+                  objectFit: "cover",
+                  display: "block",
+                  border: `1px solid ${BORDER}`,
+                  borderRadius: "4px",
+                  background: "rgba(255,255,255,0.04)",
+                }}
+              />
+              <div style={{ textAlign: "center", marginTop: "12px" }}>
                 <div style={{ fontFamily: PF, fontSize: "18px", fontWeight: 700, color: "#ffffff" }}>Finn Varette</div>
                 <div style={{ fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase", color: GOLD, marginTop: "4px" }}>Founder</div>
               </div>
