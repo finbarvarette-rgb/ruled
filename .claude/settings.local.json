@@ -42,7 +42,11 @@
       "PowerShell(Start-Process explorer.exe \"C:\\\\Users\\\\Finn\\\\ruled\")",
       "Bash(Test-Path *)",
       "Bash(echo \"PID: $!\")",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3333/)"
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3333/)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Finn\\\\ruled\" -Recurse -Directory -Name)",
+      "Bash(Select-String \"demand-letter|court-prep\")",
+      "Bash(mkdir -p \"C:/Users/Finn/ruled/app/dashboard/cases/[id]/demand-letter\")",
+      "Bash(mkdir -p \"C:/Users/Finn/ruled/app/dashboard/cases/[id]/court-prep\")"
     ]
   }
 }

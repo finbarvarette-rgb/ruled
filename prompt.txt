@@ -1,57 +1,241 @@
-Fix these specific issues. Touch only the files needed 
-for each fix.
+This is Session B - building the full document viewer 
+experience inside the dashboard. Use the file 
+ruled-document-viewer-mockup.html as the visual 
+reference for everything. Also reference 
+ruled-dashboard-mockup.html for the overall dashboard 
+design system.
 
-1. LANDING PAGE - Three steps section (app/page.tsx):
-   The 01, 02, 03 ghost numbers are too faint. Change 
-   their color to rgba(212,168,83,0.2) so they are 
-   subtly visible.
+COLOR PALETTE (same as rest of dashboard):
+--navy: #0A0F1E
+--navy2: #0D1220  
+--card: #151C2E
+--card2: #1A2236
+--gold: #D4A853
+--green: #10B981
+--amber: #F59E0B
+--red: #C8392B
+--border: rgba(255,255,255,0.07)
+--border-gold: rgba(212,168,83,0.25)
+--muted: rgba(255,255,255,0.5)
 
-2. LANDING PAGE - Remove the "TRY IT NOW" mini form 
-   card from the case strength preview section entirely. 
-   Keep the score card and blurred summary card. Just 
-   remove the second card with the textarea, amount, 
-   province inputs and submit button.
+PART 1 — CASE DETAIL PAGE
+Update app/dashboard/cases/[id]/page.tsx
 
-3. DASHBOARD - Remove the red/colored bar that appears 
-   on the left side of the dashboard layout when 
-   scrolling. Check the sidebar or layout wrapper for 
-   any border-left or colored stripe and remove it.
+The case detail page should show these sections in order:
 
-4. DASHBOARD - The FV avatar / user name in the bottom 
-   left of the sidebar should link to /dashboard/account, 
-   not sign the user out. Fix the onClick handler.
+1. Back button "← Back to My Cases" linking to 
+   /dashboard/case-assessments
 
-5. ONBOARDING - Rebrand app/onboarding/page.tsx to match 
-   the dark gold design system:
-   Background: #0A0F1E
-   Cards/containers: #151C2E with border rgba(255,255,255,0.07)
-   Headings: Playfair Display, white
-   Step indicator: gold #D4A853
-   Input fields: dark background #0D1220, white text, 
-   gold focus border
-   Primary buttons: gold #D4A853 background, navy text
-   Secondary/back buttons: transparent with gold border
-   Keep all existing functionality and routing exactly 
-   as is, only change visual styling.
+2. Case header:
+   - Eyebrow: dispute type + province in gold uppercase
+   - Title: defendant name in Playfair Display h1
+   - Meta: amount at stake, date opened, case strength score
+   - Stage badge top right
 
-6. LOGIN PAGE - Rebrand app/login/page.tsx with same 
-   dark gold design system as above. Background #0A0F1E, 
-   card #151C2E, Playfair Display heading, gold button, 
-   dark inputs. Keep all auth functionality.
+3. Stage pipeline — 3 steps:
+   Step 1: Assessment (always done, green checkmark)
+   Step 2: Demand Letter (active if purchased, locked if not)
+   Step 3: Court Prep (active if case pack purchased, locked if not)
+   Clicking Step 1 scrolls to assessment section
+   Clicking Step 2 if purchased navigates to 
+   /dashboard/cases/[id]/demand-letter
+   Clicking Step 3 if purchased navigates to 
+   /dashboard/cases/[id]/court-prep
 
-7. NEW CASE button - currently links to /onboarding but 
-   shows "Step 1 of 3" with old layout. Check if there 
-   is a separate route causing this. The button should 
-   go to /onboarding and show the new 4-step questionnaire 
-   we built. If /onboarding is correct and working, 
-   check why the step counter shows wrong.
+4. Two column row:
+   Left — Case Assessment card:
+   - "CASE ASSESSMENT" eyebrow in gold
+   - Strength badge (Strong/Moderate/Weak)
+   - Full assessment summary text from database
+   - "Download PDF" button at bottom
+   
+   Right — Your Evidence card:
+   - "YOUR EVIDENCE" eyebrow in gold  
+   - List of evidence types user confirmed in questionnaire
+     with green checkmarks
+   - Upload zone "Add more evidence" with dashed gold border
+   - Shows any uploaded files with filename and remove button
 
-8. CASE DETAIL - The "Back to all documents in your 
-   dashboard" link that appears inside documents should 
-   be removed or changed to "Back to My Cases" linking 
-   to /dashboard/case-assessments. The documents tab 
-   no longer exists.
+5. Unlock cards — two column:
+   
+   IF demand letter not purchased:
+     Left card (featured, gold border):
+       - "RECOMMENDED NEXT STEP" badge
+       - "Demand Letter" tier label
+       - "Send a demand letter first." title
+       - "40% of cases resolve right here." description
+       - $49 price in Playfair Display
+       - Feature list with gold dashes
+       - Gold "Get My Demand Letter" button linking to 
+         /api/checkout with product=demand_letter and 
+         caseId=[id]
+     Right card:
+       - "Full Case Pack" title
+       - $199 price
+       - Outlined gold button "Get Full Case Pack"
+   
+   IF demand letter purchased but no case pack:
+     Left card (green border):
+       - "PURCHASED" green badge
+       - "Your demand letter is ready." title
+       - Sent date and response deadline
+       - Days remaining in amber if under 7 days
+       - "Mark as Sent" gold button if not yet marked sent
+       - "View My Letter" green outlined button linking to
+         /dashboard/cases/[id]/demand-letter
+     Right card:
+       - "They haven't responded? Here's what's next."
+       - Full Case Pack upsell
+       - Gold buy button
+   
+   IF case pack purchased:
+     Show the 5-step court prep flow instead (see Part 2)
 
-Only touch app/page.tsx, app/onboarding/page.tsx, 
-app/login/page.tsx, and dashboard layout/sidebar files.
-Commit when done.
+PART 2 — DEMAND LETTER VIEWER
+Create app/dashboard/cases/[id]/demand-letter/page.tsx
+
+Layout: two column — left sidebar 280px, right the letter
+
+Left sidebar contains:
+- "Letter Details" card with: Status tag, Sent date, 
+  Deadline date (amber if approaching), Amount, Province
+- Action buttons:
+  "Download PDF" gold filled button
+  "Edit Letter" gold outlined button  
+  "Copy Text" ghost button
+- "What is a demand letter?" explainer card:
+  Dark gold-tinted background, explains what it is,
+  mentions 40% stat
+- "What's next?" card:
+  If deadline not passed: "Send it and wait"
+  If deadline passed: green "Get Full Case Pack" button
+
+Right side — the actual letter:
+- White background card with subtle shadow
+- Small toolbar at top: Edit mode toggle, Download button
+- Letter rendered in serif font (Georgia) with proper 
+  letter formatting:
+  - Date top right (editable)
+  - Sender name and address (editable)
+  - Recipient name and address (editable)
+  - RE: line bold
+  - Body paragraphs
+  - Signature block (editable)
+- Editable fields highlighted with gold background tint
+  and gold dashed underline
+- Hint text: "Click any highlighted field to edit"
+- Save changes button appears when edits are made
+- All content pulled from the case demand letter in 
+  the database
+
+PART 3 — COURT PREP EXPERIENCE  
+Create app/dashboard/cases/[id]/court-prep/page.tsx
+
+This page shows the 5-step sequential court prep flow.
+Read the case data and full case pack content from 
+the database.
+
+Show 5 step cards stacked vertically:
+
+Step 1 — Review demand letter
+Status: always done if case pack purchased
+Action link: "View Letter" → /dashboard/cases/[id]/demand-letter
+
+Step 2 — Confirm intent to file
+If not confirmed: show button "Yes, I want to file in court"
+  Clicking saves confirmed_filing=true to the case in Supabase
+If confirmed: show green checkmark, "Confirmed"
+
+Step 3 — File your claim
+Show filing instructions inline when expanded:
+- Province-specific courthouse name and address
+- Filing fee amount for their claim size
+- Download claim form button (downloads the How to File PDF)
+- "I've Filed My Claim" confirmation button
+  Clicking saves filed=true to the case in Supabase
+- Note: do not auto-mark this as filed, user must confirm
+
+Step 4 — Serve the defendant
+Show service instructions inline when Step 3 is confirmed:
+- Three methods: personal service, registered mail, email
+- Download Proof of Service form button
+- "I've Served the Defendant" confirmation button
+
+Step 5 — Prepare for your hearing
+Unlocks after Step 4. Shows 4 tabs:
+Tab 1 — Opening Script:
+  Pull the opening script from the case pack data in 
+  the database. Display in a styled script card.
+  Download button for this section.
+Tab 2 — Closing Script:
+  Same, pull from database.
+Tab 3 — Defence Arguments:
+  Pull anticipated defence arguments from database.
+  Each argument shown as an amber-titled card with 
+  the suggested response below it.
+Tab 4 — Day Of Checklist:
+  Static checklist of items to bring and do.
+  Checkboxes that save state to localStorage.
+  Items: printed documents x3, photo ID, scripts, 
+  arrive 30 min early, address judge as Your Honour,
+  speak clearly and wait your turn.
+
+PART 4 — PDF REBRAND
+Update lib/pdf-generator.ts to rebrand all PDFs:
+
+Every PDF must have:
+- Header: dark navy #0A0F1E background bar, full width,
+  "ruled.ca" in white on the left, document title on 
+  the right in gold
+- Body: white background, clean typography, generous 
+  spacing, no walls of text
+- Each section has a gold left border accent
+- Bullet points render as clean circles not symbols
+- Footer on every page: thin navy bar, 
+  "ruled.ca" left, "Legal information, not legal advice." 
+  center, page number right
+- Case name and date in a subtle grey subheader 
+  below the main header
+
+Apply this to all document types:
+- Case assessment PDF
+- Demand letter PDF  
+- How to file PDF
+- Hearing prep PDF
+- Full case pack PDF (combines all with a cover page)
+
+Cover page for full case pack:
+- Dark navy background full page
+- "ruled.ca" logo centered in Playfair Display large
+- "Full Case Pack" below in gold
+- Defendant name and case amount
+- Date prepared
+- "Prepared for [user first name]"
+- "Legal information, not legal advice." at bottom
+
+PART 5 — WIRING AND DATABASE
+
+Add these fields to the cases table in Supabase if 
+they don't exist:
+- demand_letter_sent (boolean, default false)
+- demand_letter_sent_date (timestamp)
+- filing_confirmed (boolean, default false)  
+- filing_confirmed_date (timestamp)
+- service_confirmed (boolean, default false)
+- hearing_date (date, nullable)
+
+Create API routes:
+- POST /api/cases/update-status — updates any of the 
+  above boolean fields for a case. Requires auth, 
+  validates user owns the case.
+
+IMPORTANT RULES:
+1. Do not touch app/page.tsx or Nav.tsx
+2. Do not break any existing auth or Stripe routes
+3. Mark all new pages as "use client" where needed
+4. All pages must read real data from Supabase
+5. The filing_confirmed and service_confirmed fields 
+   must only be set when user explicitly clicks the 
+   confirmation button — never auto-set
+6. Commit with message "Session B - document viewers, 
+   court prep experience, PDF rebrand"

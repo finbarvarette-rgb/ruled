@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ruled — Document Viewer Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0A0F1E;
+    --navy2: #0D1220;
+    --card: #151C2E;
+    --card2: #1A2236;
+    --gold: #D4A853;
+    --gold-light: #E8C47A;
+    --gold-dim: rgba(212,168,83,0.1);
+    --green: #10B981;
+    --amber: #F59E0B;
+    --red: #C8392B;
+    --white: #FFFFFF;
+    --muted: rgba(255,255,255,0.5);
+    --border: rgba(255,255,255,0.07);
+    --border-gold: rgba(212,168,83,0.25);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Inter',sans-serif; background:var(--navy); color:var(--white); }
+
+  /* LAYOUT */
+  .shell { display:flex; min-height:100vh; }
+  .sidebar {
+    width:220px; background:var(--navy2); border-right:1px solid var(--border);
+    display:flex; flex-direction:column; position:fixed; top:0; left:0; height:100vh;
+  }
+  .sidebar-logo { padding:24px 20px; border-bottom:1px solid var(--border); }
+  .sidebar-logo span { font-family:'Playfair Display',serif; font-size:20px; }
+  .sidebar-logo .ca { color:var(--gold); }
+  .nav-item {
+    display:flex; align-items:center; gap:10px; padding:10px 20px;
+    color:var(--muted); font-size:13px; cursor:pointer; border-left:2px solid transparent;
+  }
+  .nav-item.active { color:var(--gold); border-left-color:var(--gold); background:var(--gold-dim); }
+  .nav-label { font-size:10px; letter-spacing:1.5px; color:var(--muted); padding:14px 20px 4px; text-transform:uppercase; }
+  .sidebar-bottom {
+    margin-top:auto; padding:16px 20px; border-top:1px solid var(--border);
+    display:flex; align-items:center; gap:10px;
+  }
+  .avatar { width:32px; height:32px; border-radius:50%; background:var(--gold); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:var(--navy); flex-shrink:0; }
+  .main { margin-left:220px; flex:1; }
+  .topbar {
+    height:60px; background:rgba(10,15,30,0.95); border-bottom:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between; padding:0 28px;
+    position:sticky; top:0; z-index:50; backdrop-filter:blur(12px);
+  }
+  .topbar-title { font-size:14px; color:var(--muted); }
+  .new-case-btn { background:var(--gold); color:var(--navy); border:none; border-radius:6px; padding:7px 14px; font-size:13px; font-weight:600; cursor:pointer; }
+
+  /* TABS for demo */
+  .demo-tabs { position:fixed; bottom:20px; right:20px; z-index:200; display:flex; flex-direction:column; gap:6px; }
+  .demo-tab { background:var(--card); border:1px solid var(--border-gold); border-radius:6px; padding:7px 12px; font-size:11px; color:var(--gold); cursor:pointer; }
+  .demo-tab.active, .demo-tab:hover { background:var(--gold); color:var(--navy); font-weight:700; }
+  .view { display:none; }
+  .view.active { display:block; }
+
+  /* SHARED COMPONENTS */
+  .content { padding:28px; }
+  .back-btn { display:flex; align-items:center; gap:6px; color:var(--muted); font-size:13px; cursor:pointer; margin-bottom:20px; }
+  .back-btn:hover { color:var(--white); }
+  .eyebrow { font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--gold); margin-bottom:6px; }
+  .page-title { font-family:'Playfair Display',serif; font-size:28px; margin-bottom:4px; }
+  .page-sub { font-size:13px; color:var(--muted); margin-bottom:24px; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:24px; margin-bottom:16px; }
+  .card-title { font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--gold); margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
+  .btn-gold { background:var(--gold); color:var(--navy); border:none; border-radius:8px; padding:11px 20px; font-size:13px; font-weight:700; letter-spacing:0.5px; cursor:pointer; }
+  .btn-outline { background:transparent; color:var(--gold); border:1px solid var(--gold); border-radius:8px; padding:10px 20px; font-size:13px; font-weight:600; cursor:pointer; }
+  .btn-ghost { background:transparent; color:var(--muted); border:1px solid var(--border); border-radius:8px; padding:10px 20px; font-size:13px; cursor:pointer; }
+  .tag-green { background:rgba(16,185,129,0.15); color:var(--green); font-size:11px; font-weight:700; padding:4px 10px; border-radius:20px; display:inline-block; }
+  .tag-gold { background:rgba(212,168,83,0.15); color:var(--gold); font-size:11px; font-weight:700; padding:4px 10px; border-radius:20px; display:inline-block; }
+  .tag-amber { background:rgba(245,158,11,0.15); color:var(--amber); font-size:11px; font-weight:700; padding:4px 10px; border-radius:20px; display:inline-block; }
+
+  /* DEMAND LETTER VIEWER */
+  .doc-layout { display:grid; grid-template-columns:300px 1fr; gap:20px; }
+  .doc-sidebar { display:flex; flex-direction:column; gap:12px; }
+  .doc-info-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:20px; }
+  .doc-info-label { font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--gold); margin-bottom:12px; }
+  .doc-meta-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border); font-size:13px; }
+  .doc-meta-row:last-child { border-bottom:none; }
+  .doc-meta-key { color:var(--muted); }
+  .doc-meta-val { font-weight:500; text-align:right; }
+  .doc-actions { display:flex; flex-direction:column; gap:8px; }
+  .doc-action-btn { width:100%; padding:10px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; }
+  .doc-action-btn.primary { background:var(--gold); color:var(--navy); border:none; }
+  .doc-action-btn.secondary { background:transparent; color:var(--gold); border:1px solid var(--gold); }
+  .doc-action-btn.ghost { background:transparent; color:var(--muted); border:1px solid var(--border); }
+  .what-is-this { background:var(--gold-dim); border:1px solid var(--border-gold); border-radius:10px; padding:16px; font-size:13px; line-height:1.6; color:rgba(255,255,255,0.8); }
+  .what-is-this strong { color:var(--gold); }
+
+  /* THE ACTUAL LETTER */
+  .letter-container {
+    background:#FFFFFF; border-radius:12px; overflow:hidden;
+    box-shadow:0 4px 40px rgba(0,0,0,0.4);
+  }
+  .letter-toolbar {
+    background:#F8F7F4; border-bottom:1px solid #E5E5E5;
+    padding:10px 20px; display:flex; align-items:center; justify-content:space-between;
+  }
+  .letter-toolbar-left { display:flex; align-items:center; gap:8px; }
+  .toolbar-btn {
+    background:none; border:1px solid #E5E5E5; border-radius:6px;
+    padding:5px 10px; font-size:12px; cursor:pointer; color:#555;
+  }
+  .toolbar-btn:hover { background:#EFEFEF; }
+  .letter-body { padding:48px 56px; font-family:'Times New Roman',serif; color:#1a1a1a; line-height:1.7; }
+  .letter-date { text-align:right; margin-bottom:32px; font-size:14px; }
+  .letter-sender { margin-bottom:24px; font-size:14px; }
+  .letter-recipient { margin-bottom:32px; font-size:14px; }
+  .letter-re { font-weight:bold; margin-bottom:24px; font-size:14px; border-bottom:1px solid #ccc; padding-bottom:12px; }
+  .letter-salutation { margin-bottom:16px; font-size:14px; }
+  .letter-paragraph { margin-bottom:16px; font-size:14px; }
+  .letter-amount { background:#FFF9E6; border-left:3px solid #D4A853; padding:12px 16px; margin:16px 0; font-weight:bold; font-size:15px; }
+  .letter-signature { margin-top:40px; font-size:14px; }
+  .editable-field {
+    display:inline; background:rgba(212,168,83,0.15); border-bottom:1px dashed var(--gold);
+    cursor:pointer; padding:1px 4px; border-radius:2px; color:#8B6914;
+  }
+  .edit-hint { font-size:11px; color:var(--muted); margin-top:8px; display:flex; align-items:center; gap:6px; }
+
+  /* HEARING PREP */
+  .hearing-tabs { display:flex; gap:0; background:var(--card2); border:1px solid var(--border); border-radius:10px; overflow:hidden; margin-bottom:20px; }
+  .hearing-tab { flex:1; padding:12px; text-align:center; font-size:13px; color:var(--muted); cursor:pointer; border-right:1px solid var(--border); }
+  .hearing-tab:last-child { border-right:none; }
+  .hearing-tab.active { background:var(--gold-dim); color:var(--gold); font-weight:600; border-bottom:2px solid var(--gold); }
+  .script-card { background:var(--card); border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-bottom:16px; }
+  .script-header { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .script-label { font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--gold); }
+  .script-body { padding:20px; font-size:14px; line-height:1.8; color:rgba(255,255,255,0.85); }
+  .script-body em { color:var(--gold); font-style:normal; font-weight:600; }
+  .checklist-item { display:flex; align-items:flex-start; gap:12px; padding:12px 0; border-bottom:1px solid var(--border); }
+  .checklist-item:last-child { border-bottom:none; }
+  .check-box { width:20px; height:20px; border-radius:4px; border:2px solid var(--border-gold); flex-shrink:0; margin-top:1px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .check-box.checked { background:var(--green); border-color:var(--green); }
+  .checklist-text { font-size:13px; line-height:1.5; }
+  .checklist-sub { font-size:11px; color:var(--muted); margin-top:2px; }
+  .defence-item { background:var(--card2); border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:10px; }
+  .defence-arg { font-size:14px; font-weight:600; margin-bottom:6px; color:var(--amber); }
+  .defence-response { font-size:13px; color:rgba(255,255,255,0.8); line-height:1.6; }
+
+  /* SERVICE INSTRUCTIONS */
+  .step-block { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:12px; display:flex; gap:16px; }
+  .step-num-circle { width:36px; height:36px; border-radius:50%; background:var(--gold-dim); border:1px solid var(--border-gold); display:flex; align-items:center; justify-content:center; font-family:'Playfair Display',serif; font-size:16px; color:var(--gold); flex-shrink:0; }
+  .step-content-block { flex:1; }
+  .step-title-block { font-size:15px; font-weight:600; margin-bottom:6px; }
+  .step-desc-block { font-size:13px; color:var(--muted); line-height:1.6; margin-bottom:10px; }
+  .step-note { background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.2); border-radius:8px; padding:10px 14px; font-size:12px; color:var(--amber); line-height:1.5; }
+
+  /* FILING INSTRUCTIONS */
+  .filing-hero { background:linear-gradient(135deg, var(--card) 0%, rgba(212,168,83,0.06) 100%); border:1px solid var(--border-gold); border-radius:14px; padding:28px; margin-bottom:20px; display:flex; gap:24px; align-items:flex-start; }
+  .filing-amount-box { background:var(--gold-dim); border:1px solid var(--border-gold); border-radius:10px; padding:16px 24px; text-align:center; flex-shrink:0; }
+  .filing-amount-num { font-family:'Playfair Display',serif; font-size:28px; color:var(--gold); }
+  .filing-amount-label { font-size:11px; color:var(--muted); margin-top:2px; }
+  .info-banner { background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.2); border-radius:10px; padding:14px 18px; font-size:13px; color:rgba(255,255,255,0.85); line-height:1.6; margin-bottom:16px; }
+  .info-banner strong { color:var(--green); }
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo"><span>ruled</span><span class="ca">.ca</span></div>
+  <div style="padding:12px 0;">
+    <div class="nav-label">Main</div>
+    <div class="nav-item">🏠 Home</div>
+    <div class="nav-item active">📄 My Cases</div>
+    <div class="nav-item">💳 Billing</div>
+    <div class="nav-label">Account</div>
+    <div class="nav-item">👤 Account</div>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="avatar">FV</div>
+    <div>
+      <div style="font-size:13px;font-weight:500;">Finn Varette</div>
+      <div style="font-size:11px;color:var(--muted);">finn@ruled.ca</div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <span class="topbar-title">My Cases</span>
+    <button class="new-case-btn">+ New Case</button>
+  </div>
+  <div class="content">
+
+    <!-- DEMAND LETTER VIEWER -->
+    <div class="view active" id="view-demand">
+      <div class="back-btn">← Back to Case</div>
+      <div class="eyebrow">Demand Letter</div>
+      <div class="page-title">Your demand letter.</div>
+      <div class="page-sub">Sent May 10, 2026 · Response deadline May 24, 2026 · <span style="color:var(--amber);">2 days remaining</span></div>
+
+      <div class="doc-layout">
+        <!-- LEFT SIDEBAR -->
+        <div class="doc-sidebar">
+          <div class="doc-info-card">
+            <div class="doc-info-label">Letter Details</div>
+            <div class="doc-meta-row"><span class="doc-meta-key">Status</span><span class="tag-gold">Sent</span></div>
+            <div class="doc-meta-row"><span class="doc-meta-key">Sent</span><span class="doc-meta-val">May 10, 2026</span></div>
+            <div class="doc-meta-row"><span class="doc-meta-key">Deadline</span><span class="doc-meta-val" style="color:var(--amber);">May 24, 2026</span></div>
+            <div class="doc-meta-row"><span class="doc-meta-key">Amount</span><span class="doc-meta-val" style="color:var(--gold);">$2,400.00</span></div>
+            <div class="doc-meta-row"><span class="doc-meta-key">Province</span><span class="doc-meta-val">Nova Scotia</span></div>
+          </div>
+
+          <div class="doc-actions">
+            <button class="doc-action-btn primary">↓ Download PDF</button>
+            <button class="doc-action-btn secondary">✏ Edit Letter</button>
+            <button class="doc-action-btn ghost">📋 Copy Text</button>
+          </div>
+
+          <div class="what-is-this">
+            <strong>What is a demand letter?</strong><br><br>
+            A demand letter is a formal legal document that tells whoever owes you money exactly what they owe, why they need to pay, and the consequences if they don't respond within the deadline.<br><br>
+            <strong>40% of cases</strong> resolve right here — before ever going to court. Send it, wait for the deadline, and see what happens.
+          </div>
+
+          <div class="doc-info-card">
+            <div class="doc-info-label">What's next?</div>
+            <div style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:14px;">If they don't respond by <span style="color:var(--white);">May 24</span>, you're ready to file in small claims court.</div>
+            <button class="doc-action-btn primary" style="background:transparent;border:1px solid var(--green);color:var(--green);">Get Full Case Pack →</button>
+          </div>
+        </div>
+
+        <!-- LETTER ITSELF -->
+        <div>
+          <div class="edit-hint" style="margin-bottom:10px;">
+            <span style="background:rgba(212,168,83,0.15);color:var(--gold);padding:2px 8px;border-radius:4px;font-size:11px;">✏ Click any highlighted field to edit</span>
+          </div>
+          <div class="letter-container">
+            <div class="letter-toolbar">
+              <div class="letter-toolbar-left">
+                <button class="toolbar-btn">Bold</button>
+                <button class="toolbar-btn">Italic</button>
+                <button class="toolbar-btn">Undo</button>
+              </div>
+              <div style="font-size:12px;color:#888;">Demand Letter — ABC Contracting Ltd.</div>
+            </div>
+            <div class="letter-body">
+              <div class="letter-date"><span class="editable-field">May 10, 2026</span></div>
+              <div class="letter-sender">
+                <strong><span class="editable-field">Finn Varette</span></strong><br>
+                <span class="editable-field">6016 Pepperell St, Halifax, NS B3H 0C3</span><br>
+                <span class="editable-field">finbarvarette@gmail.com</span>
+              </div>
+              <div class="letter-recipient">
+                <strong><span class="editable-field">ABC Contracting Ltd.</span></strong><br>
+                <span class="editable-field">123 Main Street, Halifax, NS B3J 1A1</span>
+              </div>
+              <div class="letter-re">RE: Formal Demand for Payment — $2,400.00</div>
+              <div class="letter-salutation">Dear <span class="editable-field">ABC Contracting Ltd.</span>,</div>
+              <div class="letter-paragraph">I am writing to formally demand payment of <strong>$2,400.00</strong> owed to me in connection with a contractual agreement entered into between us in or around <span class="editable-field">March 2026</span>, regarding deck repair and repainting services at my property.</div>
+              <div class="letter-paragraph">Despite my repeated attempts to contact you and resolve this matter, you have failed to complete the agreed-upon work and have ceased all communication. Your failure to fulfill your contractual obligations has caused me direct financial harm.</div>
+              <div class="letter-amount">Total Amount Owing: $2,400.00</div>
+              <div class="letter-paragraph">I hereby demand that you remit payment of the full amount of <strong>$2,400.00</strong> within <strong>14 days</strong> of receipt of this letter — no later than <span class="editable-field">May 24, 2026</span>.</div>
+              <div class="letter-paragraph">If payment is not received by this date, I intend to pursue all available legal remedies, including filing a claim in the Nova Scotia Small Claims Court, without further notice to you.</div>
+              <div class="letter-paragraph">Please govern yourself accordingly.</div>
+              <div class="letter-signature">
+                Sincerely,<br><br><br>
+                <strong><span class="editable-field">Finn Varette</span></strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SERVICE INSTRUCTIONS -->
+    <div class="view" id="view-service">
+      <div class="back-btn">← Back to Case</div>
+      <div class="eyebrow">Step 4 of 5</div>
+      <div class="page-title">Serve the defendant.</div>
+      <div class="page-sub">After filing, you must formally notify the other party. Here's exactly how.</div>
+
+      <div class="info-banner">
+        <strong>Why this matters:</strong> In small claims court, you are legally required to serve the defendant with a copy of your filed claim. If you don't serve them properly, the court cannot proceed with your case.
+      </div>
+
+      <div class="step-block">
+        <div class="step-num-circle">1</div>
+        <div class="step-content-block">
+          <div class="step-title-block">Get your filed claim documents</div>
+          <div class="step-desc-block">After you file at the courthouse, they will stamp your claim form and give you copies. You need at least one copy to serve on the defendant. Keep the originals for your records.</div>
+        </div>
+      </div>
+      <div class="step-block">
+        <div class="step-num-circle">2</div>
+        <div class="step-content-block">
+          <div class="step-title-block">Choose your method of service</div>
+          <div class="step-desc-block">In Nova Scotia Small Claims Court you can serve by any of these methods:</div>
+          <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px;">
+            <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-size:13px;"><strong style="color:var(--gold);">Personal Service</strong> — Hand the documents directly to the defendant. Simplest and most reliable.</div>
+            <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-size:13px;"><strong style="color:var(--gold);">Registered Mail</strong> — Send by Canada Post registered mail to their last known address. Keep your tracking receipt.</div>
+            <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-size:13px;"><strong style="color:var(--gold);">Email</strong> — If the defendant has communicated with you by email previously, you may be able to serve by email. Check with the court clerk.</div>
+          </div>
+        </div>
+      </div>
+      <div class="step-block">
+        <div class="step-num-circle">3</div>
+        <div class="step-content-block">
+          <div class="step-title-block">Complete your Proof of Service form</div>
+          <div class="step-desc-block">After serving, fill out the Proof of Service form (available at the courthouse or below). This confirms to the court that the defendant was properly notified.</div>
+          <button class="btn-gold" style="margin-top:10px;font-size:13px;padding:9px 18px;">↓ Download Proof of Service Form</button>
+        </div>
+      </div>
+      <div class="step-block">
+        <div class="step-num-circle">4</div>
+        <div class="step-content-block">
+          <div class="step-title-block">File your Proof of Service</div>
+          <div class="step-desc-block">Return to the courthouse and file your completed Proof of Service. The court will then schedule your hearing date.</div>
+          <div class="step-note" style="margin-top:10px;">You typically have 30 days from filing your claim to serve the defendant. Do not delay.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HEARING PREP -->
+    <div class="view" id="view-hearing">
+      <div class="back-btn">← Back to Case</div>
+      <div class="eyebrow">Step 5 of 5</div>
+      <div class="page-title">Prepare for your hearing.</div>
+      <div class="page-sub">Everything built specifically for your case against ABC Contracting Ltd.</div>
+
+      <div class="hearing-tabs">
+        <div class="hearing-tab active" onclick="switchHearingTab(0,this)">Opening Script</div>
+        <div class="hearing-tab" onclick="switchHearingTab(1,this)">Closing Script</div>
+        <div class="hearing-tab" onclick="switchHearingTab(2,this)">Defence Arguments</div>
+        <div class="hearing-tab" onclick="switchHearingTab(3,this)">Day Of Checklist</div>
+      </div>
+
+      <div class="hearing-tab-content" id="htab-0">
+        <div class="script-card">
+          <div class="script-header">
+            <div class="script-label">Opening Statement</div>
+            <button class="btn-ghost" style="font-size:12px;padding:6px 12px;">↓ Download</button>
+          </div>
+          <div class="script-body">
+            "Your Honour, my name is <em>Finn Varette</em>. I am the claimant in this matter.<br><br>
+            In <em>March 2026</em>, I entered into an agreement with <em>ABC Contracting Ltd.</em> to repair and repaint the deck at my property. I paid a deposit of <em>$1,200</em> upfront as agreed.<br><br>
+            The defendant started the work but left it incomplete — removing several boards and then abandoning the job entirely. Over the following weeks, they stopped responding to my calls and messages.<br><br>
+            I am here today seeking repayment of <em>$2,400</em> — the full contract price — for work that was never completed and services that were not delivered as agreed.<br><br>
+            I have <em>payment records, text messages, and photographs</em> of the incomplete work, which I will present as evidence."
+          </div>
+        </div>
+        <div class="what-is-this" style="margin-top:12px;">
+          <strong>Tip:</strong> Keep your opening under 3 minutes. State the facts clearly. Don't argue yet — save that for when you present your evidence.
+        </div>
+      </div>
+
+      <div class="hearing-tab-content" id="htab-1" style="display:none;">
+        <div class="script-card">
+          <div class="script-header">
+            <div class="script-label">Closing Statement</div>
+            <button class="btn-ghost" style="font-size:12px;padding:6px 12px;">↓ Download</button>
+          </div>
+          <div class="script-body">
+            "Your Honour, I would ask you to consider the following.<br><br>
+            I entered into a clear agreement with the defendant. I paid the agreed deposit in good faith. The defendant started the work, then abandoned it without explanation, and has refused to communicate or refund any money.<br><br>
+            The evidence I have presented — the <em>e-transfer records</em>, the <em>text message history</em>, and the <em>photographs of the incomplete work</em> — demonstrates clearly that the defendant failed to deliver what was contracted.<br><br>
+            I am not here seeking anything more than what I am owed. I respectfully ask that this court award me judgment in the amount of <em>$2,400</em>."
+          </div>
+        </div>
+      </div>
+
+      <div class="hearing-tab-content" id="htab-2" style="display:none;">
+        <div style="margin-bottom:12px;font-size:13px;color:var(--muted);">These are the arguments the defendant may raise and how to respond to each.</div>
+        <div class="defence-item">
+          <div class="defence-arg">⚠ "The work was done but the claimant was unsatisfied."</div>
+          <div class="defence-response"><strong style="color:var(--white);">Your response:</strong> Point to your photographs showing the deck with boards removed and work clearly incomplete. Ask the defendant to produce any evidence that the work was completed to the contracted standard.</div>
+        </div>
+        <div class="defence-item">
+          <div class="defence-arg">⚠ "There was no written contract."</div>
+          <div class="defence-response"><strong style="color:var(--white);">Your response:</strong> A verbal agreement is a legally binding contract in Nova Scotia. Present your text messages showing the agreed scope of work, price, and timeline. These messages confirm the agreement existed.</div>
+        </div>
+        <div class="defence-item">
+          <div class="defence-arg">⚠ "The claimant caused delays or changed the scope."</div>
+          <div class="defence-response"><strong style="color:var(--white);">Your response:</strong> Your text message history shows no such requests were made. Ask the defendant to provide specific dates and evidence of any changes you allegedly requested.</div>
+        </div>
+      </div>
+
+      <div class="hearing-tab-content" id="htab-3" style="display:none;">
+        <div class="card">
+          <div class="card-title">Day of Court Checklist</div>
+          <div class="checklist-item">
+            <div class="check-box checked">✓</div>
+            <div><div class="checklist-text">Printed copies of all documents (3 copies: judge, defendant, yourself)</div><div class="checklist-sub">Claim form, demand letter, proof of service, evidence</div></div>
+          </div>
+          <div class="checklist-item">
+            <div class="check-box checked">✓</div>
+            <div><div class="checklist-text">Photo ID</div><div class="checklist-sub">Government-issued ID required at the courthouse</div></div>
+          </div>
+          <div class="checklist-item">
+            <div class="check-box"></div>
+            <div><div class="checklist-text">Opening and closing scripts printed or on your phone</div><div class="checklist-sub">Have them ready to refer to but don't read word for word</div></div>
+          </div>
+          <div class="checklist-item">
+            <div class="check-box"></div>
+            <div><div class="checklist-text">Arrive 30 minutes early</div><div class="checklist-sub">Find the correct courtroom, check in with the clerk</div></div>
+          </div>
+          <div class="checklist-item">
+            <div class="check-box"></div>
+            <div><div class="checklist-text">Address the judge as "Your Honour"</div><div class="checklist-sub">Stand when speaking, speak clearly and calmly</div></div>
+          </div>
+          <div class="checklist-item">
+            <div class="check-box"></div>
+            <div><div class="checklist-text">Present evidence when directed by the judge</div><div class="checklist-sub">Don't interrupt — wait for your turn to speak</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILING INSTRUCTIONS -->
+    <div class="view" id="view-filing">
+      <div class="back-btn">← Back to Case</div>
+      <div class="eyebrow">Step 3 of 5</div>
+      <div class="page-title">File your claim.</div>
+      <div class="page-sub">Your documents are ready. Here's exactly what to do next.</div>
+
+      <div class="filing-hero">
+        <div class="filing-amount-box">
+          <div class="filing-amount-num">$99.70</div>
+          <div class="filing-amount-label">Filing Fee</div>
+        </div>
+        <div>
+          <div style="font-size:15px;font-weight:600;margin-bottom:6px;">Nova Scotia Small Claims Court</div>
+          <div style="font-size:13px;color:var(--muted);line-height:1.6;">Your claim is for <strong style="color:var(--white);">$2,400</strong> which falls under the Nova Scotia Small Claims Court limit of $25,000. The filing fee for claims up to $5,000 is <strong style="color:var(--gold);">$99.70</strong>.</div>
+          <div style="margin-top:12px;font-size:13px;color:var(--muted);">📍 <span style="color:var(--white);">Halifax Law Courts, 1815 Upper Water St, Halifax NS</span></div>
+        </div>
+      </div>
+
+      <div class="step-block">
+        <div class="step-num-circle">1</div>
+        <div class="step-content-block">
+          <div class="step-title-block">Download your Claim Form (Form 78A)</div>
+          <div class="step-desc-block">Your claim form has been pre-filled with your case details. Review it, print it, and bring it to the courthouse.</div>
+          <button class="btn-gold" style="margin-top:10px;font-size:13px;padding:9px 18px;">↓ Download Claim Form (Form 78A)</button>
+        </div>
+      </div>
+      <div class="step-block">
+        <div class="step-num-circle">2</div>
+        <div class="step-content-block">
+          <div class="step-title-block">Go to the courthouse in person</div>
+          <div class="step-desc-block">Bring your printed Claim Form and your filing fee. The clerk will stamp your form, assign a file number, and give you copies.</div>
+          <div class="step-note" style="margin-top:10px;">Bring 3 printed copies — one for the court, one for the defendant (for service), one for yourself.</div>
+        </div>
+      </div>
+      <div class="step-block">
+        <div class="step-num-circle">3</div>
+        <div class="step-content-block">
+          <div class="step-title-block">Confirm your filing here</div>
+          <div class="step-desc-block">Once you've filed, come back and mark this step complete. That unlocks Step 4 — serving the defendant.</div>
+          <button class="btn-gold" style="margin-top:10px;font-size:13px;padding:9px 18px;">✓ I've Filed My Claim</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+</div>
+
+<!-- DEMO TABS -->
+<div class="demo-tabs">
+  <div style="font-size:10px;color:var(--muted);text-align:center;margin-bottom:2px;">VIEWS</div>
+  <div class="demo-tab active" onclick="showView('demand')">Demand Letter</div>
+  <div class="demo-tab" onclick="showView('filing')">Filing Instructions</div>
+  <div class="demo-tab" onclick="showView('service')">Serve Defendant</div>
+  <div class="demo-tab" onclick="showView('hearing')">Hearing Prep</div>
+</div>
+
+<script>
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.demo-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('view-' + id).classList.add('active');
+  const tabs = document.querySelectorAll('.demo-tab');
+  const map = {demand:0,filing:1,service:2,hearing:3};
+  if (map[id] !== undefined) tabs[map[id]].classList.add('active');
+}
+function switchHearingTab(idx, el) {
+  document.querySelectorAll('.hearing-tab-content').forEach(t => t.style.display = 'none');
+  document.querySelectorAll('.hearing-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('htab-' + idx).style.display = 'block';
+  el.classList.add('active');
+}
+</script>
+</body>
+</html>
