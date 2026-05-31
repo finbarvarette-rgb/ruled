@@ -33,7 +33,16 @@
       "PowerShell($f = \"C:\\\\Users\\\\Finn\\\\ruled\\\\public\\\\brand\\\\wordmark_light.png\"; $bytes = [IO.File]::ReadAllBytes\\($f\\); \"File size: $\\($bytes.Length\\) bytes\"; $b64 = [Convert]::ToBase64String\\($bytes\\); \"Base64 length: $\\($b64.Length\\) chars\")",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Finn\\\\ruled\" -Directory)",
-      "Bash(Select-Object Name)"
+      "Bash(Select-Object Name)",
+      "Bash(Start-Process *)",
+      "Bash(cmd.exe *)",
+      "Bash(git commit *)",
+      "Bash(explorer C:\\\\Users\\\\Finn\\\\ruled *)",
+      "PowerShell(Start-Process explorer.exe \"C:\\\\Users\\\\Finn\\\\ruled\\\\public\\\\brand\")",
+      "PowerShell(Start-Process explorer.exe \"C:\\\\Users\\\\Finn\\\\ruled\")",
+      "Bash(Test-Path *)",
+      "Bash(echo \"PID: $!\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3333/)"
     ]
   }
 }

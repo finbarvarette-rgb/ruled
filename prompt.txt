@@ -1,18 +1,57 @@
-Swap the primary color from blue #2563EB to red #C8392B 
-across the entire site. 
+Fix these specific issues. Touch only the files needed 
+for each fix.
 
-Rules:
-- All primary CTA buttons → red #C8392B
-- All blue accent text → either red or navy #0F172A 
-  depending on context
-- Keep amber #F59E0B for checkmarks and highlights
-- Keep navy #0F172A for backgrounds and headings
-- The "Ask Ruled AI" floating button → navy #0F172A 
-  background with amber chat icon
-- Dashboard sidebar active state → red #C8392B
-- Do NOT change any functionality, copy, or layout
-- Touch globals.css first to update CSS variables, 
-  then update any hardcoded blue hex values in 
-  component files
+1. LANDING PAGE - Three steps section (app/page.tsx):
+   The 01, 02, 03 ghost numbers are too faint. Change 
+   their color to rgba(212,168,83,0.2) so they are 
+   subtly visible.
 
+2. LANDING PAGE - Remove the "TRY IT NOW" mini form 
+   card from the case strength preview section entirely. 
+   Keep the score card and blurred summary card. Just 
+   remove the second card with the textarea, amount, 
+   province inputs and submit button.
+
+3. DASHBOARD - Remove the red/colored bar that appears 
+   on the left side of the dashboard layout when 
+   scrolling. Check the sidebar or layout wrapper for 
+   any border-left or colored stripe and remove it.
+
+4. DASHBOARD - The FV avatar / user name in the bottom 
+   left of the sidebar should link to /dashboard/account, 
+   not sign the user out. Fix the onClick handler.
+
+5. ONBOARDING - Rebrand app/onboarding/page.tsx to match 
+   the dark gold design system:
+   Background: #0A0F1E
+   Cards/containers: #151C2E with border rgba(255,255,255,0.07)
+   Headings: Playfair Display, white
+   Step indicator: gold #D4A853
+   Input fields: dark background #0D1220, white text, 
+   gold focus border
+   Primary buttons: gold #D4A853 background, navy text
+   Secondary/back buttons: transparent with gold border
+   Keep all existing functionality and routing exactly 
+   as is, only change visual styling.
+
+6. LOGIN PAGE - Rebrand app/login/page.tsx with same 
+   dark gold design system as above. Background #0A0F1E, 
+   card #151C2E, Playfair Display heading, gold button, 
+   dark inputs. Keep all auth functionality.
+
+7. NEW CASE button - currently links to /onboarding but 
+   shows "Step 1 of 3" with old layout. Check if there 
+   is a separate route causing this. The button should 
+   go to /onboarding and show the new 4-step questionnaire 
+   we built. If /onboarding is correct and working, 
+   check why the step counter shows wrong.
+
+8. CASE DETAIL - The "Back to all documents in your 
+   dashboard" link that appears inside documents should 
+   be removed or changed to "Back to My Cases" linking 
+   to /dashboard/case-assessments. The documents tab 
+   no longer exists.
+
+Only touch app/page.tsx, app/onboarding/page.tsx, 
+app/login/page.tsx, and dashboard layout/sidebar files.
 Commit when done.

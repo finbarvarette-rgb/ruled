@@ -40,3 +40,4 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .env.local
+public/brand/founder-video.mp4.mp4

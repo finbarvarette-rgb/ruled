@@ -1,0 +1,1566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ruled.ca — Win Without a Lawyer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --navy: #0A0F1E;
+  --navy-light: #111827;
+  --gold: #D4A853;
+  --gold-light: #E8C47A;
+  --white: #FFFFFF;
+  --off-white: #F5F0E8;
+  --muted: rgba(255,255,255,0.55);
+  --border: rgba(255,255,255,0.08);
+  --card-bg: rgba(255,255,255,0.04);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--navy);
+  color: var(--white);
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+  cursor: default;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  padding: 0 48px;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: rgba(10, 15, 30, 0.6);
+  border-bottom: 1px solid var(--border);
+  transition: background 0.3s ease;
+}
+nav.scrolled {
+  background: rgba(10, 15, 30, 0.92);
+}
+.nav-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--white);
+  letter-spacing: -0.5px;
+  text-decoration: none;
+}
+.nav-logo span { color: var(--gold); }
+.nav-links {
+  display: flex;
+  gap: 40px;
+  list-style: none;
+}
+.nav-links a {
+  color: rgba(255,255,255,0.75);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0.3px;
+  transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--white); }
+.nav-cta {
+  background: var(--gold);
+  color: var(--navy);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 10px 24px;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: background 0.2s, transform 0.2s;
+}
+.nav-cta:hover {
+  background: var(--gold-light);
+  transform: translateY(-1px);
+}
+
+/* ── HERO ── */
+#hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: 120px 48px 80px;
+  position: relative;
+  overflow: hidden;
+}
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 70% 50%, rgba(212,168,83,0.07) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 60% at 10% 80%, rgba(212,168,83,0.04) 0%, transparent 60%);
+}
+.hero-content {
+  position: relative;
+  max-width: 680px;
+}
+.hero-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.hero-eyebrow::before {
+  content: '';
+  display: block;
+  width: 32px;
+  height: 1px;
+  background: var(--gold);
+}
+h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(52px, 7vw, 88px);
+  font-weight: 900;
+  line-height: 1.0;
+  letter-spacing: -2px;
+  color: var(--white);
+  margin-bottom: 8px;
+}
+h1 em {
+  color: var(--gold);
+  font-style: italic;
+}
+.hero-sub {
+  font-size: 17px;
+  font-weight: 300;
+  color: rgba(255,255,255,0.65);
+  line-height: 1.65;
+  max-width: 520px;
+  margin: 28px 0 44px;
+}
+.hero-sub strong {
+  color: var(--white);
+  font-weight: 500;
+}
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+.btn-primary {
+  background: var(--gold);
+  color: var(--navy);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  padding: 16px 36px;
+  border-radius: 6px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transition: transform 0.25s cubic-bezier(0.4,0,0.2,1),
+              box-shadow 0.25s cubic-bezier(0.4,0,0.2,1),
+              background 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.btn-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(212,168,83,0.35);
+  background: var(--gold-light);
+}
+.btn-primary:hover::after { opacity: 1; }
+.btn-secondary {
+  color: rgba(255,255,255,0.65);
+  font-size: 14px;
+  font-weight: 400;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: color 0.2s, gap 0.2s;
+}
+.btn-secondary:hover {
+  color: var(--white);
+  gap: 12px;
+}
+.scroll-arrow {
+  position: absolute;
+  bottom: 36px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  opacity: 0.4;
+  animation: pulse-down 2s ease-in-out infinite;
+}
+.scroll-arrow span {
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.scroll-arrow svg { width: 20px; height: 20px; }
+@keyframes pulse-down {
+  0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.4; }
+  50% { transform: translateX(-50%) translateY(6px); opacity: 0.7; }
+}
+
+/* ── EDUCATION / STATS SCROLL SECTION ── */
+#education {
+  padding: 0;
+  position: relative;
+}
+.edu-panel {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 100px 48px;
+  position: sticky;
+  top: 0;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.edu-panel.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.edu-panel-inner {
+  max-width: 780px;
+  text-align: center;
+}
+.stat-number {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(72px, 12vw, 140px);
+  font-weight: 900;
+  line-height: 1;
+  color: var(--gold);
+  letter-spacing: -4px;
+  margin-bottom: 20px;
+}
+.stat-label {
+  font-size: clamp(18px, 2.5vw, 26px);
+  font-weight: 300;
+  color: var(--white);
+  line-height: 1.4;
+  max-width: 600px;
+  margin: 0 auto 24px;
+}
+.stat-label strong { font-weight: 600; }
+.stat-detail {
+  font-size: 15px;
+  color: var(--muted);
+  line-height: 1.7;
+  max-width: 500px;
+  margin: 0 auto;
+}
+.gold-divider {
+  width: 48px;
+  height: 2px;
+  background: var(--gold);
+  margin: 32px auto;
+  opacity: 0.5;
+}
+
+/* Panel backgrounds alternate */
+.edu-panel:nth-child(1) { background: var(--navy); }
+.edu-panel:nth-child(2) { background: #0D1220; }
+.edu-panel:nth-child(3) { background: var(--navy); }
+.edu-panel:nth-child(4) { background: #0D1220; }
+
+/* ── THREE STEPS ── */
+#how-it-works {
+  padding: 120px 48px;
+  position: relative;
+}
+.section-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold);
+  text-align: center;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+.section-eyebrow::before,
+.section-eyebrow::after {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 1px;
+  background: var(--gold);
+  opacity: 0.5;
+}
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(36px, 4vw, 52px);
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 16px;
+  line-height: 1.15;
+}
+.section-sub {
+  text-align: center;
+  color: var(--muted);
+  font-size: 16px;
+  max-width: 480px;
+  margin: 0 auto 72px;
+  line-height: 1.6;
+}
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  max-width: 1100px;
+  margin: 0 auto;
+  position: relative;
+}
+.steps-grid::before {
+  content: '';
+  position: absolute;
+  top: 52px;
+  left: calc(16.67% + 20px);
+  right: calc(16.67% + 20px);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  opacity: 0.3;
+}
+.step-card {
+  padding: 48px 40px;
+  border: 1px solid var(--border);
+  position: relative;
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.7s ease, transform 0.7s ease, border-color 0.3s, background 0.3s;
+  cursor: default;
+}
+.step-card:hover {
+  border-color: rgba(212,168,83,0.3);
+  background: var(--card-bg);
+}
+.step-card.animate-in { opacity: 1; transform: translateY(0); }
+.step-card:nth-child(2) { transition-delay: 0.15s; }
+.step-card:nth-child(3) { transition-delay: 0.30s; }
+.step-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 72px;
+  font-weight: 900;
+  color: rgba(212,168,83,0.12);
+  line-height: 1;
+  margin-bottom: 24px;
+  letter-spacing: -3px;
+}
+.step-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 14px;
+  color: var(--white);
+}
+.step-desc {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.75;
+}
+.step-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.step-badge::before {
+  content: '';
+  width: 16px;
+  height: 1px;
+  background: var(--gold);
+}
+
+/* ── CASE STRENGTH PREVIEW ── */
+#strength-preview {
+  padding: 120px 48px;
+  background: #0D1220;
+  position: relative;
+  overflow: hidden;
+}
+#strength-preview::before {
+  content: '';
+  position: absolute;
+  top: -200px;
+  right: -200px;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(212,168,83,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+.strength-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+.strength-left { }
+.strength-right {
+  position: relative;
+}
+.strength-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 40px;
+  position: relative;
+  overflow: hidden;
+}
+.strength-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+.score-meter-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 32px;
+}
+.score-meter {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  margin-bottom: 16px;
+}
+.score-meter svg {
+  width: 160px;
+  height: 160px;
+  transform: rotate(-90deg);
+}
+.score-meter .track {
+  fill: none;
+  stroke: rgba(255,255,255,0.08);
+  stroke-width: 8;
+}
+.score-meter .fill {
+  fill: none;
+  stroke: #10B981;
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-dasharray: 408;
+  stroke-dashoffset: 73;
+  transition: stroke-dashoffset 1.5s cubic-bezier(0.4,0,0.2,1);
+  filter: drop-shadow(0 0 8px rgba(16,185,129,0.5));
+}
+.score-center {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+.score-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 42px;
+  font-weight: 900;
+  color: var(--white);
+  line-height: 1;
+}
+.score-label {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.score-verdict {
+  font-size: 14px;
+  color: #10B981;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.assessment-preview {
+  border-top: 1px solid var(--border);
+  padding-top: 24px;
+}
+.assessment-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.assessment-label {
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+.assessment-text {
+  font-size: 13px;
+  color: rgba(255,255,255,0.7);
+  line-height: 1.6;
+}
+.assessment-blur {
+  filter: blur(4px);
+  user-select: none;
+  pointer-events: none;
+}
+.assessment-unlock {
+  margin-top: 20px;
+  text-align: center;
+}
+.assessment-unlock p {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+/* Questionnaire preview */
+.q-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.q-label {
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 8px;
+  display: block;
+}
+.q-input {
+  width: 100%;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  color: var(--white);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  resize: none;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.q-input:focus {
+  border-color: rgba(212,168,83,0.5);
+}
+.q-input::placeholder { color: rgba(255,255,255,0.25); }
+.q-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.q-select {
+  width: 100%;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  color: var(--white);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  outline: none;
+  appearance: none;
+  cursor: pointer;
+}
+.q-select option { background: var(--navy-light); color: var(--white); }
+.q-btn {
+  background: var(--gold);
+  color: var(--navy);
+  border: none;
+  border-radius: 8px;
+  padding: 16px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  width: 100%;
+}
+.q-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(212,168,83,0.3);
+}
+.free-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 8px;
+}
+.free-badge::before, .free-badge::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── VS TABLE ── */
+#vs {
+  padding: 120px 48px;
+  background: var(--navy);
+}
+.vs-inner {
+  max-width: 900px;
+  margin: 0 auto;
+}
+.vs-table {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  margin-top: 60px;
+}
+.vs-col {
+  padding: 40px;
+  border: 1px solid var(--border);
+}
+.vs-col.ruled {
+  border-color: rgba(212,168,83,0.4);
+  background: rgba(212,168,83,0.04);
+  position: relative;
+}
+.vs-col.ruled::before {
+  content: 'RULED';
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--gold);
+  color: var(--navy);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  padding: 4px 14px;
+  border-radius: 2px;
+}
+.vs-col-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 28px;
+  color: var(--muted);
+}
+.vs-col.ruled .vs-col-title { color: var(--white); }
+.vs-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.vs-item:last-child { border-bottom: none; }
+.vs-item.ruled-item { color: var(--white); }
+.vs-x { color: rgba(255,80,80,0.7); font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.vs-check { color: var(--gold); font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+/* ── PRICING ── */
+#pricing {
+  padding: 120px 48px;
+  background: #0D1220;
+}
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  max-width: 1000px;
+  margin: 60px auto 0;
+}
+.price-card {
+  padding: 40px 36px;
+  border: 1px solid var(--border);
+  position: relative;
+  transition: border-color 0.3s;
+}
+.price-card:hover { border-color: rgba(212,168,83,0.3); }
+.price-card.featured {
+  border-color: rgba(212,168,83,0.5);
+  background: rgba(212,168,83,0.05);
+}
+.price-tag {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--gold);
+  color: var(--navy);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  padding: 4px 14px;
+  text-transform: uppercase;
+}
+.price-tier {
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 16px;
+}
+.price-amount {
+  font-family: 'Playfair Display', serif;
+  font-size: 52px;
+  font-weight: 900;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.price-desc {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 28px;
+  line-height: 1.5;
+}
+.price-features {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 32px;
+}
+.price-features li {
+  font-size: 13px;
+  color: rgba(255,255,255,0.7);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  line-height: 1.4;
+}
+.price-features li::before {
+  content: '—';
+  color: var(--gold);
+  flex-shrink: 0;
+  font-size: 12px;
+  margin-top: 1px;
+}
+.price-btn {
+  display: block;
+  text-align: center;
+  padding: 13px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.price-btn:hover { transform: translateY(-2px); }
+.price-btn.outline {
+  border: 1px solid rgba(212,168,83,0.4);
+  color: var(--gold);
+}
+.price-btn.filled {
+  background: var(--gold);
+  color: var(--navy);
+  box-shadow: 0 4px 16px rgba(212,168,83,0.2);
+}
+.price-btn.filled:hover { box-shadow: 0 8px 24px rgba(212,168,83,0.35); }
+
+/* ── FOUNDER ── */
+#founder {
+  padding: 120px 48px;
+  background: var(--navy);
+}
+.founder-inner {
+  max-width: 1000px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 80px;
+  align-items: center;
+}
+.founder-photo {
+  aspect-ratio: 3/4;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.founder-photo::before {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 40%;
+  background: linear-gradient(to top, rgba(10,15,30,0.8), transparent);
+}
+.founder-name-tag {
+  position: relative;
+  text-align: center;
+}
+.founder-name-tag .name {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--white);
+}
+.founder-name-tag .role {
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-top: 4px;
+}
+.founder-quote {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(22px, 2.5vw, 30px);
+  font-weight: 700;
+  line-height: 1.45;
+  color: var(--white);
+  margin-bottom: 24px;
+}
+.founder-quote em { color: var(--gold); font-style: italic; }
+.founder-body {
+  font-size: 15px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 36px;
+}
+.founder-body strong { color: var(--white); font-weight: 500; }
+
+/* ── FAQ ── */
+#faq {
+  padding: 120px 48px;
+  background: #0D1220;
+}
+.faq-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  max-width: 1000px;
+  margin: 60px auto 0;
+}
+.faq-item {
+  padding: 28px 32px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.faq-item:hover {
+  background: var(--card-bg);
+  border-color: rgba(212,168,83,0.2);
+}
+.faq-q {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--white);
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+.faq-q::after {
+  content: '+';
+  color: var(--gold);
+  font-size: 20px;
+  flex-shrink: 0;
+  line-height: 1;
+  transition: transform 0.2s;
+}
+.faq-item.open .faq-q::after { transform: rotate(45deg); }
+.faq-a {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.7;
+  display: none;
+}
+.faq-item.open .faq-a { display: block; }
+
+/* ── CTA FINAL ── */
+#final-cta {
+  padding: 140px 48px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  background: var(--navy);
+}
+#final-cta::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 700px;
+  height: 700px;
+  background: radial-gradient(circle, rgba(212,168,83,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+.final-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(42px, 5vw, 68px);
+  font-weight: 900;
+  line-height: 1.1;
+  margin-bottom: 20px;
+  position: relative;
+}
+.final-title em { color: var(--gold); font-style: italic; }
+.final-sub {
+  font-size: 17px;
+  color: var(--muted);
+  max-width: 480px;
+  margin: 0 auto 48px;
+  line-height: 1.65;
+}
+.final-trust {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  margin-top: 28px;
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+}
+.final-trust span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── FOOTER ── */
+footer {
+  padding: 60px 48px 40px;
+  border-top: 1px solid var(--border);
+  background: var(--navy);
+}
+.footer-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 48px;
+  margin-bottom: 48px;
+}
+.footer-brand .logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--white);
+  margin-bottom: 12px;
+  display: block;
+}
+.footer-brand .logo span { color: var(--gold); }
+.footer-brand p {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.65;
+  max-width: 240px;
+}
+.footer-col h4 {
+  font-size: 10px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 18px;
+}
+.footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.footer-col ul li a {
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.footer-col ul li a:hover { color: var(--white); }
+.footer-bottom {
+  padding-top: 28px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: rgba(255,255,255,0.3);
+}
+
+/* ── SCROLL FADE ── */
+.fade-up {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.fade-up.visible { opacity: 1; transform: translateY(0); }
+.fade-up.delay-1 { transition-delay: 0.1s; }
+.fade-up.delay-2 { transition-delay: 0.2s; }
+.fade-up.delay-3 { transition-delay: 0.3s; }
+
+/* Responsive basics */
+@media (max-width: 900px) {
+  nav { padding: 0 24px; }
+  .nav-links { display: none; }
+  #hero { padding: 100px 24px 60px; }
+  .steps-grid, .vs-table, .pricing-grid, .faq-grid,
+  .strength-inner, .founder-inner, .footer-inner {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .steps-grid::before { display: none; }
+  section { padding-left: 24px !important; padding-right: 24px !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="navbar">
+  <a href="#" class="nav-logo">ruled<span>.ca</span></a>
+  <ul class="nav-links">
+    <li><a href="#how-it-works">How It Works</a></li>
+    <li><a href="#strength-preview">Case Assessment</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="/login">Login</a></li>
+  </ul>
+  <a href="/onboarding" class="nav-cta">Start Free</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">Canadian Small Claims Platform</div>
+    <h1>You have rights.<br><em>Use them.</em></h1>
+    <p class="hero-sub">
+      We give you <strong>the tools and confidence to get your money back</strong> — without paying $400 an hour for a lawyer. AI-powered case assessment, demand letters, and full court prep. Flat fee.
+    </p>
+    <div class="hero-actions">
+      <a href="#strength-preview" class="btn-primary">
+        Assess My Case Free
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+      <a href="#how-it-works" class="btn-secondary">
+        See how it works
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+      </a>
+    </div>
+  </div>
+  <div class="scroll-arrow">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+  </div>
+</section>
+
+<!-- EDUCATION / STATS -->
+<section id="education">
+
+  <div class="edu-panel" id="edu1">
+    <div class="edu-panel-inner">
+      <div class="stat-number">180,000+</div>
+      <p class="stat-label">small claims court cases are filed in Canada <strong>every single year.</strong></p>
+      <div class="gold-divider"></div>
+      <p class="stat-detail">From contractors who disappear to landlords who keep deposits — Canadians are owed money every day. The system exists to help you get it back.</p>
+    </div>
+  </div>
+
+  <div class="edu-panel" id="edu2">
+    <div class="edu-panel-inner">
+      <div class="stat-number">70%</div>
+      <p class="stat-label">of people who are owed money <strong>never do anything about it.</strong></p>
+      <div class="gold-divider"></div>
+      <p class="stat-detail">Not because they don't have a case. Because the process feels complicated, expensive, and overwhelming. Most people don't even know where to start — and that's exactly the position I was in when I built this.</p>
+    </div>
+  </div>
+
+  <div class="edu-panel" id="edu3">
+    <div class="edu-panel-inner">
+      <div class="stat-number" style="font-size: clamp(32px,5vw,56px); letter-spacing: -1px; margin-bottom: 28px;">What's a demand letter?</div>
+      <p class="stat-label" style="font-size: clamp(16px,2vw,20px);">A <strong>demand letter</strong> is a formal legal document you send to whoever owes you money. It clearly states what they owe, why they need to pay, and that you will be filing in small claims court if they don't respond within a set timeline.</p>
+      <div class="gold-divider"></div>
+      <p class="stat-detail">It's your first move. It's professional. And it works more often than you'd think.</p>
+    </div>
+  </div>
+
+  <div class="edu-panel" id="edu4">
+    <div class="edu-panel-inner">
+      <div class="stat-number">40%</div>
+      <p class="stat-label">of cases are resolved by a demand letter alone — <strong>before ever going to court.</strong></p>
+      <div class="gold-divider"></div>
+      <p class="stat-detail">One letter. That's often all it takes. Ruled builds it for you in minutes — personalized to your case, province-specific, and ready to send.</p>
+    </div>
+  </div>
+
+</section>
+
+<!-- THREE STEPS -->
+<section id="how-it-works">
+  <div class="section-eyebrow">The Process</div>
+  <h2 class="section-title">Three steps to fighting back.</h2>
+  <p class="section-sub">No legal jargon. No confusing forms. Just a clear path from frustrated to paid.</p>
+
+  <div class="steps-grid">
+    <div class="step-card">
+      <div class="step-num">01</div>
+      <h3 class="step-title">Tell us what happened.</h3>
+      <p class="step-desc">Answer a few straightforward questions about your situation. Who owes you money, what happened, what evidence you have. No legal knowledge required — just the facts.</p>
+      <div class="step-badge">Free, takes 3 minutes</div>
+    </div>
+    <div class="step-card">
+      <div class="step-num">02</div>
+      <h3 class="step-title">Get your case strength score.</h3>
+      <p class="step-desc">Our AI analyzes your situation and gives you an instant case strength score. You'll know exactly where you stand, what evidence strengthens your position, and what risks to expect — before spending a cent.</p>
+      <div class="step-badge">Instant results</div>
+    </div>
+    <div class="step-card">
+      <div class="step-num">03</div>
+      <h3 class="step-title">Send the demand letter.</h3>
+      <p class="step-desc">Get a professionally drafted, province-specific demand letter built around your case. Download it, send it. If they don't respond, we prep you for court — filing instructions, scripts, everything.</p>
+      <div class="step-badge">From $49</div>
+    </div>
+  </div>
+</section>
+
+<!-- CASE STRENGTH PREVIEW -->
+<section id="strength-preview">
+  <div class="strength-inner">
+
+    <div class="strength-left fade-up">
+      <div class="section-eyebrow" style="justify-content: flex-start; margin-bottom: 20px;">
+        <span style="width:32px;height:1px;background:var(--gold);opacity:0.5;display:block;margin:0;"></span>
+        Free Assessment
+      </div>
+      <h2 class="section-title" style="text-align:left; font-size: clamp(32px,3.5vw,46px);">See your case strength instantly.</h2>
+      <p style="color:var(--muted); font-size:15px; line-height:1.75; margin: 20px 0 32px;">
+        Know exactly where you stand before spending a cent. Our AI reads your situation, weighs your evidence, and gives you a real score — not vague advice, not generic templates.
+      </p>
+      <ul style="list-style:none; display:flex; flex-direction:column; gap:14px; margin-bottom:36px;">
+        <li style="display:flex;gap:14px;align-items:flex-start;font-size:14px;color:rgba(255,255,255,0.75);">
+          <span style="color:var(--gold);margin-top:2px;">—</span>
+          Province-specific legal analysis
+        </li>
+        <li style="display:flex;gap:14px;align-items:flex-start;font-size:14px;color:rgba(255,255,255,0.75);">
+          <span style="color:var(--gold);margin-top:2px;">—</span>
+          Strengths, weaknesses, and realistic outcome
+        </li>
+        <li style="display:flex;gap:14px;align-items:flex-start;font-size:14px;color:rgba(255,255,255,0.75);">
+          <span style="color:var(--gold);margin-top:2px;">—</span>
+          Clear next steps with no legal jargon
+        </li>
+        <li style="display:flex;gap:14px;align-items:flex-start;font-size:14px;color:rgba(255,255,255,0.75);">
+          <span style="color:var(--gold);margin-top:2px;">—</span>
+          Completely free — no account required to start
+        </li>
+      </ul>
+      <a href="/onboarding" class="btn-primary" style="display:inline-flex;">
+        Start My Free Assessment
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+
+    <div class="strength-right fade-up delay-2">
+      <div class="strength-card">
+        <div class="score-meter-wrap">
+          <div class="score-meter">
+            <svg viewBox="0 0 160 160">
+              <circle class="track" cx="80" cy="80" r="65"/>
+              <circle class="fill" id="score-fill" cx="80" cy="80" r="65"/>
+            </svg>
+            <div class="score-center">
+              <div class="score-num" id="score-num">82</div>
+              <div class="score-label">Case Strength</div>
+            </div>
+          </div>
+          <div class="score-verdict">Strong Case</div>
+        </div>
+        <div class="assessment-preview">
+          <div class="assessment-row">
+            <div class="assessment-label">Summary</div>
+            <div class="assessment-text">
+              You hired a contractor to repair and repaint your deck for $2,400. You paid a $1,200 deposit. They abandoned the job without explanation and stopped responding...
+            </div>
+            <div class="assessment-text assessment-blur">
+              Alberta law requires contractors to complete work as agreed. Your evidence of payment combined with documented abandonment gives you a strong foundation. The written estimate strengthens your position significantly...
+            </div>
+          </div>
+          <div class="assessment-unlock">
+            <p>Complete your free assessment to unlock your full analysis</p>
+            <a href="/onboarding" class="btn-primary" style="display:inline-flex;font-size:11px;padding:12px 24px;">
+              Get My Full Assessment Free
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live questionnaire preview -->
+      <div style="margin-top: 16px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 28px; border-radius: 8px;">
+        <div style="font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:20px;">Try it now — it's free</div>
+        <div class="q-form">
+          <div>
+            <label class="q-label">What happened in your own words</label>
+            <textarea class="q-input" rows="3" placeholder="e.g. A contractor took my deposit and never completed the work..."></textarea>
+          </div>
+          <div class="q-row">
+            <div>
+              <label class="q-label">Amount owed</label>
+              <input type="text" class="q-input" placeholder="e.g. $3,500">
+            </div>
+            <div>
+              <label class="q-label">Province</label>
+              <select class="q-select">
+                <option value="">Select...</option>
+                <option>Ontario</option>
+                <option>British Columbia</option>
+                <option>Alberta</option>
+                <option>Quebec</option>
+                <option>Nova Scotia</option>
+                <option>New Brunswick</option>
+                <option>Manitoba</option>
+                <option>Saskatchewan</option>
+                <option>PEI</option>
+                <option>Newfoundland</option>
+              </select>
+            </div>
+          </div>
+          <button class="q-btn">Get My Case Strength Score →</button>
+          <div class="free-badge">Free · No account required · Results in 60 seconds</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- VS TABLE -->
+<section id="vs">
+  <div class="vs-inner">
+    <div class="section-eyebrow">Why Ruled</div>
+    <h2 class="section-title fade-up">Why Ruled?</h2>
+    <p class="section-sub fade-up delay-1">The same outcome. A fraction of the cost. A fraction of the time.</p>
+    <div class="vs-table fade-up delay-2">
+      <div class="vs-col">
+        <div class="vs-col-title">Traditional Lawyer</div>
+        <div class="vs-item"><span class="vs-x">✕</span> $300–$500 per hour</div>
+        <div class="vs-item"><span class="vs-x">✕</span> Weeks or months to get started</div>
+        <div class="vs-item"><span class="vs-x">✕</span> Intimidating and confusing process</div>
+        <div class="vs-item"><span class="vs-x">✕</span> Minimum $2,000–$5,000 before anything happens</div>
+        <div class="vs-item"><span class="vs-x">✕</span> No guarantee of outcome</div>
+      </div>
+      <div class="vs-col ruled">
+        <div class="vs-col-title">Ruled</div>
+        <div class="vs-item ruled-item"><span class="vs-check">✓</span> Flat fee — free to start, $49 or $199</div>
+        <div class="vs-item ruled-item"><span class="vs-check">✓</span> Ready in minutes, not months</div>
+        <div class="vs-item ruled-item"><span class="vs-check">✓</span> Plain language, step by step</div>
+        <div class="vs-item ruled-item"><span class="vs-check">✓</span> No commitment until you're ready</div>
+        <div class="vs-item ruled-item"><span class="vs-check">✓</span> Built specifically for small claims court</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="section-eyebrow">Pricing</div>
+  <h2 class="section-title fade-up">Simple flat-fee pricing. No surprises.</h2>
+  <p class="section-sub fade-up delay-1">Pay only for what you need. Start free — upgrade when you're ready.</p>
+  <div class="pricing-grid fade-up delay-2">
+    <div class="price-card">
+      <div class="price-tier">Free</div>
+      <div class="price-amount">$0</div>
+      <p class="price-desc">Know where you stand before spending anything.</p>
+      <ul class="price-features">
+        <li>Full AI case analysis</li>
+        <li>Case strength score</li>
+        <li>Province-specific assessment</li>
+        <li>Strengths, weaknesses, risks</li>
+        <li>Clear next steps</li>
+      </ul>
+      <a href="/onboarding" class="price-btn outline">Start Free Assessment</a>
+    </div>
+    <div class="price-card featured">
+      <div class="price-tag">Most Popular</div>
+      <div class="price-tier">Demand Letter</div>
+      <div class="price-amount">$49</div>
+      <p class="price-desc">A professionally drafted letter that resolves 40% of cases.</p>
+      <ul class="price-features">
+        <li>Everything in Free</li>
+        <li>Province-specific demand letter</li>
+        <li>Legal language and proper formatting</li>
+        <li>14-day payment demand</li>
+        <li>Step-by-step sending instructions</li>
+        <li>Saved to your dashboard</li>
+      </ul>
+      <a href="/onboarding" class="price-btn filled">Get Your Letter</a>
+    </div>
+    <div class="price-card">
+      <div class="price-tier">Full Case Pack</div>
+      <div class="price-amount">$199</div>
+      <p class="price-desc">Everything you need to walk into court prepared.</p>
+      <ul class="price-features">
+        <li>Everything in Demand Letter</li>
+        <li>Province-specific filing instructions</li>
+        <li>All court documents prepared</li>
+        <li>Opening and closing hearing scripts</li>
+        <li>Anticipated defence arguments</li>
+        <li>Day of court checklist</li>
+        <li>Unlimited AI case questions</li>
+      </ul>
+      <a href="/onboarding" class="price-btn outline">Get Full Pack</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOUNDER -->
+<section id="founder">
+  <div class="founder-inner fade-up">
+    <div class="founder-photo">
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0.15;">
+        <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <div class="founder-name-tag">
+        <div class="name">Finn Varette</div>
+        <div class="role">Founder, Ruled.ca</div>
+      </div>
+    </div>
+    <div>
+      <div class="section-eyebrow" style="justify-content:flex-start;">
+        <span style="width:32px;height:1px;background:var(--gold);opacity:0.5;display:block;margin:0;"></span>
+        The Story
+      </div>
+      <h2 class="founder-quote" style="margin-top:20px;">
+        Built from a bad experience.<br><em>Designed so it doesn't happen to you.</em>
+      </h2>
+      <p class="founder-body">
+        I built Ruled because I got screwed out of money and had <strong>no idea what to do.</strong> I didn't know I could send a demand letter. I didn't know I could represent myself in court for a small filing fee. Most people don't.
+      </p>
+      <p class="founder-body">
+        Ruled exists so the next person who gets ripped off — by a contractor, a landlord, a business that didn't deliver — <strong>knows exactly what to do and has the tools to fight back.</strong>
+      </p>
+      <a href="/onboarding" class="btn-primary" style="display:inline-flex;">
+        Start My Free Assessment
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="section-eyebrow">Questions</div>
+  <h2 class="section-title fade-up">Common questions.</h2>
+  <div class="faq-grid fade-up delay-1">
+    <div class="faq-item">
+      <div class="faq-q">Is this legal advice?</div>
+      <div class="faq-a">No. Ruled provides legal information, not legal advice. We are not a law firm. Our tools help you understand your situation and prepare documents — the decisions are always yours.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">What if I lose in court?</div>
+      <div class="faq-a">In small claims court, each party generally pays their own costs regardless of outcome. You won't be on the hook for the other side's legal fees in most cases.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">How long does it take?</div>
+      <div class="faq-a">Your free case assessment takes about 3 minutes. Your demand letter is ready within minutes of purchase. Full case pack preparation typically takes 5–10 minutes.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Which provinces are supported?</div>
+      <div class="faq-a">All 10 Canadian provinces. Every assessment and document is tailored to your specific province's rules, limits, forms, and filing process.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">What if they don't respond to the demand letter?</div>
+      <div class="faq-a">If they don't respond within the timeline, you move to file in small claims court. Our Full Case Pack gives you everything you need — filing instructions, court documents, and hearing preparation.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Is my information private?</div>
+      <div class="faq-a">Yes. Your case details are stored securely and never shared. Only you can access your assessments and documents through your account.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Do I need a lawyer?</div>
+      <div class="faq-a">No. Small claims court is specifically designed for self-represented parties. Ruled gives you everything a lawyer would prepare — at a fraction of the cost.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">How long does the whole process take?</div>
+      <div class="faq-a">A demand letter gives the other party 14 days to respond. If you proceed to court, small claims hearings are typically scheduled within 3–6 months of filing, depending on your province.</div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section id="final-cta">
+  <div class="final-title fade-up">
+    Ready to fight back?<br><em>You don't need a lawyer.</em>
+  </div>
+  <p class="final-sub fade-up delay-1">Get your free case assessment in 60 seconds. Know exactly where you stand before spending anything.</p>
+  <a href="/onboarding" class="btn-primary fade-up delay-2" style="display:inline-flex; font-size:14px; padding:18px 44px;">
+    Assess My Case Free
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+  </a>
+  <div class="final-trust fade-up delay-3">
+    <span>✓ Free to start</span>
+    <span>✓ No credit card required</span>
+    <span>✓ All 10 provinces</span>
+    <span>✓ Results in 60 seconds</span>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <span class="logo">ruled<span>.ca</span></span>
+      <p>Win without a lawyer. AI-powered small claims court tools for everyday Canadians.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Product</h4>
+      <ul>
+        <li><a href="#">How It Works</a></li>
+        <li><a href="#">Pricing</a></li>
+        <li><a href="#">Demand Letter</a></li>
+        <li><a href="#">Full Case Pack</a></li>
+        <li><a href="#">Blog</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Company</h4>
+      <ul>
+        <li><a href="#">About</a></li>
+        <li><a href="#">Contact</a></li>
+        <li><a href="#">Sign In</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Legal</h4>
+      <ul>
+        <li><a href="#">Privacy Policy</a></li>
+        <li><a href="#">Terms of Service</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Ruled Technologies Inc. All rights reserved.</span>
+    <span>Legal information, not legal advice.</span>
+  </div>
+</footer>
+
+<script>
+// Nav scroll effect
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+  navbar.classList.toggle('scrolled', window.scrollY > 50);
+});
+
+// IntersectionObserver for fade-up elements
+const fadeObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      fadeObserver.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.15 });
+
+document.querySelectorAll('.fade-up').forEach(el => fadeObserver.observe(el));
+
+// Step cards animation
+const stepObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('animate-in');
+      stepObserver.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.2 });
+
+document.querySelectorAll('.step-card').forEach(el => stepObserver.observe(el));
+
+// Education panels animation
+const eduObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+    } else {
+      e.target.classList.remove('visible');
+    }
+  });
+}, { threshold: 0.3 });
+
+document.querySelectorAll('.edu-panel').forEach(el => eduObserver.observe(el));
+
+// FAQ toggles
+document.querySelectorAll('.faq-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+    if (!isOpen) item.classList.add('open');
+  });
+});
+
+// Score meter animation
+const scoreObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      // Circumference = 2 * pi * 65 = ~408
+      // 82/100 = 0.82 of 408 = ~334.5 filled
+      // dashoffset = 408 - 334.5 = ~73.5
+      document.getElementById('score-fill').style.strokeDashoffset = '73';
+      
+      // Count up number
+      let count = 0;
+      const target = 82;
+      const interval = setInterval(() => {
+        count += 2;
+        if (count >= target) {
+          count = target;
+          clearInterval(interval);
+        }
+        document.getElementById('score-num').textContent = count;
+      }, 20);
+      
+      scoreObserver.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.3 });
+
+const scoreEl = document.querySelector('.score-meter');
+if (scoreEl) scoreObserver.observe(scoreEl);
+
+// Set initial state of score fill
+document.getElementById('score-fill').style.strokeDashoffset = '408';
+
+// Smooth scroll for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) target.scrollIntoView({ behavior: 'smooth' });
+  });
+});
+</script>
+</body>
+</html>
