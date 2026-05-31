@@ -366,23 +366,29 @@ class BrandedPdfBuilder {
   private readonly bodyTop: number;
   private readonly bodyBottom: number;
   private readonly logoDataUrl: string | null;
+  private readonly headerTitle: string;
+  private readonly subheaderText: string;
 
-  constructor(logoDataUrl: string | null = null) {
+  constructor(logoDataUrl: string | null = null, headerTitle = "", subheaderText = "") {
     this.logoDataUrl = logoDataUrl;
+    this.headerTitle = headerTitle;
+    this.subheaderText = subheaderText;
     this.doc = new jsPDF({ unit: "pt", format: "letter" });
     this.pageWidth = this.doc.internal.pageSize.getWidth();
     this.pageHeight = this.doc.internal.pageSize.getHeight();
     this.contentWidth = this.pageWidth - MARGIN * 2;
-    this.bodyTop = HEADER_HEIGHT + 32;
+    this.bodyTop = HEADER_HEIGHT + (this.subheaderText ? 46 : 32);
     this.bodyBottom = this.pageHeight - FOOTER_HEIGHT - 20;
     this.y = this.bodyTop;
     this.drawPageChrome();
   }
 
   private drawHeader() {
+    // Navy background bar
     this.doc.setFillColor(NAVY.r, NAVY.g, NAVY.b);
     this.doc.rect(0, 0, this.pageWidth, HEADER_HEIGHT, "F");
 
+    // "ruled.ca" on left in white
     if (this.logoDataUrl) {
       const logoY = (HEADER_HEIGHT - LOGO_HEIGHT) / 2;
       this.doc.addImage(this.logoDataUrl, "PNG", MARGIN, logoY, LOGO_WIDTH, LOGO_HEIGHT);
@@ -393,27 +399,49 @@ class BrandedPdfBuilder {
       this.doc.text("ruled.ca", MARGIN, 26);
     }
 
-    this.doc.setFont(FONT, "normal");
-    this.doc.setFontSize(10);
-    this.doc.setTextColor(255, 255, 255);
-    this.doc.text(formatDate(), this.pageWidth - MARGIN, 26, { align: "right" });
+    // Document title on right in gold (#D4A853)
+    if (this.headerTitle) {
+      this.doc.setFont(FONT, "normal");
+      this.doc.setFontSize(10);
+      this.doc.setTextColor(212, 168, 83);
+      this.doc.text(this.headerTitle, this.pageWidth - MARGIN, 26, { align: "right" });
+    }
+
+    // Subheader row: case name + date in grey below the navy bar
+    if (this.subheaderText) {
+      this.doc.setFont(FONT, "normal");
+      this.doc.setFontSize(9);
+      this.doc.setTextColor(120, 120, 130);
+      this.doc.text(this.subheaderText, MARGIN, HEADER_HEIGHT + 16);
+      this.doc.setFontSize(9);
+      this.doc.text(formatDate(), this.pageWidth - MARGIN, HEADER_HEIGHT + 16, { align: "right" });
+    }
   }
 
   private drawFooter(pageNum: number, totalPages: number) {
-    const footerY = this.pageHeight - 18;
+    const barY = this.pageHeight - FOOTER_HEIGHT;
+    const textY = this.pageHeight - FOOTER_HEIGHT / 2;
+
+    // Thin navy footer bar
+    this.doc.setFillColor(NAVY.r, NAVY.g, NAVY.b);
+    this.doc.rect(0, barY, this.pageWidth, FOOTER_HEIGHT, "F");
+
+    // "ruled.ca" left in white
+    this.doc.setFont(FONT, "bold");
+    this.doc.setFontSize(9);
+    this.doc.setTextColor(255, 255, 255);
+    this.doc.text("ruled.ca", MARGIN, textY);
+
+    // "Legal information, not legal advice." center in muted
     this.doc.setFont(FONT, "italic");
     this.doc.setFontSize(9);
     this.doc.setTextColor(MUTED.r, MUTED.g, MUTED.b);
-    this.doc.text(
-      "Ruled.ca — Fight back. Get what you're owed.",
-      this.pageWidth / 2,
-      footerY,
-      { align: "center" }
-    );
+    this.doc.text("Legal information, not legal advice.", this.pageWidth / 2, textY, { align: "center" });
+
+    // Page number right in muted
     this.doc.setFont(FONT, "normal");
-    this.doc.text(`Page ${pageNum} of ${totalPages}`, this.pageWidth - MARGIN, footerY, {
-      align: "right",
-    });
+    this.doc.setFontSize(9);
+    this.doc.text(`${pageNum} / ${totalPages}`, this.pageWidth - MARGIN, textY, { align: "right" });
   }
 
   private setBodyStyle() {
@@ -467,16 +495,18 @@ class BrandedPdfBuilder {
   addSectionTitle(title: string) {
     this.ensureSpace(50);
     this.y += SECTION_GAP * 0.6;
+
+    // Gold left border accent (3pt wide, height of title block)
+    const titleLines = this.doc.splitTextToSize(title, this.contentWidth - 12);
+    const titleHeight = titleLines.length * 22 + 8;
+    this.doc.setFillColor(212, 168, 83);
+    this.doc.rect(MARGIN - 10, this.y - 14, 3, titleHeight, "F");
+
     this.doc.setFont(FONT, "bold");
-    this.doc.setFontSize(16);
+    this.doc.setFontSize(13);
     this.doc.setTextColor(BODY_COLOR.r, BODY_COLOR.g, BODY_COLOR.b);
-    const lines = this.doc.splitTextToSize(title, this.contentWidth);
-    this.renderWrappedLines(lines, MARGIN, this.contentWidth, 22);
-    // Rule line under heading for visual separation
-    this.doc.setDrawColor(BODY_COLOR.r, BODY_COLOR.g, BODY_COLOR.b);
-    this.doc.setLineWidth(0.5);
-    this.doc.line(MARGIN, this.y + 2, MARGIN + this.contentWidth, this.y + 2);
-    this.y += 10;
+    this.renderWrappedLines(titleLines, MARGIN, this.contentWidth, 20);
+    this.y += 8;
     this.setBodyStyle();
   }
 
@@ -577,9 +607,9 @@ class BrandedPdfBuilder {
   }
 }
 
-async function buildPdfBlob(options: PdfBuildOptions): Promise<Blob> {
+async function buildPdfBlob(options: PdfBuildOptions & { subheaderText?: string }): Promise<Blob> {
   const logoDataUrl = await fetchLogoDataUrl();
-  const builder = new BrandedPdfBuilder(logoDataUrl);
+  const builder = new BrandedPdfBuilder(logoDataUrl, options.documentTitle ?? "", options.subheaderText ?? "");
   if (options.documentTitle) {
     builder.addDocumentTitle(options.documentTitle);
   }
@@ -596,7 +626,7 @@ async function buildPdfBlob(options: PdfBuildOptions): Promise<Blob> {
 
 export async function downloadBrandedPdf(
   filename: string,
-  options: PdfBuildOptions
+  options: PdfBuildOptions & { subheaderText?: string }
 ): Promise<void> {
   const blob = await buildPdfBlob(options);
   triggerBlobDownload(filename.endsWith(".pdf") ? filename : `${filename}.pdf`, blob);
@@ -635,7 +665,7 @@ export async function downloadDemandLetterPdf(
   filename = "ruled-demand-letter.pdf"
 ): Promise<void> {
   const logoDataUrl = await fetchLogoDataUrl();
-  const builder = new BrandedPdfBuilder(logoDataUrl);
+  const builder = new BrandedPdfBuilder(logoDataUrl, "Demand Letter");
   builder.addDocumentTitle("Demand Letter");
 
   const lines = sanitizePdfText(letter).split("\n");

@@ -40,6 +40,17 @@ export type Case = {
   demand_letter: string | null;
   court_docs: string | null;
   hearing_prep: string | null;
+  // Status tracking
+  demand_letter_sent?: boolean | null;
+  demand_letter_sent_date?: string | null;
+  filing_confirmed?: boolean | null;
+  filing_confirmed_date?: string | null;
+  service_confirmed?: boolean | null;
+  hearing_date?: string | null;
+  // Billing
+  purchased_at?: string | null;
+  amount_paid_cents?: number | null;
+  receipt_url?: string | null;
 };
 
 export type WaitlistEntry = {
